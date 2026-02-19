@@ -1,0 +1,47 @@
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Model files
+*.pt
+*.pth
+*.bin
+*.ckpt
+
+# Hugging Face cache (optional)
+cache/
+models/
+
+# Large media files
+*.mp4
+*.avi
+*.wav
+*.jpg
+*.png
+
+# Dataset folders
+data/
+datasets/
+
+# Temporary files
+*.tmp
+*.swp
+test.jpeg

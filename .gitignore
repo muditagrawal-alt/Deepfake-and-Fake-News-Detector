@@ -28,7 +28,7 @@ __pycache__/
 
 # Hugging Face cache (optional)
 cache/
-models/
+
 
 # Large media files
 *.mp4

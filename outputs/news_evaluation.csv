@@ -1,0 +1,2 @@
+timestamp,url,title,ground_truth,predicted_label,confidence,twitter_signal,num_sources,real_score,fake_score,final_verdict,correct
+2026-04-04T14:21:01,https://www.aljazeera.com/news/2026/4/3/iran-war-what-is-happening-on-day-35-of-us-israeli-attacks,Iran war: What is happening on day 35 of US-Israeli attacks?,REAL,REAL,0.9997952580451965,HIGH ACTIVITY,5,4,0,LIKELY REAL,1

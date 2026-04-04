@@ -108,37 +108,63 @@ def get_video_metadata(video_path):
     except json.JSONDecodeError:
         return {}
     
-def has_meaningful_metadata(video_path):
+def analyze_metadata(video_path):
     """
-    Check whether the video has meaningful metadata beyond bare minimum codec/container info.
+    Return metadata-based signals instead of a simple True/False.
     """
     metadata = get_video_metadata(video_path)
 
+    result = {
+        "has_metadata": False,
+        "has_creation_time": False,
+        "has_device_info": False,
+        "encoder": None,
+        "suspicious_encoder": False,
+        "raw_tags": {}
+    }
+
     if not metadata:
-        return False
+        return result
 
     format_tags = metadata.get("format", {}).get("tags", {})
     streams = metadata.get("streams", [])
 
-    interesting_keys = {
-        "creation_time",
-        "com.apple.quicktime.creationdate",
-        "location",
-        "make",
-        "model",
-        "encoder"
-    }
+    result["raw_tags"] = format_tags
 
-    # Check format-level tags
-    for key in format_tags.keys():
-        if key.lower() in {k.lower() for k in interesting_keys}:
-            return True
-
-    # Check stream-level tags
+    # Collect all tags from format + streams
+    all_tags = dict(format_tags)
     for stream in streams:
         tags = stream.get("tags", {})
-        for key in tags.keys():
-            if key.lower() in {k.lower() for k in interesting_keys}:
-                return True
+        all_tags.update(tags)
 
-    return False
+    if all_tags:
+        result["has_metadata"] = True
+
+    # creation time
+    for key, value in all_tags.items():
+        k = key.lower()
+        if "creation" in k:
+            result["has_creation_time"] = True
+
+        if k in {"make", "model"}:
+            result["has_device_info"] = True
+
+    # encoder
+    encoder = all_tags.get("encoder")
+    if encoder:
+        result["encoder"] = encoder
+
+        suspicious_keywords = [
+            "google",
+            "lavf",
+            "libx264",
+            "capcut",
+            "canva",
+            "invideo",
+            "runway"
+        ]
+
+        if any(word in encoder.lower() for word in suspicious_keywords):
+            result["suspicious_encoder"] = True
+
+    return result

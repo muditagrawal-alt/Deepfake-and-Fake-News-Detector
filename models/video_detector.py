@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+from models.image_detector import predict_image
 
 
 def extract_frames(video_path, frames_dir="frames", fps=1):
@@ -28,3 +29,43 @@ def extract_frames(video_path, frames_dir="frames", fps=1):
     )
 
     return frames
+
+
+def analyze_frames(video_path, frames_dir="frames", fps=1):
+    """
+    Extract frames and run frame-level deepfake detection.
+    """
+    frames = extract_frames(video_path, frames_dir=frames_dir, fps=fps)
+
+    results = []
+    real_count = 0
+    fake_count = 0
+
+    for frame_path in frames:
+        try:
+            label, confidence = predict_image(frame_path)
+            results.append({
+                "frame": frame_path,
+                "label": label,
+                "confidence": confidence
+            })
+
+            if label.lower() == "real":
+                real_count += 1
+            else:
+                fake_count += 1
+
+        except Exception as e:
+            results.append({
+                "frame": frame_path,
+                "label": "ERROR",
+                "confidence": 0.0,
+                "error": str(e)
+            })
+
+    return {
+        "total_frames": len(frames),
+        "real_frames": real_count,
+        "fake_frames": fake_count,
+        "frame_results": results
+    }

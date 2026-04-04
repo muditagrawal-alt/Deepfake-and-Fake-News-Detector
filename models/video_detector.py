@@ -69,3 +69,20 @@ def analyze_frames(video_path, frames_dir="frames", fps=1):
         "fake_frames": fake_count,
         "frame_results": results
     }
+
+def has_audio(video_path):
+    """
+    Check whether the video contains an audio stream.
+    """
+    command = [
+        "ffprobe",
+        "-v", "error",
+        "-select_streams", "a",
+        "-show_entries", "stream=codec_type",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        video_path
+    ]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+
+    return "audio" in result.stdout.lower()

@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 from models.image_detector import predict_image
+import json  
 
 
 def extract_frames(video_path, frames_dir="frames", fps=1):
@@ -86,3 +87,58 @@ def has_audio(video_path):
     result = subprocess.run(command, capture_output=True, text=True)
 
     return "audio" in result.stdout.lower()
+
+def get_video_metadata(video_path):
+    """
+    Extract metadata using ffprobe.
+    """
+    command = [
+        "ffprobe",
+        "-v", "quiet",
+        "-print_format", "json",
+        "-show_format",
+        "-show_streams",
+        video_path
+    ]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {}
+    
+def has_meaningful_metadata(video_path):
+    """
+    Check whether the video has meaningful metadata beyond bare minimum codec/container info.
+    """
+    metadata = get_video_metadata(video_path)
+
+    if not metadata:
+        return False
+
+    format_tags = metadata.get("format", {}).get("tags", {})
+    streams = metadata.get("streams", [])
+
+    interesting_keys = {
+        "creation_time",
+        "com.apple.quicktime.creationdate",
+        "location",
+        "make",
+        "model",
+        "encoder"
+    }
+
+    # Check format-level tags
+    for key in format_tags.keys():
+        if key.lower() in {k.lower() for k in interesting_keys}:
+            return True
+
+    # Check stream-level tags
+    for stream in streams:
+        tags = stream.get("tags", {})
+        for key in tags.keys():
+            if key.lower() in {k.lower() for k in interesting_keys}:
+                return True
+
+    return False

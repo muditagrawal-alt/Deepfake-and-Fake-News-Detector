@@ -1,9 +1,9 @@
 import os
 import shutil
 import subprocess
-from models.image_detector import predict_image
 import json
 import cv2
+from models.image_detector import predict_image
 
 
 def extract_frames(video_path, frames_dir="frames", fps=1):
@@ -72,6 +72,7 @@ def analyze_frames(video_path, frames_dir="frames", fps=1):
         "frame_results": results
     }
 
+
 def has_audio(video_path):
     """
     Check whether the video contains an audio stream.
@@ -86,8 +87,8 @@ def has_audio(video_path):
     ]
 
     result = subprocess.run(command, capture_output=True, text=True)
-
     return "audio" in result.stdout.lower()
+
 
 def get_video_metadata(video_path):
     """
@@ -108,7 +109,8 @@ def get_video_metadata(video_path):
         return json.loads(result.stdout)
     except json.JSONDecodeError:
         return {}
-    
+
+
 def analyze_metadata(video_path):
     """
     Return metadata-based signals instead of a simple True/False.
@@ -132,7 +134,6 @@ def analyze_metadata(video_path):
 
     result["raw_tags"] = format_tags
 
-    # Collect all tags from format + streams
     all_tags = dict(format_tags)
     for stream in streams:
         tags = stream.get("tags", {})
@@ -141,16 +142,15 @@ def analyze_metadata(video_path):
     if all_tags:
         result["has_metadata"] = True
 
-    # creation time
-    for key, value in all_tags.items():
+    for key in all_tags.keys():
         k = key.lower()
+
         if "creation" in k:
             result["has_creation_time"] = True
 
         if k in {"make", "model"}:
             result["has_device_info"] = True
 
-    # encoder
     encoder = all_tags.get("encoder")
     if encoder:
         result["encoder"] = encoder
@@ -167,8 +167,9 @@ def analyze_metadata(video_path):
 
         if any(word in encoder.lower() for word in suspicious_keywords):
             result["suspicious_encoder"] = True
-    
+
     return result
+
 
 def detect_face_ratio(frames_dir="frames"):
     """
@@ -202,3 +203,84 @@ def detect_face_ratio(frames_dir="frames"):
             face_frames += 1
 
     return face_frames / len(frames)
+
+
+def predict_video(video_path, frames_dir="frames", fps=1):
+    """
+    Final local video detector using:
+    - frame model
+    - audio presence
+    - metadata signals
+    - face ratio
+    """
+    frame_analysis = analyze_frames(video_path, frames_dir=frames_dir, fps=fps)
+    audio_present = has_audio(video_path)
+    metadata = analyze_metadata(video_path)
+    face_ratio = detect_face_ratio(frames_dir)
+
+    total_frames = frame_analysis["total_frames"]
+    real_frames = frame_analysis["real_frames"]
+    fake_frames = frame_analysis["fake_frames"]
+
+    if total_frames == 0:
+        return "ERROR", 0.0, {
+            "error": "No frames extracted"
+        }
+
+    real_score = 0
+    fake_score = 0
+
+    # Frame model signal
+    if real_frames >= fake_frames:
+        real_score += 2
+    else:
+        fake_score += 2
+
+    # Audio signal
+    if audio_present:
+        real_score += 1
+    else:
+        fake_score += 2
+
+    # Metadata signal
+    if metadata["suspicious_encoder"]:
+        fake_score += 3
+
+    if metadata["has_creation_time"]:
+        real_score += 1
+
+    if metadata["has_device_info"]:
+        real_score += 1
+
+    # Face ratio signal
+    if face_ratio >= 0.8:
+        real_score += 2
+    elif face_ratio >= 0.3:
+        fake_score += 1
+    else:
+        fake_score += 2
+
+    # Final decision
+    if fake_score > real_score:
+        label = "FAKE"
+    elif real_score > fake_score:
+        label = "REAL"
+    else:
+        label = "UNCERTAIN"
+
+    confidence = max(real_score, fake_score) / (real_score + fake_score)
+
+    details = {
+        "total_frames": total_frames,
+        "real_frames": real_frames,
+        "fake_frames": fake_frames,
+        "has_audio": audio_present,
+        "metadata": metadata,
+        "face_ratio": round(face_ratio, 2),
+        "scores": {
+            "real_score": real_score,
+            "fake_score": fake_score
+        }
+    }
+
+    return label, confidence, details

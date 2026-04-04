@@ -1,22 +1,10 @@
-from models.video_detector import (
-    analyze_frames,
-    has_audio,
-    analyze_metadata,
-    detect_face_ratio
-)
+from models.video_detector import predict_video
 
-video_path = "data/test_videos/buffet.mp4"
+video_path = "data/test_videos/video_resume.mp4"
 
-result = analyze_frames(video_path)
-meta = analyze_metadata(video_path)
-face_ratio = detect_face_ratio()
+label, conf, details = predict_video(video_path)
 
-print("Total frames:", result["total_frames"])
-print("Real frames:", result["real_frames"])
-print("Fake frames:", result["fake_frames"])
-
-print("\nHas audio:", has_audio(video_path))
-print("\nMetadata analysis:")
-print(meta)
-
-print("\nFace ratio:", round(face_ratio, 2))
+print("Label:", label)
+print("Confidence:", round(conf, 2))
+print("Details:")
+print(details)

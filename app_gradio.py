@@ -12,7 +12,9 @@ from utils.video_logger import log_video
 def compute_correct(predicted, ground_truth):
     if not ground_truth or ground_truth == "UNKNOWN":
         return None
-    return int(predicted == ground_truth)
+
+    normalized = predicted.replace("LIKELY ", "") if predicted else predicted
+    return int(normalized == ground_truth)
 
 
 def gradio_pipeline(url, image, video, ground_truth):
@@ -51,6 +53,9 @@ def gradio_pipeline(url, image, video, ground_truth):
     details_json = "{}"
     timestamp = datetime.now().isoformat(timespec="seconds")
 
+    # ==============================
+    # NEWS
+    # ==============================
     if modality == "news":
         title = news_data.get("title")
         label = news_data.get("label")
@@ -68,7 +73,7 @@ def gradio_pipeline(url, image, video, ground_truth):
             summary_lines.append("Top Related Headlines:")
             summary_lines.extend([f"- {s}" for s in sources[:5]])
 
-        correct = compute_correct(verdict.replace("LIKELY ", ""), ground_truth)
+        correct = compute_correct(verdict, ground_truth)
         if correct is not None:
             summary_lines.append(f"Correct: {bool(correct)}")
 
@@ -87,6 +92,9 @@ def gradio_pipeline(url, image, video, ground_truth):
             "correct": correct
         })
 
+    # ==============================
+    # IMAGE
+    # ==============================
     elif modality == "image":
         label = image_data.get("label")
         conf = image_data.get("confidence")
@@ -94,7 +102,7 @@ def gradio_pipeline(url, image, video, ground_truth):
         if label:
             summary_lines.append(f"Image Model: {label} ({conf:.2%})")
 
-        correct = compute_correct(verdict.replace("LIKELY ", ""), ground_truth)
+        correct = compute_correct(verdict, ground_truth)
         if correct is not None:
             summary_lines.append(f"Correct: {bool(correct)}")
 
@@ -110,12 +118,18 @@ def gradio_pipeline(url, image, video, ground_truth):
             "correct": correct
         })
 
+    # ==============================
+    # VIDEO
+    # ==============================
     elif modality == "video":
         label = video_data.get("label")
         conf = video_data.get("confidence")
         claim = video_data.get("claim")
+        context = video_data.get("context")
         twitter_signal = video_data.get("twitter_signal")
         sources = video_data.get("sources", [])
+        youtube_data = video_data.get("youtube", {})
+        linkedin_data = video_data.get("linkedin", {})
         details = video_data.get("details") or {}
         metadata = details.get("metadata", {})
 
@@ -123,13 +137,21 @@ def gradio_pipeline(url, image, video, ground_truth):
             summary_lines.append(f"Video Model: {label} ({conf:.2%})")
         if claim:
             summary_lines.append(f"Claim: {claim}")
+        if context:
+            summary_lines.append(f"Video Context: {context}")
         if twitter_signal:
             summary_lines.append(f"Twitter Signal: {twitter_signal}")
+
+        if youtube_data:
+            summary_lines.append(f"YouTube Signal: {youtube_data.get('signal')}")
+        if linkedin_data:
+            summary_lines.append(f"LinkedIn Signal: {linkedin_data.get('signal')}")
+
         if sources:
             summary_lines.append("Top Related Headlines:")
             summary_lines.extend([f"- {s}" for s in sources[:5]])
 
-        correct = compute_correct(verdict.replace("LIKELY ", ""), ground_truth)
+        correct = compute_correct(verdict, ground_truth)
         if correct is not None:
             summary_lines.append(f"Correct: {bool(correct)}")
 
@@ -139,11 +161,16 @@ def gradio_pipeline(url, image, video, ground_truth):
             "timestamp": timestamp,
             "video_path": video_path,
             "claim": claim,
+            "context": context,
             "ground_truth": ground_truth,
             "predicted_label": label,
             "confidence": conf,
             "twitter_signal": twitter_signal,
             "num_sources": len(sources),
+            "youtube_signal": youtube_data.get("signal"),
+            "youtube_num_results": youtube_data.get("num_results"),
+            "linkedin_signal": linkedin_data.get("signal"),
+            "linkedin_num_results": linkedin_data.get("num_results"),
             "total_frames": details.get("total_frames"),
             "real_frames": details.get("real_frames"),
             "fake_frames": details.get("fake_frames"),
@@ -185,7 +212,7 @@ with gr.Blocks(title="Multimodal Fake Content Detector") as demo:
     run_btn = gr.Button("Run Detection")
 
     with gr.Row():
-        summary_output = gr.Textbox(label="Summary", lines=20)
+        summary_output = gr.Textbox(label="Summary", lines=24)
         details_output = gr.Code(label="Detailed Signals", language="json")
 
     run_btn.click(

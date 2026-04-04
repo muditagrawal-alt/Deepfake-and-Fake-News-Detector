@@ -1,10 +1,62 @@
 from utils.article_extractor import extract_article
 from models.news_detector import predict_news
-from verifiers.web_verifier import verify_news
-from verifiers.twitter_checker import check_twitter
+from utils.web_verifier import verify_news
+from utils.twitter_checker import check_twitter
 from models.image_detector import predict_image
 from models.video_detector import predict_video
+from verifiers.youtube_verifier import verify_youtube
+from verifiers.linkedin_verifier import verify_linkedin
 import os
+
+
+def classify_video_context(video_details):
+    """
+    Decide whether external verification should matter for this video.
+    Returns one of:
+    - personal_human
+    - fictional_or_animated
+    - public_event_or_unknown
+    """
+    if not video_details:
+        return "public_event_or_unknown"
+
+    face_ratio = video_details.get("face_ratio", 0.0)
+    has_audio = video_details.get("has_audio", False)
+    metadata = video_details.get("metadata", {})
+    suspicious_encoder = metadata.get("suspicious_encoder", False)
+
+    if face_ratio >= 0.8 and has_audio and not suspicious_encoder:
+        return "personal_human"
+
+    if face_ratio < 0.2:
+        return "fictional_or_animated"
+
+    return "public_event_or_unknown"
+
+
+def fuse_external_evidence(web_result_count, twitter_signal, youtube_result, linkedin_result):
+    real_boost = 0
+    fake_boost = 0
+
+    if web_result_count >= 3:
+        real_boost += 1
+
+    if twitter_signal == "HIGH ACTIVITY":
+        real_boost += 1
+    elif twitter_signal == "LOW ACTIVITY":
+        fake_boost += 1
+
+    if youtube_result.get("signal") == "STRONG":
+        real_boost += 1
+    elif youtube_result.get("signal") == "NONE":
+        fake_boost += 1
+
+    if linkedin_result.get("signal") == "STRONG":
+        real_boost += 1
+    elif linkedin_result.get("signal") == "NONE":
+        fake_boost += 1
+
+    return real_boost, fake_boost
 
 
 def run_pipeline(url=None, image_path=None, video_path=None):
@@ -30,8 +82,11 @@ def run_pipeline(url=None, image_path=None, video_path=None):
             "confidence": None,
             "details": None,
             "claim": None,
+            "context": None,
             "twitter_signal": None,
-            "sources": []
+            "sources": [],
+            "youtube": {},
+            "linkedin": {}
         },
         "scores": {
             "real_score": 0,
@@ -94,7 +149,9 @@ def run_pipeline(url=None, image_path=None, video_path=None):
     # 🖼️ IMAGE PIPELINE
     # ==============================
     if image_path:
-        result["modality"] = "image" if not result["modality"] else result["modality"]
+        if not result["modality"]:
+            result["modality"] = "image"
+
         if os.path.exists(image_path):
             print("\n🔍 Running IMAGE analysis...")
 
@@ -120,7 +177,9 @@ def run_pipeline(url=None, image_path=None, video_path=None):
     # 🎥 VIDEO PIPELINE
     # ==============================
     if video_path:
-        result["modality"] = "video" if not result["modality"] else result["modality"]
+        if not result["modality"]:
+            result["modality"] = "video"
+
         if os.path.exists(video_path):
             print("\n🔍 Running VIDEO analysis...")
 
@@ -135,7 +194,7 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 print(f"Confidence: {video_conf*100:.2f}%")
                 print("Details:", details)
 
-                # Base video score from detector
+                # Base video score from local detector
                 if video_label == "FAKE":
                     fake_score += 2
                 elif video_label == "REAL":
@@ -168,31 +227,63 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 elif face_ratio < 0.3:
                     fake_score += 1
 
-                # Optional verification layer using filename-derived claim
+                # Context routing
+                video_context = classify_video_context(details)
+                result["video"]["context"] = video_context
+                print("\n🧭 Video Context:", video_context)
+
+                # Claim from filename
                 claim = os.path.basename(video_path).replace(".mp4", "").replace("_", " ")
                 result["video"]["claim"] = claim
                 print("\n🔎 Derived Claim:", claim)
 
-                sources = verify_news(claim)
+                sources = []
+                twitter_signal = "SKIPPED"
+                youtube_result = {
+                    "platform": "youtube",
+                    "query": claim,
+                    "num_results": 0,
+                    "matches": [],
+                    "signal": "SKIPPED"
+                }
+                linkedin_result = {
+                    "platform": "linkedin",
+                    "query": claim,
+                    "num_results": 0,
+                    "matches": [],
+                    "signal": "SKIPPED"
+                }
+
+                # Only verify externally if the video is plausibly externally verifiable
+                if video_context == "public_event_or_unknown":
+                    sources = verify_news(claim)
+                    twitter_signal = check_twitter(claim)
+                    youtube_result = verify_youtube(claim)
+                    linkedin_result = verify_linkedin(claim)
+
+                    print("\nTop Related Headlines:")
+                    for s in sources:
+                        print("-", s)
+
+                    print("\nTwitter Signal:", twitter_signal)
+                    print("YouTube Signal:", youtube_result.get("signal"))
+                    print("LinkedIn Signal:", linkedin_result.get("signal"))
+
+                    ext_real, ext_fake = fuse_external_evidence(
+                        len(sources),
+                        twitter_signal,
+                        youtube_result,
+                        linkedin_result
+                    )
+                    real_score += ext_real
+                    fake_score += ext_fake
+                else:
+                    print("\n🌐 External verification skipped for this video type.")
+
                 result["video"]["sources"] = sources
-
-                print("\nTop Related Headlines:")
-                for s in sources:
-                    print("-", s)
-
-                twitter_signal = check_twitter(claim)
                 result["video"]["twitter_signal"] = twitter_signal
-                print("\nTwitter Signal:", twitter_signal)
-
-                # Apply web/twitter carefully:
-                # only boost if there is strong external support
-                if len(sources) >= 3:
-                    real_score += 1
-
-                if twitter_signal == "HIGH ACTIVITY":
-                    real_score += 1
-                elif twitter_signal == "LOW ACTIVITY":
-                    fake_score += 1
+                result["video"]["youtube"] = youtube_result
+                result["video"]["linkedin"] = linkedin_result
 
             except Exception as e:
                 print("❌ Video Error:", e)

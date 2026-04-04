@@ -145,7 +145,7 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 print("-", s)
 
             if len(sources) >= 3:
-                real_score += 1
+                real_score += 2
 
         else:
             print("❌ Failed to extract article.")
@@ -260,7 +260,7 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 }
 
                 # Only verify externally if the video is plausibly externally verifiable
-                if video_context == "public_event_or_unknown":
+                if video_context in ["public_event_or_unknown", "public_human_content"]:
                     sources = verify_news(claim)
                     twitter_signal = check_twitter(claim)
                     youtube_result = verify_youtube(claim)
@@ -280,6 +280,12 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                         youtube_result,
                         linkedin_result
                     )
+
+                    # Public human content should not be heavily penalized
+                    # for weak external evidence
+                    if video_context == "public_human_content":
+                        ext_fake = min(ext_fake, 1)
+
                     real_score += ext_real
                     fake_score += ext_fake
                 else:

@@ -230,7 +230,7 @@ def predict_video(video_path, frames_dir="frames", fps=1):
     real_score = 0
     fake_score = 0
 
-    # Frame model signal
+    # Frame model signal (weak for modern AI video)
     if real_frames >= fake_frames:
         real_score += 2
     else:
@@ -244,20 +244,27 @@ def predict_video(video_path, frames_dir="frames", fps=1):
 
     # Metadata signal
     encoder = (metadata.get("encoder") or "").lower()
+
     if metadata.get("suspicious_encoder", False):
         fake_score += 1
-        
+
     # Stronger suspicion only for platform/generator-specific cases
     if "google" in encoder:
         fake_score += 1
+
+    if metadata.get("has_creation_time", False):
+        real_score += 1
+
+    if metadata.get("has_device_info", False):
+        real_score += 1
 
     # Face ratio signal
     if face_ratio >= 0.8:
         real_score += 2
     elif face_ratio >= 0.3:
-        fake_score += 1
+        real_score += 1
     else:
-        fake_score += 2
+        fake_score += 1
 
     # Final decision
     if fake_score > real_score:

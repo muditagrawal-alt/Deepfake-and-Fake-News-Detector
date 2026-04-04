@@ -1,7 +1,7 @@
 from utils.article_extractor import extract_article
 from models.news_detector import predict_news
-from utils.web_verifier import verify_news
-from utils.twitter_checker import check_twitter
+from verifiers.web_verifier import verify_news
+from verifiers.twitter_checker import check_twitter
 from models.image_detector import predict_image
 from models.video_detector import predict_video
 import os

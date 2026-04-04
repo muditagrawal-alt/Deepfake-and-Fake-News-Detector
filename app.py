@@ -11,9 +11,9 @@ import os
 
 def classify_video_context(video_details):
     """
-    Decide whether external verification should matter for this video.
     Returns one of:
     - personal_human
+    - public_human_content
     - fictional_or_animated
     - public_event_or_unknown
     """
@@ -28,6 +28,9 @@ def classify_video_context(video_details):
     if face_ratio >= 0.8 and has_audio and not suspicious_encoder:
         return "personal_human"
 
+    if face_ratio >= 0.4 and has_audio:
+        return "public_human_content"
+
     if face_ratio < 0.2:
         return "fictional_or_animated"
 
@@ -38,23 +41,25 @@ def fuse_external_evidence(web_result_count, twitter_signal, youtube_result, lin
     real_boost = 0
     fake_boost = 0
 
+    # Web
     if web_result_count >= 3:
         real_boost += 1
 
+    # X / Twitter
     if twitter_signal == "HIGH ACTIVITY":
         real_boost += 1
     elif twitter_signal == "LOW ACTIVITY":
         fake_boost += 1
 
+    # YouTube is strong evidence for video existence
     if youtube_result.get("signal") == "STRONG":
+        real_boost += 2
+    elif youtube_result.get("signal") == "WEAK":
         real_boost += 1
-    elif youtube_result.get("signal") == "NONE":
-        fake_boost += 1
 
+    # LinkedIn should only add support, not penalize absence
     if linkedin_result.get("signal") == "STRONG":
         real_boost += 1
-    elif linkedin_result.get("signal") == "NONE":
-        fake_boost += 1
 
     return real_boost, fake_boost
 

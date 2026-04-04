@@ -243,14 +243,13 @@ def predict_video(video_path, frames_dir="frames", fps=1):
         fake_score += 2
 
     # Metadata signal
-    if metadata["suspicious_encoder"]:
-        fake_score += 3
-
-    if metadata["has_creation_time"]:
-        real_score += 1
-
-    if metadata["has_device_info"]:
-        real_score += 1
+    encoder = (metadata.get("encoder") or "").lower()
+    if metadata.get("suspicious_encoder", False):
+        fake_score += 1
+        
+    # Stronger suspicion only for platform/generator-specific cases
+    if "google" in encoder:
+        fake_score += 1
 
     # Face ratio signal
     if face_ratio >= 0.8:

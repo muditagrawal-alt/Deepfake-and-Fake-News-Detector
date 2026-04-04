@@ -45,3 +45,5 @@ datasets/
 *.tmp
 *.swp
 test.jpeg
+
+outputs/

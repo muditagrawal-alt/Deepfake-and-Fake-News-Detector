@@ -2,7 +2,8 @@ import os
 import shutil
 import subprocess
 from models.image_detector import predict_image
-import json  
+import json
+import cv2
 
 
 def extract_frames(video_path, frames_dir="frames", fps=1):
@@ -166,5 +167,38 @@ def analyze_metadata(video_path):
 
         if any(word in encoder.lower() for word in suspicious_keywords):
             result["suspicious_encoder"] = True
-
+    
     return result
+
+def detect_face_ratio(frames_dir="frames"):
+    """
+    Detect how many extracted frames contain at least one face.
+    Returns a ratio between 0 and 1.
+    """
+    cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    face_cascade = cv2.CascadeClassifier(cascade_path)
+
+    frames = sorted([f for f in os.listdir(frames_dir) if f.endswith(".jpg")])
+
+    if len(frames) == 0:
+        return 0.0
+
+    face_frames = 0
+
+    for frame in frames:
+        img = cv2.imread(os.path.join(frames_dir, frame))
+        if img is None:
+            continue
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(40, 40)
+        )
+
+        if len(faces) > 0:
+            face_frames += 1
+
+    return face_frames / len(frames)

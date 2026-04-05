@@ -1,2 +1,0 @@
-timestamp,image_path,ground_truth,predicted_label,confidence,real_score,fake_score,final_verdict,correct
-2026-04-04T14:21:46,/private/var/folders/98/ms95_z7n6374y5d36016trdh0000gn/T/gradio/9cda7e2b5323d88eae8bda2ddfd7da68e4a079e4a0479f5de59510ecac0b5ab0/test.jpeg,REAL,Fake,0.930452287197113,0,2,LIKELY FAKE,0

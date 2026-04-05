@@ -62,13 +62,22 @@ def gradio_pipeline(url, image, video, ground_truth):
         conf = news_data.get("confidence")
         twitter_signal = news_data.get("twitter_signal")
         sources = news_data.get("sources", [])
+        youtube_data = news_data.get("youtube", {})
+        linkedin_data = news_data.get("linkedin", {})
+        extraction_status = news_data.get("extraction_status")
 
         if title:
             summary_lines.append(f"Title: {title}")
+        if extraction_status:
+            summary_lines.append(f"Extraction Status: {extraction_status}")
         if label:
             summary_lines.append(f"News Model: {label} ({conf:.2%})")
         if twitter_signal:
             summary_lines.append(f"Twitter Signal: {twitter_signal}")
+        if youtube_data:
+            summary_lines.append(f"YouTube Signal: {youtube_data.get('signal')}")
+        if linkedin_data:
+            summary_lines.append(f"LinkedIn Signal: {linkedin_data.get('signal')}")
         if sources:
             summary_lines.append("Top Related Headlines:")
             summary_lines.extend([f"- {s}" for s in sources[:5]])
@@ -81,11 +90,16 @@ def gradio_pipeline(url, image, video, ground_truth):
             "timestamp": timestamp,
             "url": url,
             "title": title,
+            "extraction_status": extraction_status,
             "ground_truth": ground_truth,
             "predicted_label": label,
             "confidence": conf,
             "twitter_signal": twitter_signal,
             "num_sources": len(sources),
+            "youtube_signal": youtube_data.get("signal"),
+            "youtube_num_results": youtube_data.get("num_results"),
+            "linkedin_signal": linkedin_data.get("signal"),
+            "linkedin_num_results": linkedin_data.get("num_results"),
             "real_score": scores.get("real_score"),
             "fake_score": scores.get("fake_score"),
             "final_verdict": verdict,
@@ -98,9 +112,25 @@ def gradio_pipeline(url, image, video, ground_truth):
     elif modality == "image":
         label = image_data.get("label")
         conf = image_data.get("confidence")
+        query = image_data.get("query")
+        twitter_signal = image_data.get("twitter_signal")
+        sources = image_data.get("sources", [])
+        youtube_data = image_data.get("youtube", {})
+        linkedin_data = image_data.get("linkedin", {})
 
         if label:
             summary_lines.append(f"Image Model: {label} ({conf:.2%})")
+        if query:
+            summary_lines.append(f"Image Query: {query}")
+        if twitter_signal:
+            summary_lines.append(f"Twitter Signal: {twitter_signal}")
+        if youtube_data:
+            summary_lines.append(f"YouTube Signal: {youtube_data.get('signal')}")
+        if linkedin_data:
+            summary_lines.append(f"LinkedIn Signal: {linkedin_data.get('signal')}")
+        if sources:
+            summary_lines.append("Top Related Headlines:")
+            summary_lines.extend([f"- {s}" for s in sources[:5]])
 
         correct = compute_correct(verdict, ground_truth)
         if correct is not None:
@@ -109,9 +139,16 @@ def gradio_pipeline(url, image, video, ground_truth):
         log_image({
             "timestamp": timestamp,
             "image_path": image_path,
+            "query": query,
             "ground_truth": ground_truth,
             "predicted_label": label,
             "confidence": conf,
+            "twitter_signal": twitter_signal,
+            "num_sources": len(sources),
+            "youtube_signal": youtube_data.get("signal"),
+            "youtube_num_results": youtube_data.get("num_results"),
+            "linkedin_signal": linkedin_data.get("signal"),
+            "linkedin_num_results": linkedin_data.get("num_results"),
             "real_score": scores.get("real_score"),
             "fake_score": scores.get("fake_score"),
             "final_verdict": verdict,
@@ -141,12 +178,10 @@ def gradio_pipeline(url, image, video, ground_truth):
             summary_lines.append(f"Video Context: {context}")
         if twitter_signal:
             summary_lines.append(f"Twitter Signal: {twitter_signal}")
-
         if youtube_data:
             summary_lines.append(f"YouTube Signal: {youtube_data.get('signal')}")
         if linkedin_data:
             summary_lines.append(f"LinkedIn Signal: {linkedin_data.get('signal')}")
-
         if sources:
             summary_lines.append("Top Related Headlines:")
             summary_lines.extend([f"- {s}" for s in sources[:5]])
@@ -212,7 +247,7 @@ with gr.Blocks(title="Multimodal Fake Content Detector") as demo:
     run_btn = gr.Button("Run Detection")
 
     with gr.Row():
-        summary_output = gr.Textbox(label="Summary", lines=24)
+        summary_output = gr.Textbox(label="Summary", lines=28)
         details_output = gr.Code(label="Detailed Signals", language="json")
 
     run_btn.click(

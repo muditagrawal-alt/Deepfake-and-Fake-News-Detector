@@ -6,14 +6,23 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 model_name = "dima806/deepfake_vs_real_image_detection"
 
-processor = AutoImageProcessor.from_pretrained(model_name)
-model = AutoModelForImageClassification.from_pretrained(model_name)
+processor = None
+model = None
 
-model.to(device)
-model.eval()
+
+def load_image_model():
+    global processor, model
+
+    if processor is None or model is None:
+        processor = AutoImageProcessor.from_pretrained(model_name)
+        model = AutoModelForImageClassification.from_pretrained(model_name)
+        model.to(device)
+        model.eval()
 
 
 def predict_image(image_path):
+    load_image_model()
+
     image = Image.open(image_path).convert("RGB")
 
     inputs = processor(images=image, return_tensors="pt")

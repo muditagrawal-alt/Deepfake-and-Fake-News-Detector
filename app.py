@@ -3,6 +3,7 @@ from models.news_detector import predict_news
 from models.image_detector import predict_image
 from models.video_detector import predict_video
 from verifiers.external_verifier import verify_external_sources, fuse_external_signals
+from PIL import Image
 import os
 
 
@@ -18,6 +19,14 @@ def is_satire_domain(url):
         "babylonbee.com"
     ]
     return any(domain in url.lower() for domain in satire_domains)
+
+
+def has_metadata(path):
+    try:
+        img = Image.open(path)
+        return bool(img.info)
+    except Exception:
+        return False
 
 
 def classify_video_context(video_details):
@@ -158,7 +167,7 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                         real_score += 1
                         fake_score += 1
 
-                # External evidence (weakened in external_verifier.py)
+                # External evidence
                 evidence = verify_external_sources(title)
                 ext_real, ext_fake = fuse_external_signals(evidence, modality="news")
 
@@ -223,13 +232,23 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 print("\n🖼️ Image Prediction:", image_label)
                 print(f"Confidence: {image_conf*100:.2f}%")
 
-                # Local image-model signal
-                if image_label == "REAL":
-                    real_score += 2
-                elif image_label == "FAKE":
-                    fake_score += 2
-                else:
+                # Confidence-aware local image-model signal
+                if image_conf < 0.60:
+                    print("⚠️ Low confidence image prediction → neutral")
                     real_score += 1
+                    fake_score += 1
+                else:
+                    if image_label == "REAL":
+                        real_score += 2 * image_conf
+                    elif image_label == "FAKE":
+                        fake_score += 2 * image_conf
+                    else:
+                        real_score += 1
+                        fake_score += 1
+
+                # Metadata heuristic
+                if not has_metadata(image_path):
+                    print("📉 No metadata → slight FAKE signal")
                     fake_score += 1
 
                 # Lightweight external evidence from filename-derived query

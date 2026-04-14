@@ -180,10 +180,13 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 print(f"Confidence: {image_conf*100:.2f}%")
 
                 # Local image-model signal
-                if image_label.lower() == "real":
+                if image_label == "REAL":
                     real_score += 2
-                else:
+                elif image_label == "FAKE":
                     fake_score += 2
+                else:
+                    real_score += 1
+                    fake_score += 1
 
                 # Lightweight external evidence from filename-derived query
                 image_query = os.path.splitext(os.path.basename(image_path))[0].replace("_", " ")
@@ -250,7 +253,7 @@ def run_pipeline(url=None, image_path=None, video_path=None):
                 has_audio = details.get("has_audio", False) if details else False
 
                 if metadata.get("suspicious_encoder", False):
-                    fake_score += 2
+                    fake_score += 1
 
                 if metadata.get("has_creation_time", False):
                     real_score += 1

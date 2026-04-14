@@ -4,7 +4,7 @@ from PIL import Image
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
-model_name = "dima806/deepfake_vs_real_image_detection"
+model_name = "Organika/sdxl-detector"
 
 processor = None
 model = None
@@ -18,6 +18,35 @@ def load_image_model():
         model = AutoModelForImageClassification.from_pretrained(model_name)
         model.to(device)
         model.eval()
+
+
+def normalize_label(raw_label: str) -> str:
+    label = (raw_label or "").strip().lower()
+
+    fake_keywords = {
+        "fake",
+        "ai",
+        "generated",
+        "synthetic",
+        "sdxl",
+        "label_1",
+    }
+
+    real_keywords = {
+        "real",
+        "human",
+        "authentic",
+        "natural",
+        "label_0",
+    }
+
+    if label in fake_keywords or any(word in label for word in ["fake", "ai", "synthetic", "generated"]):
+        return "FAKE"
+
+    if label in real_keywords or "real" in label:
+        return "REAL"
+
+    return raw_label.upper() if raw_label else "UNKNOWN"
 
 
 def predict_image(image_path):
@@ -34,6 +63,7 @@ def predict_image(image_path):
     probs = torch.softmax(outputs.logits, dim=1)
     confidence, predicted_class = torch.max(probs, dim=1)
 
-    label = model.config.id2label[predicted_class.item()]
+    raw_label = model.config.id2label[predicted_class.item()]
+    label = normalize_label(raw_label)
 
     return label, float(confidence.item())

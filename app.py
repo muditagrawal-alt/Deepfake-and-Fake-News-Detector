@@ -12,6 +12,14 @@ def derive_query_from_url(url):
     return slug
 
 
+def is_satire_domain(url):
+    satire_domains = [
+        "theonion.com",
+        "babylonbee.com"
+    ]
+    return any(domain in url.lower() for domain in satire_domains)
+
+
 def classify_video_context(video_details):
     """
     Returns one of:
@@ -94,72 +102,108 @@ def run_pipeline(url=None, image_path=None, video_path=None):
         result["modality"] = "news"
         print("\n🔍 Running NEWS analysis...")
 
-        title, text = extract_article(url)
+        if is_satire_domain(url):
+            print("\n🚨 Satire domain detected → Strong FAKE signal")
+            fake_score += 4
+            result["news"]["title"] = "SATIRE SOURCE DETECTED"
+            result["news"]["extraction_status"] = "SKIPPED_SATIRE"
+            result["news"]["label"] = "FAKE"
+            result["news"]["confidence"] = 1.0
 
-        if text:
-            result["news"]["extraction_status"] = "SUCCESS"
-            result["news"]["title"] = title
-            print("\n📰 TITLE:", title)
+            result["news"]["sources"] = []
+            result["news"]["twitter_signal"] = "SKIPPED_SATIRE"
+            result["news"]["youtube"] = {
+                "platform": "youtube",
+                "query": url,
+                "num_results": 0,
+                "matches": [],
+                "signal": "SKIPPED_SATIRE"
+            }
+            result["news"]["linkedin"] = {
+                "platform": "linkedin",
+                "query": url,
+                "num_results": 0,
+                "matches": [],
+                "signal": "SKIPPED_SATIRE"
+            }
 
-            news_label, news_conf = predict_news(text[:512])
-            result["news"]["label"] = news_label
-            result["news"]["confidence"] = news_conf
-
-            print("\nNews Prediction:", news_label)
-            print(f"Confidence: {news_conf*100:.2f}%")
-
-            # Local text-model signal
-            if news_label == "REAL":
-                real_score += 2
-            else:
-                fake_score += 2
-
-            # Shared external evidence
-            evidence = verify_external_sources(title)
-            ext_real, ext_fake = fuse_external_signals(evidence, modality="news")
-
-            real_score += ext_real
-            fake_score += ext_fake
-
-            result["news"]["sources"] = evidence["web_sources"]
-            result["news"]["twitter_signal"] = evidence["twitter_signal"]
-            result["news"]["youtube"] = evidence["youtube"]
-            result["news"]["linkedin"] = evidence["linkedin"]
-
-            print("\nTop Related Headlines:")
-            for s in evidence["web_sources"]:
-                print("-", s)
-
-            print("\nTwitter Signal:", evidence["twitter_signal"])
-            print("YouTube Signal:", evidence["youtube"].get("signal"))
-            print("LinkedIn Signal:", evidence["linkedin"].get("signal"))
+            print("\n🌐 External verification skipped for satire source.")
 
         else:
-            print("❌ Failed to extract article.")
-            fallback_query = derive_query_from_url(url)
-            result["news"]["extraction_status"] = "FAILED_FALLBACK_USED"
-            result["news"]["title"] = fallback_query
+            title, text = extract_article(url)
 
-            print("🔎 Using fallback query:", fallback_query)
+            if text:
+                result["news"]["extraction_status"] = "SUCCESS"
+                result["news"]["title"] = title
+                print("\n📰 TITLE:", title)
 
-            evidence = verify_external_sources(fallback_query)
-            ext_real, ext_fake = fuse_external_signals(evidence, modality="news")
+                news_label, news_conf = predict_news(text[:512])
+                result["news"]["label"] = news_label
+                result["news"]["confidence"] = news_conf
 
-            real_score += ext_real
-            fake_score += ext_fake
+                print("\nNews Prediction:", news_label)
+                print(f"Confidence: {news_conf*100:.2f}%")
 
-            result["news"]["sources"] = evidence["web_sources"]
-            result["news"]["twitter_signal"] = evidence["twitter_signal"]
-            result["news"]["youtube"] = evidence["youtube"]
-            result["news"]["linkedin"] = evidence["linkedin"]
+                # Confidence-aware local model signal
+                if news_conf < 0.60:
+                    print("⚠️ Low confidence news prediction → neutral signal")
+                    real_score += 1
+                    fake_score += 1
+                else:
+                    if news_label == "REAL":
+                        real_score += 2 * news_conf
+                    elif news_label == "FAKE":
+                        fake_score += 2 * news_conf
+                    else:
+                        real_score += 1
+                        fake_score += 1
 
-            print("\nTop Related Headlines:")
-            for s in evidence["web_sources"]:
-                print("-", s)
+                # External evidence (weakened in external_verifier.py)
+                evidence = verify_external_sources(title)
+                ext_real, ext_fake = fuse_external_signals(evidence, modality="news")
 
-            print("\nTwitter Signal:", evidence["twitter_signal"])
-            print("YouTube Signal:", evidence["youtube"].get("signal"))
-            print("LinkedIn Signal:", evidence["linkedin"].get("signal"))
+                real_score += ext_real
+                fake_score += ext_fake
+
+                result["news"]["sources"] = evidence["web_sources"]
+                result["news"]["twitter_signal"] = evidence["twitter_signal"]
+                result["news"]["youtube"] = evidence["youtube"]
+                result["news"]["linkedin"] = evidence["linkedin"]
+
+                print("\nTop Related Headlines:")
+                for s in evidence["web_sources"]:
+                    print("-", s)
+
+                print("\nTwitter Signal:", evidence["twitter_signal"])
+                print("YouTube Signal:", evidence["youtube"].get("signal"))
+                print("LinkedIn Signal:", evidence["linkedin"].get("signal"))
+
+            else:
+                print("❌ Failed to extract article.")
+                fallback_query = derive_query_from_url(url)
+                result["news"]["extraction_status"] = "FAILED_FALLBACK_USED"
+                result["news"]["title"] = fallback_query
+
+                print("🔎 Using fallback query:", fallback_query)
+
+                evidence = verify_external_sources(fallback_query)
+                ext_real, ext_fake = fuse_external_signals(evidence, modality="news")
+
+                real_score += ext_real
+                fake_score += ext_fake
+
+                result["news"]["sources"] = evidence["web_sources"]
+                result["news"]["twitter_signal"] = evidence["twitter_signal"]
+                result["news"]["youtube"] = evidence["youtube"]
+                result["news"]["linkedin"] = evidence["linkedin"]
+
+                print("\nTop Related Headlines:")
+                for s in evidence["web_sources"]:
+                    print("-", s)
+
+                print("\nTwitter Signal:", evidence["twitter_signal"])
+                print("YouTube Signal:", evidence["youtube"].get("signal"))
+                print("LinkedIn Signal:", evidence["linkedin"].get("signal"))
 
     # ==============================
     # 🖼️ IMAGE PIPELINE

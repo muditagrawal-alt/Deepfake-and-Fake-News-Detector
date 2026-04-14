@@ -29,7 +29,7 @@ def fuse_external_signals(evidence, modality="news"):
     linkedin_signal = evidence.get("linkedin", {}).get("signal")
 
     # =========================
-    # 📰 NEWS (FIXED)
+    # 📰 NEWS
     # =========================
     if modality == "news":
         if web_count >= 3:
@@ -40,8 +40,7 @@ def fuse_external_signals(evidence, modality="news"):
         elif twitter_signal == "LOW ACTIVITY":
             fake_boost += 1
 
-        # Weak signals for news (VERY IMPORTANT)
-        # DO NOT let these dominate
+        # Keep these weak for news
         if youtube_signal == "STRONG":
             real_boost += 0
 

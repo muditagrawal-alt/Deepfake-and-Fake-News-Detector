@@ -28,30 +28,58 @@ def fuse_external_signals(evidence, modality="news"):
     youtube_signal = evidence.get("youtube", {}).get("signal")
     linkedin_signal = evidence.get("linkedin", {}).get("signal")
 
-    if web_count >= 3:
-        real_boost += 1
-
-    if twitter_signal == "HIGH ACTIVITY":
-        real_boost += 1
-    elif twitter_signal == "LOW ACTIVITY":
-        fake_boost += 1
-
-    if youtube_signal == "STRONG":
-        real_boost += 1
-    elif youtube_signal == "WEAK":
-        real_boost += 0
-
-    if linkedin_signal == "STRONG":
-        real_boost += 1
-
+    # =========================
+    # 📰 NEWS (FIXED)
+    # =========================
     if modality == "news":
-        real_boost *= 2
-        fake_boost *= 1
-    elif modality == "video":
-        real_boost *= 1
-        fake_boost *= 1
-    elif modality == "image":
-        real_boost *= 1
-        fake_boost *= 0
+        if web_count >= 3:
+            real_boost += 1
 
-    return int(real_boost), int(fake_boost)
+        if twitter_signal == "HIGH ACTIVITY":
+            real_boost += 1
+        elif twitter_signal == "LOW ACTIVITY":
+            fake_boost += 1
+
+        # Weak signals for news (VERY IMPORTANT)
+        # DO NOT let these dominate
+        if youtube_signal == "STRONG":
+            real_boost += 0
+
+        if linkedin_signal == "STRONG":
+            real_boost += 0
+
+        return real_boost, fake_boost
+
+    # =========================
+    # 🎥 VIDEO
+    # =========================
+    if modality == "video":
+        if web_count >= 3:
+            real_boost += 1
+
+        if twitter_signal == "HIGH ACTIVITY":
+            real_boost += 1
+        elif twitter_signal == "LOW ACTIVITY":
+            fake_boost += 1
+
+        if youtube_signal == "STRONG":
+            real_boost += 1
+
+        if linkedin_signal == "STRONG":
+            real_boost += 1
+
+        return real_boost, fake_boost
+
+    # =========================
+    # 🖼️ IMAGE
+    # =========================
+    if modality == "image":
+        if web_count >= 3:
+            real_boost += 1
+
+        if twitter_signal == "HIGH ACTIVITY":
+            real_boost += 1
+
+        return real_boost, fake_boost
+
+    return real_boost, fake_boost

@@ -51,3 +51,6 @@ outputs/
 # Frontend build artifacts
 node_modules/
 dist/
+
+outputs/image_evaluation.csv
+outputs/news_evaluation.csv

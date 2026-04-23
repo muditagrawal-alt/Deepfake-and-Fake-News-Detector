@@ -47,3 +47,7 @@ datasets/
 test.jpeg
 
 outputs/
+
+# Frontend build artifacts
+node_modules/
+dist/

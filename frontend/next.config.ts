@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The floating dev badge would show up in recorded demos.
+  devIndicators: false,
 };
 
 export default nextConfig;

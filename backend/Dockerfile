@@ -1,0 +1,26 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
+    HF_HUB_DISABLE_TELEMETRY=1 HF_HOME=/tmp/hf-cache
+
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# HF Spaces run as uid 1000
+RUN useradd -m -u 1000 user
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+COPY --chown=user . .
+
+# Pre-download the ONNX detector so cold starts don't pay for 354 MB.
+# Set --build-arg SKIP_MODEL=1 to skip (the app then downloads lazily on first use).
+ARG SKIP_MODEL=0
+RUN if [ "$SKIP_MODEL" = "0" ]; then python -c "from huggingface_hub import hf_hub_download; hf_hub_download('Organika/sdxl-detector','onnx/model.onnx',local_dir='/app/models')"; fi \
+    && mkdir -p /app/tmp && chown -R user:user /app
+
+USER user
+EXPOSE 7860
+CMD ["uvicorn", "detector.main:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]

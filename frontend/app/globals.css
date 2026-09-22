@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/*
+  Tokens. One neutral family (stone), one accent (desaturated ink-blue),
+  three semantic verdict colors. Radius scale: containers 12px, controls 8px,
+  badges 6px. No pure black or white.
+*/
+:root {
+  --bg: #f7f6f4;
+  --elev: #fdfcfb;
+  --ink: #1c1917;
+  --ink-2: #57534e;
+  --ink-3: #736e68;
+  --line: #e4e1dc;
+  --line-strong: #cfcac3;
+  --accent: #23508f;
+  --accent-ink: #fbfaf8;
+  --accent-soft: #e9eef6;
+  --real: #1a7a3f;
+  --real-soft: #e8f4ec;
+  --fake: #b3261e;
+  --fake-soft: #f9e9e7;
+  --warn: #9a5b06;
+  --warn-soft: #f8efdd;
+  --shadow: 28 25 23;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131110;
+    --elev: #1b1917;
+    --ink: #f3f1ee;
+    --ink-2: #c9c4bd;
+    --ink-3: #85807a;
+    --line: #2b2825;
+    --line-strong: #3d3935;
+    --accent: #8fb4ea;
+    --accent-ink: #0f1a2a;
+    --accent-soft: #172538;
+    --real: #6cc48a;
+    --real-soft: #142a1c;
+    --fake: #f08c84;
+    --fake-soft: #3a1714;
+    --warn: #e6b05b;
+    --warn-soft: #33250c;
+    --shadow: 0 0 0;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-elev: var(--elev);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-real: var(--real);
+  --color-real-soft: var(--real-soft);
+  --color-fake: var(--fake);
+  --color-fake-soft: var(--fake-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --radius-panel: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+  --shadow-panel: 0 1px 2px rgb(var(--shadow) / 0.06), 0 8px 24px -12px rgb(var(--shadow) / 0.12);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Motion: state transitions only. Everything collapses under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--shadow) / 0.05), transparent);
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  .soft-pulse { animation: soft-pulse 1.8s ease-in-out infinite; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes shimmer { to { transform: translateX(100%); } }
+@keyframes soft-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }

@@ -1,7 +1,9 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
+
+import { useScrollMotion } from "@/lib/useScrollMotion";
 
 const WORD = "VERITAS";
 const NOISE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -9,10 +11,11 @@ const CYCLE_MS = 55;       // how fast an unresolved letter changes
 const STAGGER_MS = 105;    // delay between letters locking in
 const LEAD_MS = 260;       // everything cycles together before the first letter locks
 const TOTAL_MS = LEAD_MS + WORD.length * STAGGER_MS;
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 /**
- * The wordmark resolves out of noise: the product's job is turning
- * ambiguous material into a settled answer, so the name does the same.
+ * The wordmark resolves out of noise: the product's job is turning ambiguous
+ * material into a settled answer, so the name does the same.
  */
 function useScramble(enabled: boolean) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -22,7 +25,6 @@ function useScramble(enabled: boolean) {
     if (!el) return;
     if (!enabled) { el.textContent = WORD; return; }
 
-    let frame = 0;
     let raf = 0;
     const start = performance.now();
 
@@ -38,7 +40,6 @@ function useScramble(enabled: boolean) {
           : NOISE[(step * 7 + i * 13) % NOISE.length];
       }
       el.textContent = out;
-      frame++;
       if (elapsed < TOTAL_MS) raf = requestAnimationFrame(tick);
       else el.textContent = WORD;
     };
@@ -51,61 +52,102 @@ function useScramble(enabled: boolean) {
 }
 
 export default function Intro() {
-  const reduce = useReducedMotion();
+  const { ready, vh, reduce } = useScrollMotion();
+  // The scramble is a text effect, not a transform, so it is gated directly.
   const wordRef = useScramble(!reduce);
-  const sectionRef = useRef<HTMLDivElement>(null);
 
-  // The tool section scrolls up over the intro; the intro recedes rather than
-  // just disappearing. Driven by motion values, so no re-render per frame.
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
-  const opacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
-  const lift = useTransform(scrollYProgress, [0, 1], [0, -40]);
+  // Driven by raw scroll position rather than element progress: the whole
+  // transition plays over the first viewport of scrolling, which is exact and
+  // cannot drift as the sticky stage moves. scrollY is a motion value, so
+  // scrolling never re-renders React.
+  const { scrollY } = useScroll();
+  const span = vh || 1;
+  const at = (f: number) => span * f;
 
-  const stage = reduce
-    ? {}
-    : { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 } };
-  const ease = [0.16, 1, 0.3, 1] as const;
+  // The intro occupies exactly one viewport and scrolls away normally, so the
+  // checker is always directly beneath it and no empty stage can appear.
+  //
+  // The whole block is held back against that scroll as one unit (parallax);
+  // only opacity and scale differ between its parts. Parallaxing the elements
+  // separately made them collide.
+  const blockY = useTransform(scrollY, [0, at(1)], [0, span * 0.32]);
+  const blockOpacity = useTransform(scrollY, [at(0.3), at(0.72)], [1, 0]);
+  const blockFilter = useTransform(
+    useTransform(scrollY, [at(0.3), at(0.72)], [0, 5]),
+    (v) => `blur(${v}px)`,
+  );
+  const wordScale = useTransform(scrollY, [0, at(1)], [1, 0.88]);
+
+  // The rule retracts to a stub as the block leaves. Its entry sweep lives on
+  // the inner element so it never competes with this value.
+  const ruleScale = useTransform(scrollY, [0, at(0.6)], [1, 0.2]);
+
+  // Supporting copy thins out slightly ahead of the rest.
+  const copyOpacity = useTransform(scrollY, [at(0.1), at(0.45)], [1, 0.15]);
+
 
   return (
-    <div ref={sectionRef} className="relative h-[100dvh]">
-      <motion.div
-        style={reduce ? undefined : { opacity, scale, y: lift }}
-        className="sticky top-0 h-[100dvh] flex flex-col justify-center px-4"
-      >
-        <div className="mx-auto w-full max-w-5xl">
-          <h1 className="font-mono text-[15vw] sm:text-[12vw] lg:text-[9.5rem] leading-[0.95] font-semibold tracking-[-0.03em] select-none">
+    <div className="relative h-[100dvh] overflow-hidden">
+      <div className="h-full flex flex-col justify-center px-4">
+        <motion.div
+          data-intro="block"
+          style={!ready ? undefined : { y: blockY, opacity: blockOpacity, filter: blockFilter }}
+          className="mx-auto w-full max-w-5xl will-change-transform"
+        >
+          <motion.h1
+            data-intro="word"
+            style={!ready ? undefined : { scale: wordScale }}
+            className="origin-left font-mono text-[15vw] sm:text-[12vw] lg:text-[9.5rem] leading-[0.95] font-semibold tracking-[-0.03em] select-none will-change-transform"
+          >
             <span ref={wordRef} aria-hidden>{WORD}</span>
             <span className="sr-only">Veritas</span>
-          </h1>
+          </motion.h1>
 
-          {/* The sweep reads as a verification pass over the name. */}
+          {/* Outer element carries the scroll values, inner one the entry sweep. */}
           <motion.div
+            data-intro="rule"
             aria-hidden
-            initial={reduce ? false : { scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.9, delay: 1.0, ease }}
-            className="mt-6 h-px origin-left bg-line-strong"
-          />
-
-          <motion.p
-            {...stage}
-            transition={{ duration: 0.7, delay: 1.2, ease }}
-            className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-2"
+            style={!ready ? undefined : { scaleX: ruleScale }}
+            className="mt-6 h-px origin-left"
           >
-            Latin for truth. Here, a check on whether a news link, an image or a short video is what it claims to be.
-          </motion.p>
-
-          <motion.div {...stage} transition={{ duration: 0.7, delay: 1.4, ease }} className="mt-8">
-            <a
-              href="#check"
-              className="inline-flex rounded-control bg-accent px-5 py-3 text-sm font-semibold text-accent-ink transition-[opacity,transform] hover:opacity-90 active:scale-[0.98]"
-            >
-              Run a check
-            </a>
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.9, delay: 1.0, ease: EASE }}
+              className="h-full w-full origin-left bg-line-strong"
+            />
           </motion.div>
-        </div>
-      </motion.div>
+
+          <motion.div
+            data-intro="copy"
+            style={!ready ? undefined : { opacity: copyOpacity }}
+            className="will-change-transform"
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 1.2, ease: EASE }}
+              className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-2"
+            >
+              Latin for truth. Here, a check on whether a news link, an image or a short video is what it claims to be.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 1.4, ease: EASE }}
+              className="mt-8"
+            >
+              <a
+                href="#check"
+                className="inline-flex rounded-control bg-accent px-5 py-3 text-sm font-semibold text-accent-ink transition-[opacity,transform] hover:opacity-90 active:scale-[0.98]"
+              >
+                Run a check
+              </a>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

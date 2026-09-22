@@ -48,7 +48,7 @@ deployable on free infrastructure.
 ```mermaid
 flowchart LR
   U([User]) --> FE["Next.js frontend<br/>Vercel"]
-  FE -->|"JSON / multipart"| API["FastAPI backend<br/>Hugging Face Space, Docker"]
+  FE -->|"JSON or multipart"| API["FastAPI backend<br/>Hugging Face Space"]
 
   subgraph API_INTERNALS ["Backend"]
     direction TB
@@ -89,7 +89,7 @@ sequenceDiagram
   participant W as Web research
 
   U->>A: POST /analyze/{news|image|video}
-  A->>A: Validate size, type, duration; check quota
+  A->>A: Validate size, type and duration, check quota
   A->>L: Extract article / EXIF / ffprobe + frames + audio
   L-->>A: Forensic signals (JSON)
 

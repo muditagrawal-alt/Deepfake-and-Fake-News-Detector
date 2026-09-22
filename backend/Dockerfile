@@ -22,5 +22,9 @@ RUN if [ "$SKIP_MODEL" = "0" ]; then python -c "from huggingface_hub import hf_h
     && mkdir -p /app/tmp && chown -R user:user /app
 
 USER user
+
+# app.py reads $PORT (default 7860), so the same image runs on a Hugging Face
+# Space, Google Cloud Run (PORT=8080), Render, Railway or Fly without changes.
+ENV PORT=7860
 EXPOSE 7860
-CMD ["uvicorn", "detector.main:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]
+CMD ["python", "app.py"]

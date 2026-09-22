@@ -266,8 +266,35 @@ which starts this FastAPI service, and no Gradio interface is served. ffmpeg com
 with that image. The ONNX detector is downloaded on first use and warmed in the
 background at startup, so the first boot after a rebuild takes an extra minute.
 
-A `Dockerfile` is kept for hosts that support containers (Render, Railway, Fly, or a
-Docker Space): it pre-downloads the detector at build time for faster cold starts.
+**If Gradio Spaces are not an option for your account**, the same image runs anywhere
+that takes a container. `app.py` reads `$PORT`, so nothing needs changing.
+
+<details>
+<summary>Google Cloud Run (free tier, recommended fallback)</summary>
+
+```bash
+gcloud run deploy veritas-api \
+  --source backend \
+  --region asia-south1 \
+  --memory 2Gi \
+  --allow-unauthenticated \
+  --set-env-vars "ALLOWED_ORIGINS=https://<your-app>.vercel.app" \
+  --set-secrets "GEMINI_API_KEY=gemini-key:latest,GROQ_API_KEY=groq-key:latest"
+```
+
+Scales to zero when idle, and the always-free tier covers this workload. 2 GiB of
+memory is needed for the ONNX session; the Dockerfile pre-downloads the model so
+cold starts stay quick.
+</details>
+
+<details>
+<summary>Render, Railway or Fly</summary>
+
+Point the service at `backend/Dockerfile`, set the same environment variables, and
+give it at least 1 GB of memory. On a 512 MB plan, set `ENABLE_ONNX_DETECTOR=false`:
+the pixel detector is skipped and the verdict relies on metadata, web evidence and
+the vision model alone.
+</details>
 
 ### Frontend on Vercel
 

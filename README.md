@@ -1,1 +1,307 @@
-Major Project for Semester-6
+<div align="center">
+
+# Veritas
+
+**Is it real?** A multimodal misinformation checker for news links, images and short videos.
+It returns a verdict, a calibrated confidence, the individual claims it checked, and the sources behind them.
+
+[Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Deployment](#deployment) · [Results](#results)
+
+</div>
+
+<p align="center">
+  <img src="docs/assets/intro.gif" alt="The Veritas landing page resolving from noise into the checker" width="820">
+</p>
+
+---
+
+## What it does
+
+Paste a news URL, or upload an image or a short video. Veritas combines **local forensics**
+(container metadata, EXIF, an ONNX AI-image detector, sampled frames and audio) with a
+**hosted LLM that extracts and verifies the actual claims** against independent sources,
+then shows its work: every signal, every source, and everything it could not verify.
+
+| Input | What happens |
+|---|---|
+| **News URL** | Article is extracted, genre classified (hard news / satire / opinion / press release), 2-4 atomic claims pulled out and checked against sources that exclude the original publisher |
+| **Image** | EXIF, PNG text chunks and C2PA markers read for camera or generator fingerprints; pixels scored by an ONNX detector; described, OCRed and artifact-checked; depicted events verified on the web |
+| **Video** | ffprobe metadata (generator fingerprints, and YouTube re-encodes told apart from them), 8 frames scored by the detector, then the clip is analyzed with its audio: motion, lip sync, on-screen text and spoken claims |
+
+**Version 2 runs no local deep-learning model.** No PyTorch, no transformers, no BERT.
+The container is a few hundred MB and cold-starts in seconds, which is what makes it
+deployable on free infrastructure.
+
+<p align="center">
+  <img src="docs/assets/news-check.gif" alt="Checking a satirical article end to end: verdict, claims and sources" width="820">
+</p>
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+  U([User]) --> FE["Next.js frontend<br/>Vercel"]
+  FE -->|"JSON / multipart"| API["FastAPI backend<br/>Hugging Face Space, Docker"]
+
+  subgraph API_INTERNALS ["Backend"]
+    direction TB
+    GATE["Rate limit + quota gate<br/>per-IP, RPM window, daily cap"]
+    FOR["Local forensics"]
+    ANA["Analyzers<br/>news / image / video"]
+    GATE --> ANA
+    FOR --> ANA
+  end
+
+  API --> GATE
+
+  FOR --- F1["trafilatura<br/>article text"]
+  FOR --- F2["Pillow<br/>EXIF, C2PA"]
+  FOR --- F3["ffprobe + ffmpeg<br/>metadata, frames, audio"]
+  FOR --- F4["onnxruntime<br/>sdxl-detector"]
+
+  ANA --> GEM["Gemini API<br/>vision, video, structured JSON"]
+  ANA --> RES["Web research<br/>DuckDuckGo or Tavily"]
+  ANA --> WHI["Groq Whisper<br/>transcript fallback"]
+
+  ANA --> OUT["AnalysisResult<br/>verdict, claims, signals, sources"]
+  OUT --> FE
+```
+
+**Why this split:** uploads never touch Vercel (4.5 MB body cap, short timeouts), and the
+API keys never leave the Space. The frontend is fully static and free to host.
+
+## Execution flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as Browser
+  participant A as FastAPI
+  participant L as Local forensics
+  participant G as Gemini
+  participant W as Web research
+
+  U->>A: POST /analyze/{news|image|video}
+  A->>A: Validate size, type, duration; check quota
+  A->>L: Extract article / EXIF / ffprobe + frames + audio
+  L-->>A: Forensic signals (JSON)
+
+  A->>G: Content + signals, response schema enforced
+  G-->>A: Genre, claims, description, provisional verdict
+
+  alt A checkable claim exists
+    A->>W: Search, excluding the original publisher
+    W-->>A: Notes + source URLs
+    A->>G: Re-judge with the evidence
+    G-->>A: Final verdict, claims, confidence
+  end
+
+  A->>A: Deterministic rules (e.g. satire is not factual)
+  A-->>U: AnalysisResult, or 202 + job id for video
+```
+
+Video runs asynchronously: the client gets a `job_id` and polls `/jobs/{id}`, which reports
+the live stage (`sampling frames`, `uploading`, `verifying claims on the web`).
+
+---
+
+## Quick start
+
+### Prerequisites
+
+| Requirement | Notes |
+|---|---|
+| Python 3.11+ | Backend |
+| Node.js 20+ | Frontend |
+| ffmpeg and ffprobe | `brew install ffmpeg` / `apt install ffmpeg`. Needed for video |
+| Gemini API key | Free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| Groq API key (optional) | Free at [console.groq.com/keys](https://console.groq.com/keys). Whisper transcript fallback |
+| Tavily API key (optional) | Free at [app.tavily.com](https://app.tavily.com). Faster, more reliable search than the default |
+
+### 1. Clone and configure
+
+```bash
+git clone https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector.git
+cd Deepfake-and-Fake-News-Detector
+cp backend/.env.example .env
+```
+
+Open `.env` and fill in at least `GEMINI_API_KEY`. The file is git-ignored.
+
+```ini
+GEMINI_API_KEY=your-key-here
+GROQ_API_KEY=
+TAVILY_API_KEY=
+```
+
+### 2. Backend
+
+```bash
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn detector.main:app --reload --port 7860
+```
+
+First run downloads the 354 MB ONNX detector into `backend/models/`. Verify:
+
+```bash
+curl -s localhost:7860/health
+```
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open <http://localhost:3000>. `frontend/.env.local` points at `http://localhost:7860` by default.
+
+### Command line, without the UI
+
+```bash
+cd backend && source .venv/bin/activate
+python -m scripts.list_models                       # Gemini model ids your key can call
+python -m scripts.smoke --url https://example.com/article
+python -m scripts.smoke --image path/to/photo.jpg
+python -m scripts.smoke --video path/to/clip.mp4
+```
+
+### Reproduce the benchmarks
+
+```bash
+python -m eval.run_eval --modality news     # also: image, video
+```
+
+Writes `data/evaluation/<set>/results_v2.csv` and `metrics_v2.txt`.
+
+---
+
+## API
+
+Base URL is the backend origin. All responses are JSON.
+
+| Method | Endpoint | Body | Returns |
+|---|---|---|---|
+| `GET` | `/health` | | Provider status, model ids, remaining quota |
+| `POST` | `/analyze/news` | `{"url": "..."}` | `AnalysisResult` |
+| `POST` | `/analyze/image` | multipart `file` | `AnalysisResult` |
+| `POST` | `/analyze/video` | multipart `file` | `202 {"job_id"}` |
+| `GET` | `/jobs/{job_id}` | | `{status, stage, result}` |
+
+<details>
+<summary><code>AnalysisResult</code> shape</summary>
+
+```jsonc
+{
+  "verdict": "LIKELY_REAL | LIKELY_FAKE | UNCERTAIN",
+  "confidence": 0.92,
+  "summary": "One or two plain sentences.",
+  "reasoning": "How the evidence was weighed.",
+  "genre": "satire",
+  "claims": [{
+    "claim": "...",
+    "status": "corroborated | contradicted | misleading | unverifiable",
+    "explanation": "...",
+    "sources": [{"title": "...", "url": "..."}]
+  }],
+  "signals": [{"name": "generator_metadata", "value": "encoder: Google",
+               "direction": "fake", "weight": "strong", "note": "..."}],
+  "caveats": ["What could not be verified."],
+  "evidence": [{"title": "...", "url": "..."}],
+  "forensics": { "metadata": {}, "frame_detector": {} },
+  "provenance": {"model": "gemini-3.5-flash-lite", "grounded": false,
+                 "research_provider": "duckduckgo"}
+}
+```
+</details>
+
+```bash
+curl -s -X POST localhost:7860/analyze/news \
+  -H 'content-type: application/json' \
+  -d '{"url":"https://www.theonion.com/report-nation-somehow-more-divided-than-ever-before-1849972712"}'
+```
+
+---
+
+## Results
+
+Measured on the same 130-item benchmark used for v1, which ran BERT and PyTorch locally.
+Per-item outputs are in `data/evaluation/<set>/results_v2.csv`.
+
+| Set | v1 | v2 | Change |
+|---|---|---|---|
+| News (50) | 0.86 | **0.92** | v1 called 7 real articles fake. v2 calls none; fake-precision 1.00, F1 0.98 |
+| Images (50) | 0.86 | **0.88** | v1 needed a calibrator fit on the test set. v2 uses none |
+| Videos (30) | 1.00 | **1.00** | v1 relied on generator metadata tags. v2 also watches frames and audio, minimum confidence 0.75 |
+
+The video set is the weakest evidence in this table: its fakes all carry intact generator
+metadata, which real-world uploads usually lose to re-encoding.
+
+---
+
+## Deployment
+
+### Backend on Hugging Face Spaces
+
+1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space): SDK **Docker**, hardware **CPU basic**.
+2. In **Settings → Variables and secrets** add secrets `GEMINI_API_KEY`, `GROQ_API_KEY`, and variable `ALLOWED_ORIGINS=https://<your-app>.vercel.app,http://localhost:3000`.
+3. Push the backend folder as the Space repo root:
+
+```bash
+./scripts/deploy_space.sh <hf-username>/<space-name>
+```
+
+The Dockerfile installs ffmpeg and pre-downloads the ONNX detector at build time.
+
+### Frontend on Vercel
+
+1. Import the repository at [vercel.com/new](https://vercel.com/new).
+2. Set **Root Directory** to `frontend`.
+3. Add environment variable `NEXT_PUBLIC_API_URL=https://<hf-username>-<space-name>.hf.space`.
+
+Preview deployments are allowed by the backend automatically through an origin regex.
+
+---
+
+## Project structure
+
+```
+backend/
+  detector/
+    main.py              FastAPI app, endpoints, limits
+    pipeline.py          Dispatcher and legacy-compatible entry point
+    config.py            Settings from .env
+    quota.py             Concurrency, RPM window, daily cap
+    analyzers/           news.py, image.py, video.py, prompts.py
+    forensics/           article, exif, video_meta, frames, onnx_detector
+    providers/           gemini, groq, research, openai_compat
+  eval/run_eval.py       Benchmark runner
+  Dockerfile             Space image
+frontend/                Next.js app (App Router, Tailwind v4, Motion)
+data/evaluation/         Benchmark sets and results
+paper/                   Figure generation for the write-up
+scripts/deploy_space.sh  One-command backend deploy
+```
+
+---
+
+## Limitations
+
+- Verdicts are probabilistic estimates from a language model plus heuristics. They are **signals, not proof**.
+- Metadata is trivially stripped or forged. Its absence is treated as neutral; a generator name in it is strong but not conclusive evidence.
+- The pixel detector was trained on SDXL-era images. It over-calls real photos of people and struggles with thumbnails, so it is weighted accordingly rather than trusted.
+- Paywalled or bot-blocked articles fall back to URL-based checks, which lowers confidence.
+- Free-tier model providers may use submitted content to improve their services. Do not submit private material.
+
+## License and credits
+
+Code in this repository is released under the MIT License. The bundled detector,
+[`Organika/sdxl-detector`](https://huggingface.co/Organika/sdxl-detector), is **CC-BY-NC-3.0**,
+so any deployment of this project as a whole must remain non-commercial.
+
+Built by [Mudit Agrawal](https://github.com/muditagrawal-alt) as a Semester-6 major project.

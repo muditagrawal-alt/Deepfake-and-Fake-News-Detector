@@ -284,4 +284,9 @@ Code in this repository is released under the MIT License. The bundled detector,
 [`Organika/sdxl-detector`](https://huggingface.co/Organika/sdxl-detector), is **CC-BY-NC-3.0**,
 so any deployment of this project as a whole must remain non-commercial.
 
+Background music in the demo: **"Art Of Silence V2"** by Uniq, licensed
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via
+[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Uniq_-_Art_Of_Silence_V2.ogg).
+The excerpt used is `docs/assets/music.mp3`.
+
 Built by [Mudit Agrawal](https://github.com/muditagrawal-alt) as a Semester-6 major project.

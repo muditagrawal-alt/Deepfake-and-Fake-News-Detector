@@ -19,11 +19,18 @@ them. Captions are rendered with Pillow and composited bottom-centre, white with
 thin outline and no background bar. The app is recorded in dark mode so the
 captions read the way film subtitles do.
 
-**Music.** `--music` is optional; without it the video is silent. Drop any track at
-`docs/assets/music.mp3`. Sources that are free for this use: the
-[YouTube Audio Library](https://www.youtube.com/audiolibrary), [Free Music Archive](https://freemusicarchive.org)
-(filter to CC0 or CC-BY), or [Pixabay Music](https://pixabay.com/music/). Check the
-licence and credit the track in the README if the licence asks for it.
+**Music.** `docs/assets/music.mp3` is a 32-second excerpt of **"Art Of Silence V2"**
+by Uniq, licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) and taken
+from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Uniq_-_Art_Of_Silence_V2.ogg).
+The licence requires attribution, which is why the track is credited in the root
+README and in the video file's metadata.
+
+`--music` is optional; without it the video is silent. `--music-db` sets the level
+(default -26, the bundled excerpt is mixed at -9 because it is quieter to begin
+with, giving about -25 dB mean in the finished video). To swap the track, check the
+licence first: the [YouTube Audio Library](https://www.youtube.com/audiolibrary),
+[Free Music Archive](https://freemusicarchive.org) filtered to CC0 or CC BY, and
+[Pixabay Music](https://pixabay.com/music/) are all reasonable sources.
 
 **Editing the script.** Timings and captions live in `PLAN` at the top of
 `build.py`: one entry per segment with how many seconds to keep and the captions

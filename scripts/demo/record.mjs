@@ -23,6 +23,28 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
 const segments = [];
 
+/**
+ * Scroll at a controlled, cinematic pace. The browser's own smooth scroll is
+ * too fast to read on video, and a jump would hide the intro handoff entirely.
+ */
+async function glide(page, to, ms = 2600) {
+  await page.evaluate(
+    ([target, duration]) =>
+      new Promise((done) => {
+        const from = window.scrollY;
+        const start = performance.now();
+        const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+        const step = (now) => {
+          const t = Math.min((now - start) / duration, 1);
+          window.scrollTo(0, from + (target - from) * ease(t));
+          t < 1 ? requestAnimationFrame(step) : done();
+        };
+        requestAnimationFrame(step);
+      }),
+    [to, ms],
+  );
+}
+
 /** Bring the verdict card fully into view, clear of the sticky header. */
 async function revealResult(page) {
   await page.evaluate(() => {
@@ -50,12 +72,13 @@ await record("title", async (page) => {
   await page.waitForTimeout(4200);
 });
 
-// 2. Landing: the wordmark resolves, then the checker scrolls in
+// 2. Landing: the wordmark resolves out of noise, then scrolling carries the
+//    whole block away as the checker rises over it.
 await record("landing", async (page) => {
   await page.goto(BASE);
-  await page.waitForTimeout(2800);
-  await page.getByRole("link", { name: "Run a check" }).click();
-  await page.waitForTimeout(2200);
+  await page.waitForTimeout(2600);
+  await glide(page, await page.evaluate(() => Math.round(window.innerHeight * 0.92)), 3000);
+  await page.waitForTimeout(900);
 });
 
 // 3. News check: type the URL, submit, then hold on the loading state

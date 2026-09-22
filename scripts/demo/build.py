@@ -20,8 +20,9 @@ from pathlib import Path
 # (segment name, seconds to keep, [(caption, seconds held), ...])
 PLAN = [
     ("title", 4.2, [("", 4.2)]),
-    ("landing", 4.6, [
-        ("Veritas checks whether a news link, image or video is what it claims to be", 4.6)]),
+    ("landing", 6.2, [
+        ("Veritas checks whether a news link, image or video is what it claims to be", 3.1),
+        ("Local forensics plus an LLM fact-check, with every source shown", 3.1)]),
     ("news_start", 3.4, [
         ("The article is extracted locally, then its claims are pulled out", 3.4)]),
     ("news_result", 8.2, [

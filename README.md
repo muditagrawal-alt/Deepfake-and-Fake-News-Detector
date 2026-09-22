@@ -5,7 +5,7 @@
 **Is it real?** A multimodal misinformation checker for news links, images and short videos.
 It returns a verdict, a calibrated confidence, the individual claims it checked, and the sources behind them.
 
-[Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Deployment](#deployment) · [Results](#results)
+[Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Results](#results)
 
 </div>
 
@@ -47,8 +47,8 @@ deployable on free infrastructure.
 
 ```mermaid
 flowchart LR
-  U([User]) --> FE["Next.js frontend<br/>Vercel"]
-  FE -->|"JSON or multipart"| API["FastAPI backend<br/>Hugging Face Space"]
+  U([User]) --> FE["Next.js frontend"]
+  FE -->|"JSON or multipart"| API["FastAPI backend"]
 
   subgraph API_INTERNALS ["Backend"]
     direction TB
@@ -74,8 +74,8 @@ flowchart LR
   OUT --> FE
 ```
 
-**Why this split:** uploads never touch Vercel (4.5 MB body cap, short timeouts), and the
-API keys never leave the Space. The frontend is fully static and free to host.
+**Why this split:** the frontend is fully static, uploads go straight to the API
+rather than through it, and the model keys never leave the backend.
 
 ## Execution flow
 
@@ -249,63 +249,6 @@ metadata, which real-world uploads usually lose to re-encoding.
 
 ---
 
-## Deployment
-
-### Backend on Hugging Face Spaces
-
-1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space): SDK **Gradio**, hardware **CPU basic** (free).
-2. In **Settings → Variables and secrets** add secrets `GEMINI_API_KEY` and `GROQ_API_KEY`, and the variable `ALLOWED_ORIGINS=https://<your-app>.vercel.app,http://localhost:3000`.
-3. Push the backend folder as the Space repo root:
-
-```bash
-./scripts/deploy_space.sh <hf-username>/<space-name>
-```
-
-The Gradio SDK is used purely as a Python runtime: the Space runs `backend/app.py`,
-which starts this FastAPI service, and no Gradio interface is served. ffmpeg comes
-with that image. The ONNX detector is downloaded on first use and warmed in the
-background at startup, so the first boot after a rebuild takes an extra minute.
-
-**If Gradio Spaces are not an option for your account**, the same image runs anywhere
-that takes a container. `app.py` reads `$PORT`, so nothing needs changing.
-
-<details>
-<summary>Google Cloud Run (free tier, recommended fallback)</summary>
-
-```bash
-gcloud run deploy veritas-api \
-  --source backend \
-  --region asia-south1 \
-  --memory 2Gi \
-  --allow-unauthenticated \
-  --set-env-vars "ALLOWED_ORIGINS=https://<your-app>.vercel.app" \
-  --set-secrets "GEMINI_API_KEY=gemini-key:latest,GROQ_API_KEY=groq-key:latest"
-```
-
-Scales to zero when idle, and the always-free tier covers this workload. 2 GiB of
-memory is needed for the ONNX session; the Dockerfile pre-downloads the model so
-cold starts stay quick.
-</details>
-
-<details>
-<summary>Render, Railway or Fly</summary>
-
-Point the service at `backend/Dockerfile`, set the same environment variables, and
-give it at least 1 GB of memory. On a 512 MB plan, set `ENABLE_ONNX_DETECTOR=false`:
-the pixel detector is skipped and the verdict relies on metadata, web evidence and
-the vision model alone.
-</details>
-
-### Frontend on Vercel
-
-1. Import the repository at [vercel.com/new](https://vercel.com/new).
-2. Set **Root Directory** to `frontend`.
-3. Add environment variable `NEXT_PUBLIC_API_URL=https://<hf-username>-<space-name>.hf.space`.
-
-Preview deployments are allowed by the backend automatically through an origin regex.
-
----
-
 ## Project structure
 
 ```
@@ -323,7 +266,6 @@ backend/
 frontend/                Next.js app (App Router, Tailwind v4, Motion)
 data/evaluation/         Benchmark sets and results
 paper/                   Figure generation for the write-up
-scripts/deploy_space.sh  One-command backend deploy
 ```
 
 ---

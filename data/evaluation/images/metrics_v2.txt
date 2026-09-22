@@ -1,0 +1,12 @@
+IMAGE EVALUATION RESULTS (v2 pipeline)
+========================================
+n              : 50
+accuracy       : 0.8800
+precision_fake : 0.9200
+recall_fake    : 0.9200
+f1_fake        : 0.9200
+coverage       : 0.9600
+Confusion (rows=truth, cols=pred) [FAKE, REAL, UNCERTAIN]:
+  FAKE       23   2   0
+  REAL        2  21   2
+  UNCERTAIN   0   0   0

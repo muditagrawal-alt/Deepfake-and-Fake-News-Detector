@@ -1,0 +1,9 @@
+NEWS EVALUATION RESULTS
+=======================
+Accuracy : 0.8600
+Precision: 0.7812
+Recall   : 1.0000
+F1 Score : 0.8772
+Confusion Matrix:
+[[18  7]
+ [ 0 25]]

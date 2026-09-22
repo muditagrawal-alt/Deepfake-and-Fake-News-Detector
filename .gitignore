@@ -40,9 +40,16 @@ cache/
 # ...except documentation assets
 !docs/assets/**
 
-# Dataset folders
-data/
+# Datasets: media stays local, benchmark definitions and results are tracked.
+# (Use data/* not data/ so git still descends into the directory.)
+data/*
 datasets/
+!data/evaluation/
+data/evaluation/*/*
+!data/evaluation/*/metadata.csv
+!data/evaluation/*/metrics*.txt
+!data/evaluation/*/results*.csv
+!data/evaluation/*/baseline*
 
 # Temporary files
 *.tmp
@@ -68,7 +75,3 @@ backend/tmp/
 
 # v1 PyTorch pipeline, kept locally for reference only
 legacy/
-
-# Benchmark artifacts are committed on purpose (see README results table)
-!data/evaluation/**/metrics_v2.txt
-!data/evaluation/**/results_v2.csv

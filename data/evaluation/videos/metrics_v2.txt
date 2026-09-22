@@ -1,0 +1,12 @@
+VIDEO EVALUATION RESULTS (v2 pipeline)
+========================================
+n              : 30
+accuracy       : 1.0000
+precision_fake : 1.0000
+recall_fake    : 1.0000
+f1_fake        : 1.0000
+coverage       : 1.0000
+Confusion (rows=truth, cols=pred) [FAKE, REAL, UNCERTAIN]:
+  FAKE       15   0   0
+  REAL        0  15   0
+  UNCERTAIN   0   0   0

@@ -1,0 +1,10 @@
+Image Evaluation (Baseline - Organika SDXL Detector)
+
+Accuracy : 0.5000
+Precision: 0.0000
+Recall   : 0.0000
+F1 Score : 0.0000
+
+Confusion Matrix:
+[[ 0 25]
+ [ 0 25]]

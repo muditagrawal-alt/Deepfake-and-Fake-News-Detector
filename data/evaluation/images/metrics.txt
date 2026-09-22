@@ -1,0 +1,11 @@
+IMAGE EVALUATION RESULTS
+==============================
+
+Cross-validated calibrated detector
+Accuracy : 0.8600
+Precision: 0.8462
+Recall   : 0.8800
+F1 Score : 0.8627
+Confusion Matrix:
+[[22  3]
+ [ 4 21]]

@@ -1,0 +1,11 @@
+VIDEO EVALUATION RESULTS
+==============================
+Accuracy : 0.6667
+Coverage : 1.0000
+Precision: 1.0000
+Recall   : 0.3333
+F1 Score : 0.5000
+Confusion Matrix [FAKE, REAL, UNCERTAIN]:
+[[ 5 10  0]
+ [ 0 15  0]
+ [ 0  0  0]]

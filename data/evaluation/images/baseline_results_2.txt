@@ -1,0 +1,10 @@
+IMAGE EVALUATION RESULTS
+==============================
+Accuracy : 0.6735
+Precision: 0.6667
+Recall   : 0.6667
+F1 Score : 0.6667
+
+Confusion Matrix:
+[[16  8]
+ [ 8 17]]

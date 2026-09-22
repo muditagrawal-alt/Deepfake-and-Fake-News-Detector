@@ -13,6 +13,11 @@ It returns a verdict, a calibrated confidence, the individual claims it checked,
   <img src="docs/assets/intro.gif" alt="The Veritas landing page resolving from noise into the checker" width="820">
 </p>
 
+<p align="center">
+  <a href="docs/assets/demo.mp4"><img src="docs/assets/demo-preview.gif" alt="Preview of the demo video" width="760"></a><br>
+  <a href="docs/assets/demo.mp4"><b>Watch the full demo</b></a> (29s)
+</p>
+
 ---
 
 ## What it does

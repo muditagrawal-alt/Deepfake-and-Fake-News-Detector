@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Push the backend/ folder to a Hugging Face Space (Docker SDK).
+# Push the backend/ folder to a Hugging Face Space (Gradio SDK, used as a
+# plain Python runtime: it runs backend/app.py, which serves FastAPI).
 #
-#   1. Create the Space: https://huggingface.co/new-space  -> SDK: Docker, visibility: public
+#   1. Create the Space: https://huggingface.co/new-space  -> SDK: Gradio, hardware: CPU basic
 #   2. Add secrets in Space Settings: GEMINI_API_KEY, GROQ_API_KEY (and optional ones)
 #      Add variable: ALLOWED_ORIGINS=https://<your-app>.vercel.app,http://localhost:3000
 #   3. ./scripts/deploy_space.sh <hf-username>/<space-name>

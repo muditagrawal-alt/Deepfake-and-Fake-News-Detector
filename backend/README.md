@@ -1,11 +1,12 @@
 ---
-title: Fake Content Detector API
+title: Veritas API
 emoji: 🔍
 colorFrom: indigo
 colorTo: purple
-sdk: docker
-app_port: 7860
+sdk: gradio
+app_file: app.py
 pinned: false
+short_description: Fake news and deepfake detection API
 ---
 
 # Fake Content Detector — backend
@@ -57,12 +58,22 @@ python -m eval.run_eval --modality video
 
 ## Deploy to a Hugging Face Space
 
-1. Create a Space → **Docker** SDK.
-2. Push this `backend/` folder as the Space repo root (from the monorepo:
-   `git subtree push --prefix backend <space-remote> main`).
+1. Create a Space → **Gradio** SDK, hardware **CPU basic**.
+2. Push this `backend/` folder as the Space repo root:
+   `./scripts/deploy_space.sh <user>/<space>` from the repository root.
 3. Space **Settings → Secrets**: `GEMINI_API_KEY`, `GROQ_API_KEY` (+ optional ones).
-   **Variables**: `ALLOWED_ORIGINS=https://<your-frontend>.vercel.app`.
-4. The Dockerfile downloads the 354 MB ONNX detector at build time.
+   **Variables**: `ALLOWED_ORIGINS=https://<your-frontend>.vercel.app`,
+   and optionally `FRONTEND_URL` so the demo page links back to it.
+
+The Space uses the **Gradio SDK as a runtime only**: it runs `python app.py` and
+proxies the port, and `app.py` starts this FastAPI app. No Gradio interface is
+served; the user interface is the separate Next.js deployment. ffmpeg is
+pre-installed in that image, and `packages.txt` makes the dependency explicit.
+The ONNX detector is fetched on first use and warmed in the background at startup,
+so the first boot after a rebuild takes an extra minute.
+
+A `Dockerfile` is kept for hosts that support containers (Render, Railway, Fly, or a
+Docker Space if you have one). It pre-downloads the detector at build time.
 
 ## Free-tier guard rails
 

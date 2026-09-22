@@ -10,6 +10,7 @@ Endpoints
 """
 import asyncio
 import logging
+import os
 import shutil
 import tempfile
 from contextlib import asynccontextmanager
@@ -87,6 +88,21 @@ async def _provider(_, exc):
 
 
 # ----------------------------------------------------------------------
+@app.get("/")
+async def root():
+    """Service card. The user interface is the separate frontend deployment."""
+    frontend = os.environ.get("FRONTEND_URL") or None
+    return {
+        "service": "Veritas API",
+        "description": "Fake news and deepfake detection. Local forensics plus an LLM fact-check.",
+        "frontend": frontend,
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": ["POST /analyze/news", "POST /analyze/image", "POST /analyze/video", "GET /jobs/{job_id}"],
+        "source": "https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector",
+    }
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", **get_services().status()}

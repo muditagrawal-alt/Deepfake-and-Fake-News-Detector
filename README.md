@@ -253,15 +253,21 @@ metadata, which real-world uploads usually lose to re-encoding.
 
 ### Backend on Hugging Face Spaces
 
-1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space): SDK **Docker**, hardware **CPU basic**.
-2. In **Settings → Variables and secrets** add secrets `GEMINI_API_KEY`, `GROQ_API_KEY`, and variable `ALLOWED_ORIGINS=https://<your-app>.vercel.app,http://localhost:3000`.
+1. Create a Space at [huggingface.co/new-space](https://huggingface.co/new-space): SDK **Gradio**, hardware **CPU basic** (free).
+2. In **Settings → Variables and secrets** add secrets `GEMINI_API_KEY` and `GROQ_API_KEY`, and the variable `ALLOWED_ORIGINS=https://<your-app>.vercel.app,http://localhost:3000`.
 3. Push the backend folder as the Space repo root:
 
 ```bash
 ./scripts/deploy_space.sh <hf-username>/<space-name>
 ```
 
-The Dockerfile installs ffmpeg and pre-downloads the ONNX detector at build time.
+The Gradio SDK is used purely as a Python runtime: the Space runs `backend/app.py`,
+which starts this FastAPI service, and no Gradio interface is served. ffmpeg comes
+with that image. The ONNX detector is downloaded on first use and warmed in the
+background at startup, so the first boot after a rebuild takes an extra minute.
+
+A `Dockerfile` is kept for hosts that support containers (Render, Railway, Fly, or a
+Docker Space): it pre-downloads the detector at build time for faster cold starts.
 
 ### Frontend on Vercel
 

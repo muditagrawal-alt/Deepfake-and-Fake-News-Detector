@@ -37,6 +37,9 @@ cache/
 *.jpg
 *.png
 
+# ...except documentation assets
+!docs/assets/**
+
 # Dataset folders
 data/
 datasets/
@@ -54,3 +57,18 @@ dist/
 
 outputs/image_evaluation.csv
 outputs/news_evaluation.csv
+# Secrets
+.env
+backend/.env
+
+# Backend runtime
+backend/.venv/
+backend/models/
+backend/tmp/
+
+# v1 PyTorch pipeline, kept locally for reference only
+legacy/
+
+# Benchmark artifacts are committed on purpose (see README results table)
+!data/evaluation/**/metrics_v2.txt
+!data/evaluation/**/results_v2.csv

@@ -12,10 +12,6 @@ It returns a verdict, a calibrated confidence, the individual claims it checked,
 </div>
 
 <p align="center">
-  <img src="docs/assets/intro.gif" alt="The Veritas landing page resolving from noise into the checker" width="820">
-</p>
-
-<p align="center">
   <a href="docs/assets/demo.mp4"><img src="docs/assets/demo-preview.gif" alt="Preview of the demo video" width="760"></a><br>
   <a href="docs/assets/demo.mp4"><b>Watch the full demo</b></a> (30s, recorded against the live deployment)
 </p>
@@ -40,7 +36,7 @@ The container is a few hundred MB and cold-starts in seconds, which is what make
 deployable on free infrastructure.
 
 <p align="center">
-  <img src="docs/assets/news-check.gif" alt="Checking a satirical article end to end: verdict, claims and sources" width="820">
+  <img src="docs/assets/result.png" alt="A verdict card: claims marked corroborated with their sources, the signals weighed, and the caveats" width="860">
 </p>
 
 ---

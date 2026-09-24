@@ -16,6 +16,8 @@ const { chromium } = createRequire(resolve("frontend/package.json"))("playwright
 const BASE = (process.argv[2] || "http://localhost:3000").replace(/\/$/, "");
 const OUT = resolve(process.argv[3] || "/tmp/veritas-demo");
 const SIZE = { width: 1280, height: 720 };
+// Any rendered verdict card, whatever the model concluded.
+const VERDICT = "text=/\\d+% confidence/";
 // Dark mode: white film-style captions need dark footage to sit on.
 const CTX = { viewport: SIZE, colorScheme: "dark", deviceScaleFactor: 1 };
 mkdirSync(OUT, { recursive: true });
@@ -86,7 +88,8 @@ await record("news_start", async (page) => {
   await page.goto(BASE + "/#check");
   await page.waitForTimeout(700);
   await page.locator("#url").pressSequentially(
-    "https://www.theonion.com/report-nation-somehow-more-divided-than-ever-before-1849972712", { delay: 22 });
+    "https://www.theguardian.com/football/2026/apr/01/world-cup-48-questions-messi-ronaldo-trump-tickets",
+    { delay: 14 });
   await page.waitForTimeout(500);
   await page.getByRole("button", { name: "Run check" }).click();
   await page.waitForTimeout(2600);           // skeleton only; the wait is cut out
@@ -96,9 +99,9 @@ await record("news_start", async (page) => {
 await record("news_result", async (page) => {
   await page.goto(BASE + "/#check");
   await page.locator("#url").fill(
-    "https://www.theonion.com/report-nation-somehow-more-divided-than-ever-before-1849972712");
+    "https://www.theguardian.com/football/2026/apr/01/world-cup-48-questions-messi-ronaldo-trump-tickets");
   await page.getByRole("button", { name: "Run check" }).click();
-  await page.waitForSelector("text=Likely fake", { timeout: 180000 });
+  await page.waitForSelector(VERDICT, { timeout: 420000 });
   await revealResult(page);
   await page.waitForTimeout(3600);
   await page.evaluate(() => window.scrollBy({ top: 300, behavior: "smooth" }));
@@ -116,13 +119,18 @@ await record("video_start", async (page) => {
   await page.waitForTimeout(3400);
 });
 
+// The previous segment leaves a job still running on the backend. Against a
+// small instance, submitting a second video immediately makes both crawl, so
+// give the first one time to finish.
+await new Promise((r) => setTimeout(r, 45000));
+
 // 6. Video result
 await record("video_result", async (page) => {
   await page.goto(BASE + "/#check");
   await page.getByRole("tab", { name: "Video" }).click();
   await page.setInputFiles("input[type=file]", resolve("data/evaluation/videos/fake/vid_fake_human_gemini_001.mp4"));
   await page.getByRole("button", { name: "Run check" }).click();
-  await page.waitForSelector("text=/\\d+% confidence/", { timeout: 300000 });
+  await page.waitForSelector(VERDICT, { timeout: 420000 });
   await revealResult(page);
   await page.waitForTimeout(3800);
   await page.evaluate(() => window.scrollBy({ top: 320, behavior: "smooth" }));

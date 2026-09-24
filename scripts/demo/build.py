@@ -24,10 +24,10 @@ PLAN = [
         ("Veritas checks whether a news link, image or video is what it claims to be", 3.1),
         ("Local forensics plus an LLM fact-check, with every source shown", 3.1)]),
     ("news_start", 3.4, [
-        ("The article is extracted locally, then its claims are pulled out", 3.4)]),
+        ("A news link: the article is extracted locally and its claims pulled out", 3.4)]),
     ("news_result", 8.2, [
-        ("Each claim is searched against sources that exclude the original publisher", 4.1),
-        ("The verdict shows the signals behind it and every source it used", 4.1)]),
+        ("Each claim is checked against sources that exclude the original publisher", 4.1),
+        ("The verdict carries its reasoning, the signals weighed, and the sources", 4.1)]),
     ("video_start", 3.6, [
         ("For video, ffprobe reads container metadata and frames are scored by an ONNX detector", 3.6)]),
     ("video_result", 7.8, [

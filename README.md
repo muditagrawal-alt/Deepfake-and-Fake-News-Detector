@@ -5,7 +5,9 @@
 **Is it real?** A multimodal misinformation checker for news links, images and short videos.
 It returns a verdict, a calibrated confidence, the individual claims it checked, and the sources behind them.
 
-[Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Results](#results)
+**[Try it live](https://veritas-check.vercel.app)** · [Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Results](#results)
+
+<sub>The backend runs on a free instance that sleeps when idle, so the first check of the day takes about a minute to wake.</sub>
 
 </div>
 
@@ -15,7 +17,7 @@ It returns a verdict, a calibrated confidence, the individual claims it checked,
 
 <p align="center">
   <a href="docs/assets/demo.mp4"><img src="docs/assets/demo-preview.gif" alt="Preview of the demo video" width="760"></a><br>
-  <a href="docs/assets/demo.mp4"><b>Watch the full demo</b></a> (29s)
+  <a href="docs/assets/demo.mp4"><b>Watch the full demo</b></a> (30s, recorded against the live deployment)
 </p>
 
 ---
@@ -188,7 +190,8 @@ Writes `data/evaluation/<set>/results_v2.csv` and `metrics_v2.txt`.
 
 ## API
 
-Base URL is the backend origin. All responses are JSON.
+Base URL is the backend origin (`https://veritas-api-ahjc.onrender.com` for the live
+deployment). All responses are JSON.
 
 | Method | Endpoint | Body | Returns |
 |---|---|---|---|

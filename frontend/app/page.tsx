@@ -10,7 +10,7 @@ const STEPS: [string, string][] = [
   ],
   [
     "Check",
-    "Claims are searched against sources independent of the publisher. Pixels are scored by an AI-image detector.",
+    "Claims are searched against sources independent of the publisher, and the media is examined for generation artifacts.",
   ],
   [
     "Judge",

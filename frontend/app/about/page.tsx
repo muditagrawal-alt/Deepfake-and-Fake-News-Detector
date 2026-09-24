@@ -4,8 +4,8 @@ export const metadata = { title: "How it works: Veritas" };
 
 const METHOD: [string, string][] = [
   ["News link", "The article text is extracted with trafilatura. Gemini classifies the genre (hard news, satire, opinion, press release) and pulls out two to four checkable claims. Independent coverage is found with a web search that excludes the original publisher, the top pages are read, and each claim is marked corroborated, contradicted, misleading or unverifiable with the sources that were actually found."],
-  ["Image", "EXIF, PNG text chunks and C2PA markers are read for camera or generator fingerprints. An ONNX build of the Organika/sdxl-detector model scores the pixels. Gemini describes the image, transcribes on-screen text and looks for generation artifacts. If it shows a public figure or event, real coverage is searched and compared."],
-  ["Video", "ffprobe reads container metadata: Gemini/Veo, InVideo and other generators leave fingerprints, and YouTube re-encodes are told apart from them. Eight frames spread across the clip are scored by the image detector. The clip is then sent to Gemini, which watches it with audio: motion, lip sync, on-screen text and what is said. Spoken claims are fact-checked like an article."],
+  ["Image", "EXIF, PNG text chunks and C2PA markers are read for camera or generator fingerprints. Gemini then describes the image, transcribes on-screen text and looks for generation artifacts. A pixel-level classifier can be enabled as well, but it is off by default: measured against our benchmark it lowered accuracy, over-calling real photographs of people as fake. If it shows a public figure or event, real coverage is searched and compared."],
+  ["Video", "ffprobe reads container metadata: Gemini/Veo, InVideo and other generators leave fingerprints, and YouTube re-encodes are told apart from them. The clip is sent to Gemini, which watches it with audio: motion, lip sync, on-screen text and what is said. Spoken claims are fact-checked like an article."],
 ];
 
 export default function About() {

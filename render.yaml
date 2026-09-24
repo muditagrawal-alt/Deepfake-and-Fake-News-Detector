@@ -1,0 +1,29 @@
+# Render blueprint: https://render.com/docs/blueprint-spec
+#
+# Deploy with: New > Blueprint > point at this repository.
+# Then add GEMINI_API_KEY (and optionally GROQ_API_KEY, TAVILY_API_KEY) in the
+# dashboard, and set ALLOWED_ORIGINS to your frontend URL.
+services:
+  - type: web
+    name: veritas-api
+    runtime: python
+    plan: free                      # 512 MB RAM, sleeps after 15 minutes idle
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      # The pixel detector needs ~500 MB resident, which does not fit the free
+      # plan. It is off by default; set to true only on a plan with >= 1 GB.
+      - key: ENABLE_ONNX_DETECTOR
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        value: "http://localhost:3000"
+      - key: GEMINI_API_KEY
+        sync: false                 # set in the dashboard, never in git
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false

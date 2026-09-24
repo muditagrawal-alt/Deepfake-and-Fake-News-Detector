@@ -67,7 +67,10 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     # Local forensics
     # ------------------------------------------------------------------
-    enable_onnx_detector: bool = True
+    # Measured on the benchmark sets: images 0.88 -> 0.94 without it, video
+    # unchanged at 1.00. It also costs ~500 MB resident. Opt in with
+    # ENABLE_ONNX_DETECTOR=true if you want the extra pixel-level signal.
+    enable_onnx_detector: bool = False
     onnx_model_repo: str = "Organika/sdxl-detector"
     onnx_model_dir: Path = BACKEND_DIR / "models"
     video_frame_fps: float = 2.0            # upper cap; frames are spread across the clip

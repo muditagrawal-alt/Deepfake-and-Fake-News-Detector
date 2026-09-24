@@ -75,3 +75,5 @@ backend/tmp/
 
 # v1 PyTorch pipeline, kept locally for reference only
 legacy/
+.vercel
+.env*

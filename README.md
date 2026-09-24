@@ -241,11 +241,18 @@ Per-item outputs are in `data/evaluation/<set>/results_v2.csv`.
 | Set | v1 | v2 | Change |
 |---|---|---|---|
 | News (50) | 0.86 | **0.92** | v1 called 7 real articles fake. v2 calls none; fake-precision 1.00, F1 0.98 |
-| Images (50) | 0.86 | **0.88** | v1 needed a calibrator fit on the test set. v2 uses none |
+| Images (50) | 0.86 | **0.94** | v1 needed a calibrator fit on the test set. v2 uses none |
 | Videos (30) | 1.00 | **1.00** | v1 relied on generator metadata tags. v2 also watches frames and audio, minimum confidence 0.75 |
 
 The video set is the weakest evidence in this table: its fakes all carry intact generator
 metadata, which real-world uploads usually lose to re-encoding.
+
+**On the pixel detector.** The bundled `sdxl-detector` is **off by default**. Measured
+against these same sets, enabling it *lowers* image accuracy (0.94 to 0.88) and leaves
+video unchanged at 1.00: on its own it scores 0.66 and systematically over-calls real
+photographs of people, which drags the final judgement with it. It also needs about
+500 MB resident, so leaving it off is what lets the service run on a small instance.
+Set `ENABLE_ONNX_DETECTOR=true` to weigh it in anyway.
 
 ---
 

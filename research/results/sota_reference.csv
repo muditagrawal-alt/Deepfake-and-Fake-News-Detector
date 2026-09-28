@@ -1,0 +1,31 @@
+benchmark,modality,task,split_or_protocol,metric,method,score,uses_external_evidence,training,source,source_url,verified_from
+FakeNewsNet-PolitiFact,text+image,binary fake news,80/20 temporal split (by publication date),accuracy,SAFE,0.874,no,supervised,"Zhou, Wu & Zafarani, PAKDD 2020, Table 2",https://arxiv.org/abs/2003.04981,paper table
+FakeNewsNet-PolitiFact,text+image,binary fake news,80/20 temporal split (by publication date),F1,SAFE,0.896,no,supervised,"Zhou, Wu & Zafarani, PAKDD 2020, Table 2",https://arxiv.org/abs/2003.04981,paper table
+FakeNewsNet-PolitiFact,text+image,binary fake news,80/20 temporal split (by publication date),accuracy,att-RNN,0.769,no,supervised,"Zhou et al. 2020, Table 2 (baseline)",https://arxiv.org/abs/2003.04981,paper table
+FakeNewsNet-GossipCop,text+image,binary fake news,80/20 temporal split (by publication date),accuracy,SAFE,0.838,no,supervised,"Zhou, Wu & Zafarani, PAKDD 2020, Table 2",https://arxiv.org/abs/2003.04981,paper table
+FakeNewsNet-GossipCop,text+image,binary fake news,80/20 temporal split (by publication date),F1,SAFE,0.895,no,supervised,"Zhou, Wu & Zafarani, PAKDD 2020, Table 2",https://arxiv.org/abs/2003.04981,paper table
+Twitter MediaEval,text+image,binary fake news,official train/test,F1,SpotFake,0.82,no,supervised,"Singhal et al., IEEE BigMM 2019 (as reported in follow-up literature)",https://precog.iiit.ac.in/pubs/SpotFake-IEEE_BigMM.pdf,secondary source
+Weibo,text+image,binary fake news,official train/test,accuracy,SpotFake,0.8923,no,supervised,"Singhal et al., IEEE BigMM 2019 (as reported in follow-up literature)",https://precog.iiit.ac.in/pubs/SpotFake-IEEE_BigMM.pdf,secondary source
+MMFakeBench,text+image,4-class mixed-source misinformation,test (10000 pairs),macro-F1,GPT-4V + MMD-Agent,0.615,yes,zero-shot,"Liu et al., ICLR 2025, Table 2",https://arxiv.org/abs/2406.08772,paper table
+MMFakeBench,text+image,4-class mixed-source misinformation,test (10000 pairs),accuracy,GPT-4V + MMD-Agent,0.610,yes,zero-shot,"Liu et al., ICLR 2025, Table 2",https://arxiv.org/abs/2406.08772,paper table
+MMFakeBench,text+image,4-class mixed-source misinformation,test (10000 pairs),macro-F1,GPT-4V standard prompt,0.488,no,zero-shot,"Liu et al., ICLR 2025, Table 2",https://arxiv.org/abs/2406.08772,paper table
+MMFakeBench,text+image,4-class mixed-source misinformation,test (10000 pairs),macro-F1,LLaVA-1.6-34B + MMD-Agent,0.477,yes,zero-shot,"Liu et al., ICLR 2025, Table 2",https://arxiv.org/abs/2406.08772,paper table
+MMFakeBench,text+image,binary real vs misinformation,validation (1000 pairs),F1,GPT-4V (MMD-Agent),0.740,yes,zero-shot,"Liu et al., ICLR 2025, Table 3a",https://arxiv.org/abs/2406.08772,paper table
+MMFakeBench,text+image,binary real vs misinformation,validation (1000 pairs),F1,HAMMER (best single-source detector),0.430,no,supervised,"Liu et al., ICLR 2025, Table 3a",https://arxiv.org/abs/2406.08772,paper table
+NewsCLIPpings,text+image,out-of-context image-caption,Merged/Balance test (7264),accuracy,SNIFFER,0.884,yes,fine-tuned MLLM,"Qi et al., CVPR 2024, Table 1",https://arxiv.org/abs/2403.03170,paper table
+NewsCLIPpings,text+image,out-of-context image-caption,Merged/Balance test (7264),accuracy,CCN,0.847,yes,supervised,"Abdelnabi et al., CVPR 2022 (via Qi et al. 2024 Table 1)",https://arxiv.org/abs/2403.03170,paper table
+NewsCLIPpings,text+image,out-of-context image-caption,400-sample subset,accuracy,GPT-4V,0.755,yes,zero-shot,"Qi et al., CVPR 2024",https://arxiv.org/abs/2403.03170,paper table
+NewsCLIPpings,text+image,out-of-context image-caption,Merged/Balance test (7264),accuracy,SAFE,0.528,no,supervised,"Qi et al., CVPR 2024, Table 1",https://arxiv.org/abs/2403.03170,paper table
+LIAR,text,6-class statement veracity,official test,accuracy,Hybrid CNN (Wang 2017),0.274,no,supervised,"Wang, ACL 2017 (as reported in literature)",https://arxiv.org/abs/1705.00648,secondary source
+GenImage,image,real vs AI-generated (train SD1.4 -> 8 generators),cross-generator,mean accuracy,AIDE,0.8688,no,supervised,"Yan et al., ICLR 2025, Table 4",https://arxiv.org/abs/2406.19435,paper table
+GenImage,image,real vs AI-generated (train SD1.4 -> 8 generators),cross-generator,mean accuracy,UnivFD,0.7329,no,supervised,"Yan et al., ICLR 2025, Table 4",https://arxiv.org/abs/2406.19435,paper table
+Chameleon,image,real vs AI-generated (human-deceptive),train ProGAN -> Chameleon,accuracy,AIDE,0.5837,no,supervised,"Yan et al., ICLR 2025, Table 5",https://arxiv.org/abs/2406.19435,paper table
+Chameleon,image,real vs AI-generated (human-deceptive),train ProGAN -> Chameleon,accuracy,CNNSpot,0.5694,no,supervised,"Yan et al., ICLR 2025, Table 5",https://arxiv.org/abs/2406.19435,paper table
+DF3 (FFHQ vs StyleGAN2/LDM),image,real vs AI-generated faces,1000 real + 2000 fake,AUC,GPT-4V (best prompt),0.795,no,zero-shot,"Jia et al., CVPR Workshops 2024",https://arxiv.org/abs/2403.14077,paper table
+DF3 (FFHQ vs StyleGAN2/LDM),image,real vs AI-generated faces,1000 real + 2000 fake,AUC,Gemini 1.0 Pro,0.766,no,zero-shot,"Jia et al., CVPR Workshops 2024",https://arxiv.org/abs/2403.14077,paper table
+FaceForensics++ (c23),video,face manipulation,in-domain,frame AUC,UCF,0.9705,no,supervised,"Yan et al., DeepfakeBench, NeurIPS 2023 D&B, Table 3",https://arxiv.org/abs/2307.01426,paper table
+Celeb-DF v2,video,face manipulation,train FF++ c23 -> test CDF-v2,frame AUC,UCF,0.7527,no,supervised,"Yan et al., DeepfakeBench, NeurIPS 2023 D&B, Table 3",https://arxiv.org/abs/2307.01426,paper table
+DFDC,video,face manipulation,train FF++ c23 -> test DFDC,frame AUC,UCF,0.8074,no,supervised,"Yan et al., DeepfakeBench, NeurIPS 2023 D&B, Table 3",https://arxiv.org/abs/2307.01426,paper table
+GenVideo,video,real vs AI-generated video (incl. Sora),many-to-many (10 unseen generators),F1,DeMamba-XCLIP-FT,0.9020,no,supervised,"Chen et al., DeMamba (Sci. China Inf. Sci. 2024), Table 3",https://arxiv.org/abs/2405.19707,paper table
+GenVideo,video,real vs AI-generated video (incl. Sora),many-to-many (10 unseen generators),AP,DeMamba-XCLIP-FT,0.9710,no,supervised,"Chen et al., DeMamba, Table 3",https://arxiv.org/abs/2405.19707,paper table
+GenVideo,video,real vs AI-generated video (incl. Sora),one-to-many,F1,DeMamba-XCLIP-FT,0.7263,no,supervised,"Chen et al., DeMamba, Table 4",https://arxiv.org/abs/2405.19707,paper table

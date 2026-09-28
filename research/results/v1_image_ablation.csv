@@ -1,0 +1,7 @@
+configuration,n_features,accuracy_seed42,accuracy_mean_10seeds,accuracy_std_10seeds,accuracy_min,accuracy_max
+v1_full (as published),18,0.88,0.866,0.019,0.82,0.88
+without size,15,0.78,0.756,0.0126,0.74,0.78
+size only,3,0.92,0.92,0.0,0.92,0.92
+detector only,3,0.7,0.7,0.0,0.7,0.7
+statistics only,12,0.72,0.722,0.0199,0.68,0.74
+detector + statistics (no size),15,0.78,0.756,0.0126,0.74,0.78

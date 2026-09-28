@@ -1,0 +1,11 @@
+set,system,configuration,n,n_errors,valid,coverage,accuracy,acc_ci95_low,acc_ci95_high,precision_fake,recall_fake,f1_fake,specificity,balanced_accuracy,mcc,roc_auc,tp,fp,fn,tn,uncertain,run_file
+news,v1,as published,50,0,True,1.0,0.86,0.7381,0.9305,0.7812,1.0,0.8772,0.72,0.86,0.75,,25,7,0,18,0,news__v1__bert_satire_list__final.csv
+news,v2,pre satire rule,50,0,True,0.94,0.92,0.8116,0.9685,1.0,0.96,0.9796,0.88,0.92,0.9608,0.9888,24,0,1,22,3,news__v2__gemini35fl__pre_satire_rule__run1.csv
+images,v1,as published (LOO-CV),50,0,True,1.0,0.86,0.7381,0.9305,0.8462,0.88,0.8627,0.84,0.86,0.7206,0.908,22,4,3,21,0,images__v1__sdxl_rf_calibrator_loocv__final.csv
+images,v2,detector on,50,0,True,0.96,0.88,0.762,0.9438,0.92,0.92,0.92,0.84,0.88,0.84,0.9088,23,2,2,21,2,images__v2__gemini35fl__detector_on__run1.csv
+images,v2,detector off,49,1,True,0.9796,0.9592,0.8629,0.9887,1.0,0.96,0.9796,0.9583,0.9592,0.96,0.9667,24,0,1,23,1,images__v2__gemini35fl__detector_off__run1.csv
+videos,v1,as published,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1.0,1.0,1.0,,15,0,0,15,0,videos__v1__rules_metadata__final.csv
+videos,v1 (reproduced),original files,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,15,0,0,15,0,videos__v1repro__rules_metadata__none.csv
+videos,v1 (reproduced),metadata stripped,30,0,True,0.9333,0.6333,0.4551,0.7813,1.0,0.3333,0.5,0.9333,0.6333,0.4472,0.7178,5,0,10,14,2,videos__v1repro__rules_metadata__vid_strip.csv
+videos,v2,detector on,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,15,0,0,15,0,videos__v2__gemini35fl__detector_on__run1.csv
+videos,v2,detector off,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,15,0,0,15,0,videos__v2__gemini35fl__detector_off__run1.csv

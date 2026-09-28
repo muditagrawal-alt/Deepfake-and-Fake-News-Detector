@@ -1,0 +1,61 @@
+set,system,configuration,true,predicted,count
+news,v1,as published,FAKE,FAKE,25
+news,v1,as published,FAKE,REAL,0
+news,v1,as published,FAKE,UNCERTAIN,0
+news,v1,as published,REAL,FAKE,7
+news,v1,as published,REAL,REAL,18
+news,v1,as published,REAL,UNCERTAIN,0
+news,v2,pre satire rule,FAKE,FAKE,24
+news,v2,pre satire rule,FAKE,REAL,1
+news,v2,pre satire rule,FAKE,UNCERTAIN,0
+news,v2,pre satire rule,REAL,FAKE,0
+news,v2,pre satire rule,REAL,REAL,22
+news,v2,pre satire rule,REAL,UNCERTAIN,3
+images,v1,as published (LOO-CV),FAKE,FAKE,22
+images,v1,as published (LOO-CV),FAKE,REAL,3
+images,v1,as published (LOO-CV),FAKE,UNCERTAIN,0
+images,v1,as published (LOO-CV),REAL,FAKE,4
+images,v1,as published (LOO-CV),REAL,REAL,21
+images,v1,as published (LOO-CV),REAL,UNCERTAIN,0
+images,v2,detector on,FAKE,FAKE,23
+images,v2,detector on,FAKE,REAL,2
+images,v2,detector on,FAKE,UNCERTAIN,0
+images,v2,detector on,REAL,FAKE,2
+images,v2,detector on,REAL,REAL,21
+images,v2,detector on,REAL,UNCERTAIN,2
+images,v2,detector off,FAKE,FAKE,24
+images,v2,detector off,FAKE,REAL,1
+images,v2,detector off,FAKE,UNCERTAIN,0
+images,v2,detector off,REAL,FAKE,0
+images,v2,detector off,REAL,REAL,23
+images,v2,detector off,REAL,UNCERTAIN,1
+videos,v1,as published,FAKE,FAKE,15
+videos,v1,as published,FAKE,REAL,0
+videos,v1,as published,FAKE,UNCERTAIN,0
+videos,v1,as published,REAL,FAKE,0
+videos,v1,as published,REAL,REAL,15
+videos,v1,as published,REAL,UNCERTAIN,0
+videos,v1 (reproduced),original files,FAKE,FAKE,15
+videos,v1 (reproduced),original files,FAKE,REAL,0
+videos,v1 (reproduced),original files,FAKE,UNCERTAIN,0
+videos,v1 (reproduced),original files,REAL,FAKE,0
+videos,v1 (reproduced),original files,REAL,REAL,15
+videos,v1 (reproduced),original files,REAL,UNCERTAIN,0
+videos,v1 (reproduced),metadata stripped,FAKE,FAKE,5
+videos,v1 (reproduced),metadata stripped,FAKE,REAL,9
+videos,v1 (reproduced),metadata stripped,FAKE,UNCERTAIN,1
+videos,v1 (reproduced),metadata stripped,REAL,FAKE,0
+videos,v1 (reproduced),metadata stripped,REAL,REAL,14
+videos,v1 (reproduced),metadata stripped,REAL,UNCERTAIN,1
+videos,v2,detector on,FAKE,FAKE,15
+videos,v2,detector on,FAKE,REAL,0
+videos,v2,detector on,FAKE,UNCERTAIN,0
+videos,v2,detector on,REAL,FAKE,0
+videos,v2,detector on,REAL,REAL,15
+videos,v2,detector on,REAL,UNCERTAIN,0
+videos,v2,detector off,FAKE,FAKE,15
+videos,v2,detector off,FAKE,REAL,0
+videos,v2,detector off,FAKE,UNCERTAIN,0
+videos,v2,detector off,REAL,FAKE,0
+videos,v2,detector off,REAL,REAL,15
+videos,v2,detector off,REAL,UNCERTAIN,0

@@ -77,3 +77,12 @@ backend/tmp/
 legacy/
 .vercel
 .env*
+
+# Research analysis environment
+research/.venv/
+
+# Research workspace: figures are deliverables; cached arrays and logs are not
+!research/figures/**
+research/results/.*.npy
+research/runs/_*.log
+research/runs/_*.txt

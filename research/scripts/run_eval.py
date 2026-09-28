@@ -216,6 +216,8 @@ async def main():
         "video_strategy": settings.video_strategy, "pixel_classifier": settings.enable_onnx_detector,
         "git_commit": subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip(),
         "git_dirty": bool(subprocess.run(["git", "status", "--porcelain", "backend/detector"], capture_output=True, text=True, cwd=ROOT).stdout.strip()),
+        # Hash of the engine's source tree: identical across commits that touch only research files.
+        "engine_tree": subprocess.run(["git", "rev-parse", "--short", "HEAD:backend/detector"], capture_output=True, text=True, cwd=ROOT).stdout.strip(),
         "power": power_state(),
         "started_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }

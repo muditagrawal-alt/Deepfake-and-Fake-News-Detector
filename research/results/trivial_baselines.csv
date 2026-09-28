@@ -1,0 +1,12 @@
+set,baseline,kind,n,correct,accuracy,ci95_low,ci95_high,fake_recall,real_recall,note
+images,max_side_px,"threshold, leave-one-out",50,37,0.74,0.6045,0.8413,0.96,0.52,one threshold on the property
+images,pixels,"threshold, leave-one-out",50,37,0.74,0.6045,0.8413,0.96,0.52,one threshold on the property
+images,file_bytes,"threshold, leave-one-out",50,33,0.66,0.5215,0.7756,0.8,0.52,one threshold on the property
+images,exif_make,fixed rule,50,33,0.66,0.5215,0.7756,1.0,0.32,"REAL if EXIF names a camera maker, else FAKE"
+videos,duration_s,"threshold, leave-one-out",30,29,0.9667,0.8333,0.9941,1.0,0.9333,one threshold on the property
+videos,file_bytes,"threshold, leave-one-out",30,21,0.7,0.5212,0.8334,0.8667,0.5333,one threshold on the property
+videos,c2pa_ai,fixed rule,30,28,0.9333,0.7868,0.9815,0.8667,1.0,"FAKE if a C2PA manifest declares trainedAlgorithmicMedia, else REAL"
+videos,encoder,fixed rule,30,29,0.9667,0.8333,0.9941,0.9333,1.0,"FAKE if the container encoder tag is 'Google', else REAL"
+news,domain,fixed rule,50,50,1.0,0.9286,1.0,1.0,1.0,v1's two-domain satire list
+news,extraction,fixed rule,50,47,0.94,0.8378,0.9794,0.96,0.92,"REAL if the article text could be extracted, else FAKE (F11)"
+news,text_chars,"threshold, leave-one-out",50,47,0.94,0.8378,0.9794,0.96,0.92,one threshold on extracted text length

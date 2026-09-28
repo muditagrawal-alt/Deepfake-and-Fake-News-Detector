@@ -195,6 +195,24 @@ The duplicate filter matters most on text benchmarks, where the publisher is unk
 
 **Engine freeze.** From the commit that merges this entry, the prompts, schemas, pipeline and retrieval are frozen for the benchmark programme. A change after the freeze is a bug fix only, and every run it could affect is re-run in full. The v3.0 Gemini run that was in progress (22 of 50 in-house images) was stopped so that every reported number comes from the frozen engine; its rows are kept as a pilot in `runs/pilot/` and are not reported as results.
 
+## 2026-09-29 — Trivial baselines on the in-house sets
+
+`scripts/trivial_baselines.py` → `results/trivial_baselines.csv` (per item: `_per_item.csv`). Each baseline uses one property of the file or URL and no content analysis. Continuous properties use one threshold learned leave-one-out; binary properties are fixed rules.
+
+| Set | Property | Rule | Accuracy [95% CI] | FAKE / REAL recall |
+|---|---|---|---|---|
+| Images (50) | longest side, px | threshold, LOO | 0.740 [0.605, 0.841] | 0.96 / 0.52 |
+| Images | file size | threshold, LOO | 0.660 [0.521, 0.776] | 0.80 / 0.52 |
+| Images | EXIF camera make | REAL if present | 0.660 [0.521, 0.776] | 1.00 / 0.32 |
+| Videos (30) | duration | threshold, LOO | **0.967** [0.833, 0.994] | 1.00 / 0.93 |
+| Videos | container encoder = "Google" | fixed | **0.967** [0.833, 0.994] | 0.93 / 1.00 |
+| Videos | C2PA `trainedAlgorithmicMedia` | fixed | **0.933** [0.787, 0.982] | 0.87 / 1.00 |
+| Videos | file size | threshold, LOO | 0.700 [0.521, 0.833] | 0.87 / 0.53 |
+| News (50) | v1 satire-domain list | fixed | **1.000** [0.929, 1.000] | 1.00 / 1.00 |
+| News | article text extractable | REAL if yes | **0.940** [0.838, 0.979] | 0.96 / 0.92 |
+
+The v1 image calibrator's size features reached 0.92 (RandomForest over several size features, leave-one-out; doc 1, F4); a single threshold on the longest side reaches 0.74. Both are reported: the first is what v1 exploited, the second the simplest shortcut. A detector's result on these sets is only informative where it exceeds these baselines **under the controls that remove them** (img_norm512 removes size and EXIF; vid_strip removes C2PA and encoder tags; vid_strip_trim5 also removes duration).
+
 ## Observed measurement issues to control for
 
 - **Run-to-run variability.** The same fake video received LIKELY_FAKE (95%) in one production call and LIKELY_REAL in another on 2026-09-24. LLM results must be reported over repeated runs.

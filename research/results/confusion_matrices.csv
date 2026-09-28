@@ -59,3 +59,15 @@ videos,v2,detector off,FAKE,UNCERTAIN,0
 videos,v2,detector off,REAL,FAKE,0
 videos,v2,detector off,REAL,REAL,15
 videos,v2,detector off,REAL,UNCERTAIN,0
+images,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,FAKE,21
+images,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,REAL,4
+images,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,UNCERTAIN,0
+images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,FAKE,2
+images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,REAL,23
+images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,UNCERTAIN,0
+videos,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,FAKE,13
+videos,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,REAL,2
+videos,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,UNCERTAIN,0
+videos,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,FAKE,0
+videos,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,REAL,15
+videos,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,UNCERTAIN,0

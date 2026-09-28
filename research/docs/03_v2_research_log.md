@@ -213,6 +213,17 @@ The duplicate filter matters most on text benchmarks, where the publisher is unk
 
 The v1 image calibrator's size features reached 0.92 (RandomForest over several size features, leave-one-out; doc 1, F4); a single threshold on the longest side reaches 0.74. Both are reported: the first is what v1 exploited, the second the simplest shortcut. A detector's result on these sets is only informative where it exceeds these baselines **under the controls that remove them** (img_norm512 removes size and EXIF; vid_strip removes C2PA and encoder tags; vid_strip_trim5 also removes duration).
 
+## 2026-09-29 — First v3.1 results (Gemini 3.5 Flash-Lite, original inputs)
+
+Engine tree `76848a6`. Provider errors were resumed until every item completed; no error was scored.
+
+| Set | Accuracy [95% CI] | FAKE recall | REAL recall | AUC | vs v1 (McNemar) |
+|---|---|---|---|---|---|
+| Images (50) | 0.880 [0.762, 0.944] | 0.84 | 0.92 | 0.90 | 0.86 → 0.88, p = 1.00 |
+| Videos (30) | 0.933 [0.787, 0.982] | 0.87 | 1.00 | 0.96 | 1.00 → 0.93, p = 0.50 |
+
+**Video fakes were detected exactly when C2PA provenance was present.** The 13 fake clips carrying a valid C2PA manifest with `trainedAlgorithmicMedia` were all called LIKELY_FAKE (confidence 0.99–1.0). The two fakes without one (`vid_fake_human_gemini_013`, `vid_fake_nonhuman_invideo_012`) were called LIKELY_REAL at 0.95. For 6 of the 13 detected fakes the first-pass analysis recorded no anomaly at all. On original files the engine's video result therefore equals the C2PA-only baseline (0.933, `trivial_baselines.csv`). Reading signed provenance is legitimate fact-based evidence, but it is not content analysis; the `vid_strip` and `vid_strip_trim5` controls measure what remains without it. These are not comparisons with the state of the art: the in-house sets are small and carry the shortcuts listed above.
+
 ## Observed measurement issues to control for
 
 - **Run-to-run variability.** The same fake video received LIKELY_FAKE (95%) in one production call and LIKELY_REAL in another on 2026-09-24. LLM results must be reported over repeated runs.

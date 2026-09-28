@@ -104,13 +104,30 @@ With n = 50 (news, images) and n = 30 (video), 95% Wilson intervals are roughly 
 ### F10 (minor). The deployed calibrator trains on the benchmark
 `load_image_calibrator()` fits the RandomForest on `data/evaluation/images/metadata.csv`, the benchmark itself. The paper's number used leave-one-out and is not affected, but any evaluation of the deployed v1 on that set would be training on its test data.
 
+### F11 (critical). 24 of the 25 FAKE news URLs do not resolve to an article
+Found 2026-09-28 while testing the rebuilt engine; reproduced by `research/scripts/audit_news_urls.py` (`results/news_url_audit.csv`, `results/news_url_audit_summary.csv`).
+
+| Label | n | HTTP 200 | HTTP 404 | HTTP 401/403 | Article text extracted | Any Wayback snapshot | Domains |
+|---|---|---|---|---|---|---|---|
+| REAL | 25 | 21 | 0 | 4 | 23 | 18 | 14 |
+| FAKE | 25 | 1 | 14 | 10 | 1 | 1 | 2 |
+
+14 of the 15 `theonion.com` URLs return 404. Several of their headlines are real Onion pieces (for example "Congress Takes Group Of Schoolchildren Hostage"), but the numeric article IDs in the URLs do not exist, so the URLs were not copied from the site. The 10 `babylonbee.com` URLs are bot-blocked (403) and none has ever been captured by the Internet Archive. Only `news_026` is a live, archived article.
+
+Consequences:
+1. **The FAKE class contains almost no article text.** Any system that reads the page sees nothing for 24 of 25 fake items. A detector is then judged on the URL string alone, where the publisher's name decides the answer.
+2. **Extraction success is a near-perfect label proxy** (23/25 REAL vs 1/25 FAKE). v2 told the model when extraction failed, so v2's news accuracy on this set is confounded with it, in addition to publisher identity.
+3. **Neither v1's 0.86 nor any v2 number on this set measures fake-news detection.** The set can support one narrow claim only: whether a system recognises satire *publishers* from a URL.
+
+For the paper: report the in-house news set as audited and withdrawn, and evaluate news on established benchmarks with retrievable text (FakeNewsNet PolitiFact/GossipCop, LIAR, MMFakeBench; doc 4), plus a rebuilt in-house set whose every URL is verified live and archived at collection time.
+
 ## 1.4 What v1 contributes, stated accurately
 
 The framework's structure is sound and matches the paper's topic: independent modality modules, local forensic signals, external verification, and an explicit fusion step with an UNCERTAIN outcome. What the current evaluation does not support is the reported performance. Corrected v1 numbers, with the shortcuts identified above removed:
 
 | Modality | Reported | Corrected | Basis |
 |---|---|---|---|
-| News | 0.86 (FAKE recall 1.00) | not measurable on this set | FAKE class is solved by the domain list (F1) |
+| News | 0.86 (FAKE recall 1.00) | not measurable on this set | FAKE class is solved by the domain list (F1), and 24/25 FAKE URLs are dead or unverifiable (F11) |
 | Images | 0.86 | **0.756 ± 0.013** | size features removed (F4) |
 | Video | 1.00 | **0.633** | metadata removed; duration shortcut still present (F5, F6) |
 

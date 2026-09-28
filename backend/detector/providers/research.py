@@ -49,6 +49,14 @@ def _same_site(url: str, exclude_domain: str | None) -> bool:
     return d == ex or d.endswith("." + ex) or ex.endswith("." + d)
 
 
+def _excluded(url: str, exclude_domain: str | None, blocklist: frozenset[str]) -> bool:
+    """Original publisher, or a domain the run has ruled out as evidence."""
+    if _same_site(url, exclude_domain):
+        return True
+    d = _domain(url)
+    return any(d == b or d.endswith("." + b) for b in blocklist)
+
+
 _UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 
 
@@ -70,19 +78,20 @@ class TavilyResearcher:
         self.key = settings.tavily_api_key
         self.enabled = bool(self.key)
 
-    async def research(self, query: str, exclude_domain: str | None = None) -> tuple[str, list[dict]]:
-        payload = {"api_key": self.key, "query": query[:400], "search_depth": "basic", "max_results": 6, "include_answer": True}
+    async def research(self, query: str, exclude_domain: str | None = None,
+                       blocklist: frozenset[str] = frozenset()) -> tuple[str, list[dict]]:
+        payload = {"api_key": self.key, "query": query[:400], "search_depth": "basic", "max_results": 6,
+                   "include_answer": False}
+        if blocklist:
+            payload["exclude_domains"] = sorted(blocklist)
         async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.post("https://api.tavily.com/search", json=payload)
             r.raise_for_status()
             data = r.json()
-        lines = []
-        if data.get("answer"):
-            lines.append(f"Search summary: {data['answer']}")
-        sources = []
+        lines, sources = [], []
         for item in data.get("results", []):
             title, url, content = item.get("title", ""), item.get("url", ""), (item.get("content") or "")[:500]
-            if url and not _same_site(url, exclude_domain):
+            if url and not _excluded(url, exclude_domain, blocklist):
                 sources.append({"title": title or urlparse(url).netloc, "url": url})
                 lines.append(f"- {title} ({url}): {content}")
         return "\n".join(lines), sources
@@ -94,7 +103,7 @@ class DDGResearcher:
     name = "duckduckgo"
     enabled = True
 
-    def __init__(self, *, max_results: int = 8, read_pages: int = 4, chars_per_page: int = 1800):
+    def __init__(self, *, max_results: int = 6, read_pages: int = 3, chars_per_page: int = 1200):
         self.max_results = max_results
         self.read_pages = read_pages
         self.chars_per_page = chars_per_page
@@ -115,13 +124,14 @@ class DDGResearcher:
             log.info("ddg news search failed: %s", exc)
         return hits
 
-    async def research(self, query: str, exclude_domain: str | None = None) -> tuple[str, list[dict]]:
+    async def research(self, query: str, exclude_domain: str | None = None,
+                       blocklist: frozenset[str] = frozenset()) -> tuple[str, list[dict]]:
         query = query.strip()[:200]
         hits = await asyncio.to_thread(self._search_sync, query)
         seen, picked = set(), []
         for h in hits:
             u = h.get("url") or ""
-            if not u or u in seen or _same_site(u, exclude_domain):
+            if not u or u in seen or _excluded(u, exclude_domain, blocklist):
                 continue
             seen.add(u)
             picked.append(h)
@@ -155,12 +165,16 @@ class GroqResearcher:
         self.groq = groq_provider
         self.enabled = groq_provider.enabled
 
-    async def research(self, query: str, exclude_domain: str | None = None) -> tuple[str, list[dict]]:
+    async def research(self, query: str, exclude_domain: str | None = None,
+                       blocklist: frozenset[str] = frozenset()) -> tuple[str, list[dict]]:
+        if blocklist:
+            # A model-driven browser cannot guarantee the blocklist; refuse rather than leak.
+            raise RuntimeError("GroqResearcher cannot enforce a search blocklist")
         notes = await self.groq.research(
             "Fact-check the following. Search for independent, reputable coverage and report what each source says, "
             "with full URLs. If you find nothing relevant, say so explicitly.\n\n" + query[:1500]
         )
-        return notes, _dedupe_urls(_URL_RE.findall(notes))
+        return notes, [s for s in _dedupe_urls(_URL_RE.findall(notes)) if not _excluded(s["url"], exclude_domain, blocklist)]
 
 
 def pick_researcher(settings: Settings, groq_provider):

@@ -20,20 +20,23 @@ It returns a verdict, a calibrated confidence, the individual claims it checked,
 
 ## What it does
 
-Paste a news URL, or upload an image or a short video. Veritas combines **local forensics**
-(container metadata, EXIF, an ONNX AI-image detector, sampled frames and audio) with a
-**hosted LLM that extracts and verifies the actual claims** against independent sources,
-then shows its work: every signal, every source, and everything it could not verify.
+Paste a news URL, or upload an image or a short video. Veritas reads **measured file facts**
+(EXIF, XMP, C2PA content credentials, container metadata) and hands them, with the content
+itself, to a **model that reports the claims and observations, then judges them against
+independent evidence** retrieved from the web. It shows its work: every claim, every source,
+and everything it could not verify. No hand-written rule decides or adjusts a verdict.
 
 | Input | What happens |
 |---|---|
-| **News URL** | Article is extracted, genre classified (hard news / satire / opinion / press release), 2-4 atomic claims pulled out and checked against sources that exclude the original publisher |
-| **Image** | EXIF, PNG text chunks and C2PA markers read for camera or generator fingerprints; pixels scored by an ONNX detector; described, OCRed and artifact-checked; depicted events verified on the web |
-| **Video** | ffprobe metadata (generator fingerprints, and YouTube re-encodes told apart from them), 8 frames scored by the detector, then the clip is analyzed with its audio: motion, lip sync, on-screen text and spoken claims |
+| **News URL** | Article extracted; genre and 2-4 atomic claims identified; each claim judged against pages retrieved from sources other than the original publisher |
+| **Image** | EXIF, XMP and C2PA facts read (signed AI-generation credentials are verifiable); the image described, OCRed and checked for details inconsistent with a real photograph; depicted people, events and captions checked on the web |
+| **Video** | ffprobe and C2PA facts read; the clip analysed with its audio (or as frames plus a transcript on a local model): motion, lip sync, on-screen text and spoken claims |
 
-**Version 2 runs no local deep-learning model.** No PyTorch, no transformers, no BERT.
+**The deployed service runs no local deep-learning model.** No PyTorch, no transformers, no BERT.
 The container is a few hundred MB and cold-starts in seconds, which is what makes it
-deployable on free infrastructure.
+deployable on free infrastructure. For research runs the same engine can use a local
+vision-language model through [Ollama](https://ollama.com) (`LLM_ENGINE=ollama`, default
+`gemma4:12b`), so benchmarks do not depend on hosted-API quota.
 
 <p align="center">
   <img src="docs/assets/result.png" alt="A verdict card: claims marked corroborated with their sources, the signals weighed, and the caveats" width="860">
@@ -51,8 +54,8 @@ flowchart LR
   subgraph API_INTERNALS ["Backend"]
     direction TB
     GATE["Rate limit + quota gate<br/>per-IP, RPM window, daily cap"]
-    FOR["Local forensics"]
-    ANA["Analyzers<br/>news / image / video"]
+    FOR["Measured facts"]
+    ANA["Engine<br/>analyse → retrieve → verify"]
     GATE --> ANA
     FOR --> ANA
   end
@@ -60,13 +63,13 @@ flowchart LR
   API --> GATE
 
   FOR --- F1["trafilatura<br/>article text"]
-  FOR --- F2["Pillow<br/>EXIF, C2PA"]
+  FOR --- F2["Pillow + c2pa<br/>EXIF, XMP, C2PA"]
   FOR --- F3["ffprobe + ffmpeg<br/>metadata, frames, audio"]
-  FOR --- F4["onnxruntime<br/>sdxl-detector"]
+  FOR --- F4["onnxruntime<br/>sdxl-detector (optional)"]
 
-  ANA --> GEM["Gemini API<br/>vision, video, structured JSON"]
+  ANA --> GEM["Gemini API or local Ollama<br/>vision, video, structured JSON"]
   ANA --> RES["Web research<br/>DuckDuckGo or Tavily"]
-  ANA --> WHI["Groq Whisper<br/>transcript fallback"]
+  ANA --> WHI["Groq Whisper<br/>transcript for frame mode"]
 
   ANA --> OUT["AnalysisResult<br/>verdict, claims, signals, sources"]
   OUT --> FE
@@ -83,7 +86,7 @@ sequenceDiagram
   participant U as Browser
   participant A as FastAPI
   participant L as Local forensics
-  participant G as Gemini
+  participant G as Model (Gemini or local)
   participant W as Web research
 
   U->>A: POST /analyze/{news|image|video}
@@ -91,17 +94,16 @@ sequenceDiagram
   A->>L: Extract article / EXIF / ffprobe + frames + audio
   L-->>A: Forensic signals (JSON)
 
-  A->>G: Content + signals, response schema enforced
-  G-->>A: Genre, claims, description, provisional verdict
+  A->>G: 1 Analyse: content + facts, schema enforced
+  G-->>A: Claims, located observations, search queries (no verdict)
 
-  alt A checkable claim exists
-    A->>W: Search, excluding the original publisher
-    W-->>A: Notes + source URLs
-    A->>G: Re-judge with the evidence
-    G-->>A: Final verdict, claims, confidence
-  end
+  A->>W: 2 Retrieve: run the queries, original publisher excluded
+  W-->>A: Pages and source URLs
 
-  A->>A: Deterministic rules (e.g. satire is not factual)
+  A->>G: 3 Verify: content + facts + analysis + evidence
+  G-->>A: Claim checks, reasoning, verdict, confidence
+
+  A->>A: Drop citations the search did not return
   A-->>U: AnalysisResult, or 202 + job id for video
 ```
 
@@ -239,7 +241,8 @@ curl -s -X POST localhost:7860/analyze/news \
 > shortcut: image resolution alone separates the image set at 0.92, clip
 > duration alone separates the video set at 0.97, generator metadata tags
 > identify every fake video, and every fake news item comes from one of two
-> satire domains. The numbers below are therefore **development measurements,
+> satire domains, 24 of whose 25 URLs no longer resolve to an article. The
+> numbers below are therefore **development measurements,
 > not evidence of detection performance**. Evaluation on established
 > benchmarks, with controls for these shortcuts, is in progress; see
 > [`research/IMPLEMENTATION_PLAN.md`](research/IMPLEMENTATION_PLAN.md).
@@ -254,7 +257,9 @@ On the original 130-item sets, with 95% intervals:
 
 With the shortcuts controlled, v1 falls to **0.76** on images (size features
 removed) and **0.63** on video (metadata removed, frames bit-identical;
-p = 0.001). Controlled v2 runs are queued. Every figure, table and per-item
+p = 0.001). The engine has since been rebuilt without hand-written decision
+rules (`research/docs/03_v2_research_log.md`); controlled runs of the rebuilt
+engine replace the v2 column. Every figure, table and per-item
 result is regenerated by the scripts in `research/scripts/`.
 
 **On the pixel detector.** The bundled `sdxl-detector` is **off by default**.
@@ -275,8 +280,9 @@ backend/
     pipeline.py          Dispatcher and legacy-compatible entry point
     config.py            Settings from .env
     quota.py             Concurrency, RPM window, daily cap
+    engine/              analyse -> retrieve -> verify; Gemini and Ollama backends
     analyzers/           news.py, image.py, video.py, prompts.py
-    forensics/           article, exif, video_meta, frames, onnx_detector
+    forensics/           article, exif, video_meta, provenance (C2PA), frames, onnx_detector
     providers/           gemini, groq, research, openai_compat
   eval/run_eval.py       Benchmark runner
   Dockerfile             Space image
@@ -290,9 +296,9 @@ paper/                   Figure generation for the original submission
 
 ## Limitations
 
-- Verdicts are probabilistic estimates from a language model plus heuristics. They are **signals, not proof**.
-- Metadata is trivially stripped or forged. Its absence is treated as neutral; a generator name in it is strong but not conclusive evidence.
-- The pixel detector was trained on SDXL-era images. It over-calls real photos of people and struggles with thumbnails, so it is weighted accordingly rather than trusted.
+- Verdicts are probabilistic estimates from a language model. They are **signals, not proof**.
+- Metadata is easily stripped or edited, and most authentic media online carries none. C2PA credentials are signed, but a re-upload usually removes them.
+- The optional pixel detector (off by default) was trained on SDXL-era images; its score is passed to the model as a measured fact.
 - Paywalled or bot-blocked articles fall back to URL-based checks, which lowers confidence.
 - Free-tier model providers may use submitted content to improve their services. Do not submit private material.
 

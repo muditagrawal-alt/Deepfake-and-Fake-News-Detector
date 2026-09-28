@@ -1,105 +1,21 @@
 """
-Image metadata forensics with Pillow only.
+Image file facts: format, dimensions, raw EXIF/XMP/PNG text fields, C2PA.
 
-Returns a compact dict that is both shown in the UI and handed to the LLM as
-context. Nothing here is proof on its own: real photos lose EXIF on social
-platforms, and generators can write fake EXIF.
+Reports what the file contains, verbatim. It does not interpret any field and
+has no keyword lists: deciding what a Software tag or a digital-source-type
+value means is the model's job, using the facts.
 """
 import re
 from pathlib import Path
 
 from PIL import ExifTags, Image
 
-_AI_MARKERS = (
-    "midjourney", "dall-e", "dall·e", "dalle", "stable diffusion", "stablediffusion",
-    "firefly", "adobe firefly", "imagen", "gemini", "grok", "flux", "leonardo",
-    "ideogram", "runway", "sora", "veo", "kling", "trainedalgorithmicmedia",
-    "generative ai", "genai", "comfyui", "automatic1111", "invokeai", "nightcafe",
-)
-_CAMERA_MAKERS = ("apple", "samsung", "canon", "nikon", "sony", "google", "xiaomi", "oneplus", "huawei", "fujifilm", "olympus", "panasonic", "leica", "gopro", "dji")
+from detector.forensics.provenance import read_c2pa
 
-
-def _has_c2pa(path: Path) -> bool:
-    try:
-        with open(path, "rb") as fh:
-            head = fh.read(4 * 1024 * 1024)
-        return b"c2pa" in head or b"jumb" in head or b"contentauth" in head
-    except Exception:
-        return False
-
-
-def analyze_image_metadata(path: str | Path) -> dict:
-    path = Path(path)
-    out = {
-        "format": None,
-        "size": None,
-        "has_exif": False,
-        "camera_make": None,
-        "camera_model": None,
-        "software": None,
-        "datetime_original": None,
-        "has_gps": False,
-        "png_text_keys": [],
-        "ai_markers": [],
-        "has_c2pa_manifest": _has_c2pa(path),
-        "notes": [],
-    }
-    try:
-        img = Image.open(path)
-    except Exception as exc:
-        out["notes"].append(f"Could not open image: {exc}")
-        return out
-
-    out["format"] = img.format
-    out["size"] = list(img.size)
-
-    haystack = []
-
-    try:
-        exif = img.getexif()
-    except Exception:
-        exif = None
-    if exif:
-        tags = {ExifTags.TAGS.get(k, str(k)): v for k, v in exif.items()}
-        try:
-            ifd = exif.get_ifd(ExifTags.IFD.Exif)
-            tags.update({ExifTags.TAGS.get(k, str(k)): v for k, v in ifd.items()})
-        except Exception:
-            pass
-        try:
-            out["has_gps"] = bool(exif.get_ifd(ExifTags.IFD.GPSInfo))
-        except Exception:
-            pass
-        out["has_exif"] = len(tags) > 0
-        out["camera_make"] = _s(tags.get("Make"))
-        out["camera_model"] = _s(tags.get("Model"))
-        out["software"] = _s(tags.get("Software"))
-        out["datetime_original"] = _s(tags.get("DateTimeOriginal") or tags.get("DateTime"))
-        haystack.extend(str(v) for v in tags.values() if isinstance(v, (str, bytes)))
-
-    info = getattr(img, "info", {}) or {}
-    for key, val in info.items():
-        if key in ("exif", "icc_profile"):
-            continue
-        if isinstance(val, (str, bytes)):
-            out["png_text_keys"].append(key)
-            haystack.append(f"{key}={val[:500] if isinstance(val, str) else val[:500]}")
-
-    blob = " ".join(h if isinstance(h, str) else h.decode("utf-8", "ignore") for h in haystack).lower()
-    out["ai_markers"] = sorted({m for m in _AI_MARKERS if m in blob})
-    if "parameters" in out["png_text_keys"]:
-        out["ai_markers"].append("sd_webui_parameters_chunk")
-
-    make = (out["camera_make"] or "").lower()
-    if make and any(m in make for m in _CAMERA_MAKERS):
-        out["notes"].append("Camera make/model present (weak REAL signal; can be forged).")
-    if not out["has_exif"]:
-        out["notes"].append("No EXIF (neutral: social platforms strip metadata; generators omit it).")
-    if out["ai_markers"]:
-        out["notes"].append("Metadata names an AI generation tool (strong FAKE signal).")
-    if out["has_c2pa_manifest"]:
-        out["notes"].append("C2PA/JUMBF manifest bytes present; provenance credentials may be embedded.")
-    return out
+# Raw EXIF fields worth showing. Selecting fields to display decides nothing.
+_EXIF_FIELDS = ("Make", "Model", "Software", "DateTimeOriginal", "DateTime", "Artist",
+                "ImageDescription", "Copyright", "LensModel", "HostComputer")
+_XMP_KEYS = re.compile(r"(DigitalSourceType|CreatorTool|softwareAgent|Credit|Source)\W*[=>]\W*\"?([^\"<]{1,200})")
 
 
 def _s(value):
@@ -109,3 +25,40 @@ def _s(value):
         value = value.decode("utf-8", "ignore")
     value = re.sub(r"\s+", " ", str(value)).strip("\x00 ")
     return value or None
+
+
+def analyze_image_metadata(path: str | Path) -> dict:
+    path = Path(path)
+    out = {"format": None, "width": None, "height": None, "exif": {}, "has_gps": False,
+           "xmp": {}, "png_text": {}, "c2pa": read_c2pa(path)}
+    try:
+        img = Image.open(path)
+    except Exception as exc:
+        out["error"] = f"could not open image: {exc}"
+        return out
+    out["format"] = img.format
+    out["width"], out["height"] = img.size
+
+    try:
+        exif = img.getexif()
+        tags = {ExifTags.TAGS.get(k, str(k)): v for k, v in exif.items()}
+        try:
+            tags.update({ExifTags.TAGS.get(k, str(k)): v for k, v in exif.get_ifd(ExifTags.IFD.Exif).items()})
+            out["has_gps"] = bool(exif.get_ifd(ExifTags.IFD.GPSInfo))
+        except Exception:
+            pass
+        out["exif"] = {k: _s(tags[k]) for k in _EXIF_FIELDS if _s(tags.get(k))}
+    except Exception:
+        pass
+
+    info = getattr(img, "info", {}) or {}
+    xmp = info.get("xmp") or info.get("XML:com.adobe.xmp")
+    if xmp:
+        text = xmp.decode("utf-8", "ignore") if isinstance(xmp, bytes) else str(xmp)
+        out["xmp"] = {k: v.strip() for k, v in _XMP_KEYS.findall(text)}
+    for key, val in info.items():
+        if key in ("exif", "icc_profile", "xmp", "XML:com.adobe.xmp"):
+            continue
+        if isinstance(val, (str, bytes)):
+            out["png_text"][key] = _s(val)[:300] if _s(val) else None
+    return out

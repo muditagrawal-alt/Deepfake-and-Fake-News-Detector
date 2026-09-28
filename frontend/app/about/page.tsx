@@ -3,9 +3,10 @@ import Link from "next/link";
 export const metadata = { title: "How it works: Veritas" };
 
 const METHOD: [string, string][] = [
-  ["News link", "The article text is extracted with trafilatura. Gemini classifies the genre (hard news, satire, opinion, press release) and pulls out two to four checkable claims. Independent coverage is found with a web search that excludes the original publisher, the top pages are read, and each claim is marked corroborated, contradicted, misleading or unverifiable with the sources that were actually found."],
-  ["Image", "EXIF, PNG text chunks and C2PA markers are read for camera or generator fingerprints. Gemini then describes the image, transcribes on-screen text and looks for generation artifacts. A pixel-level classifier can be enabled as well, but it is off by default: measured against our benchmark it lowered accuracy, over-calling real photographs of people as fake. If it shows a public figure or event, real coverage is searched and compared."],
-  ["Video", "ffprobe reads container metadata: Gemini/Veo, InVideo and other generators leave fingerprints, and YouTube re-encodes are told apart from them. The clip is sent to Gemini, which watches it with audio: motion, lip sync, on-screen text and what is said. Spoken claims are fact-checked like an article."],
+  ["Three steps", "Every check runs the same way. First the model reads the content and reports what it claims and what it shows, without giving a verdict. Then a web search, run by the server rather than the model, looks for independent evidence, leaving out the original publisher. Finally the model weighs the content, the file facts and that evidence, and gives a verdict with its reasons. No hand-written rule changes the verdict."],
+  ["News link", "The article text is extracted with trafilatura. The model identifies the genre and pulls out two to four checkable claims, and each claim is marked corroborated, contradicted, misleading or unverifiable against the pages the search actually returned. A source the search did not return cannot be cited."],
+  ["Image", "The file's EXIF, XMP and C2PA content credentials are read and passed on as facts, without interpretation. C2PA credentials are cryptographically signed, so when a generator such as Google or OpenAI has signed an image as AI-made, that is verifiable. The model describes the image, notes anything inconsistent with a real photograph, and checks any public figure, event or caption against the search results."],
+  ["Video", "ffprobe and C2PA facts are read the same way. The model watches the clip with its audio, or reads frames and a transcript when it runs locally, and looks at motion, lip sync, on-screen text and what is said. Spoken claims are checked like an article's."],
 ];
 
 export default function About() {
@@ -13,7 +14,7 @@ export default function About() {
     <div className="mx-auto max-w-3xl px-4 pt-12 pb-20 sm:pt-16">
       <h1 className="text-4xl font-semibold tracking-tight">How it works</h1>
       <p className="mt-3 text-ink-2 text-[17px] leading-relaxed max-w-[60ch]">
-        Lightweight forensics on a small backend, reasoning and fact-checking by a hosted model, and every source shown to you.
+        Measured file facts, a model's reading of the content, and independent evidence from the web, with every source shown to you.
       </p>
 
       <div className="mt-12 space-y-10">

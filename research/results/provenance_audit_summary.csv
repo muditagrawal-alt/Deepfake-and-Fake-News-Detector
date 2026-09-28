@@ -1,0 +1,11 @@
+set,transform,label,n,c2pa_present,c2pa_valid,c2pa_ai_source_type,xmp_source_type,exif_camera_make,encoder_tag
+images,img_norm512,FAKE,25,0,0,0,0,0,0
+images,img_norm512,REAL,25,0,0,0,0,0,0
+images,none,FAKE,25,0,0,0,0,0,0
+images,none,REAL,25,0,0,0,0,8,0
+videos,none,FAKE,15,13,13,13,0,0,15
+videos,none,REAL,15,0,0,0,0,0,10
+videos,vid_strip,FAKE,15,0,0,0,0,0,0
+videos,vid_strip,REAL,15,0,0,0,0,0,0
+videos,vid_strip_trim5,FAKE,15,0,0,0,0,0,0
+videos,vid_strip_trim5,REAL,15,0,0,0,0,0,0

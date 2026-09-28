@@ -94,6 +94,82 @@ Findings F1–F10 (doc 1) and the statistical re-analysis (`results/`). Two cont
 
 When these complete, `research/scripts/build_results.py` and `make_figures.py` regenerate every table and figure with them included.
 
+## 2026-09-28 — Engine rebuilt: no hand-written decision rules, backend-neutral, local models
+
+**Why.** The audit showed that v1's and v2's reported accuracy came from rules and signals tuned to the benchmark (F1, F4–F6, F11), and the reviewers asked for wider benchmarks, which will hit hosted-API rate limits. The engine was rebuilt so that (a) every verdict comes from a model reasoning over measured facts and retrieved evidence, with no hand-written rule that decides or nudges the label, and (b) the same pipeline runs on a hosted model (Gemini) or a local one (Ollama), so a benchmark can finish without API quota.
+
+### Inventory of removed rules
+
+Every rule below was in the code at commit `c024d1d` and is gone. "Replaced by" is what now carries that information, if anything.
+
+| # | Where (at `c024d1d`) | What it did | Replaced by |
+|---|---|---|---|
+| R1 | `analyzers/common.py:86-92` | If the model said genre = satire but not LIKELY_FAKE, forced LIKELY_FAKE with confidence ≥ 0.8 | Nothing. The label definition (satire presented as news is LIKELY_FAKE) is stated once in the task prompt; the model applies it. |
+| R2 | `analyzers/image.py:53-62` | Images < 500 px: prompt said blur is expected, detector unreliable, **cap confidence at 0.7** | Nothing. The model receives the image and its measured width and height. |
+| R3 | `analyzers/image.py:67-70` | Told the model the pixel detector "is right about 2 in 3 times" and "over-calls real photos" (measured on our own test set) | Nothing. When enabled, the detector's score is passed as a fact with the model name. Stating test-set accuracy to the model was test-set leakage. |
+| R4 | `analyzers/video.py:96-101` | Told the model which generators the frame detector catches on "our benchmarks", and that avg < 0.2 is a moderate REAL signal | Nothing (same reason as R3). |
+| R5 | `analyzers/prompts.py` rubric | Signal weights: "metadata naming a generator is a STRONG fake signal", "camera make is a WEAK real signal", "absence of artifacts is weak evidence" | Neutral facts about the tools: metadata can be stripped or edited; C2PA manifests are signed; absent metadata is common for authentic media online. Weighing is the model's job, or the learned scorer's (plan P4). |
+| R6 | `analyzers/prompts.py` rubric | "A single weak signal should never produce confidence above 0.7"; "Prefer UNCERTAIN over guessing" | `confidence` is defined as the probability the verdict is correct. No cap, no bias toward a label. |
+| R7 | `forensics/video_meta.py` | Keyword lists `GENERATOR_KEYWORDS`, `GENERATOR_ENCODERS` (google, veo, sora, …) produced `generator_detected=True`; `PUBLIC_CONTEXT_KEYS` produced a "public context" hint; free-text `notes` pre-judged the file | ffprobe facts only: duration, size, fps, codecs, audio, raw container and stream tags, and C2PA. No field interprets them. |
+| R8 | `forensics/exif.py` | `_AI_MARKERS` and `_CAMERA_MAKERS` lists produced `ai_markers` and judgement `notes` | Raw EXIF fields, XMP (`DigitalSourceType`, `CreatorTool`, …), PNG text chunks and C2PA, uninterpreted. |
+| R9 | `providers/research.py` (Tavily) | Passed Tavily's own LLM-written "answer" to the model as evidence | Removed: evidence is the retrieved pages only, so no second model's opinion enters as evidence. |
+| R10 | `providers/gemini.py` | On 429/503 silently switched to a different Gemini model mid-run | `PIN_MODEL=true` (research runs) disables the switch; every call records the model version that served it. |
+
+### What the prompts still contain, and why that is not a decision rule
+
+- **The task and label definitions** (`prompts.TASK`), including that satire presented as news is LIKELY_FAKE. This is the benchmark's labelling convention and must be stated in the paper as such.
+- **Where to look** (stage 1: hands, text, reflections, motion, lip sync, …). This lists what to inspect and assigns no weight or direction.
+- **Evidence discipline** (cite only retrieved URLs; the original publisher is not independent).
+- **Neutral facts about the tools** (R5).
+
+Nothing in the prompts or code was derived from results on any evaluation set.
+
+### New architecture (`backend/detector/engine/`)
+
+1. **Analyse** (model): returns an `Analysis`: description, genre, 0–4 atomic claims, located observations (each with a neutral `anomaly` flag: inconsistent with the physical world or with how cameras and microphones record it), and 0–3 search queries. It has no verdict field, so the model cannot commit to a label before seeing evidence.
+2. **Retrieve** (tool, no model): runs the queries (falling back to the claims if none), excludes the original publisher and any `SEARCH_BLOCKLIST` domain, reads the top pages. Retrieval sits outside the model, so different backends see identical evidence for the same queries.
+3. **Verify** (model): receives the content, the measured facts, the stage-1 analysis and the retrieved evidence (or an explicit "no evidence found" / "closed-book" statement). It returns an `LLMVerdict` whose fields are ordered claims → signals → caveats → reasoning → summary → verdict → confidence, so the label is generated after the justification.
+4. **Result** (`analyzers/common.build_result`): no verdict or confidence is changed. Citations not among the retrieved URLs are removed and counted (`n_citations_outside_retrieved`, a hallucination metric). `evidence_features` records claim-status counts, anomaly counts by kind, retrieval counts, and C2PA/XMP/EXIF provenance facts for the learned scorer. Raw width/height and duration are deliberately not features, because on our sets they are label proxies (F4, F6).
+
+Backends (`engine/backends.py`): `GeminiBackend` (hosted; native video through the Files API, uploaded once per item and reused across both stages) and `OllamaBackend` (local; images inline; video as 8 frames across the clip, each labelled with its approximate time, plus a Whisper transcript). The backend is chosen once per process (`LLM_ENGINE`), and a run never mixes models.
+
+Research-run settings (all environment variables):
+
+| Setting | Values | Purpose |
+|---|---|---|
+| `LLM_ENGINE` | `gemini` \| `ollama` | system under test |
+| `OLLAMA_MODEL` | `gemma4:12b` (default), `qwen3.5:9b` | local model |
+| `PIN_MODEL` | `true` for research | no silent model switching (R10) |
+| `RESEARCH_MODE` | `open` \| `closed` | closed = no retrieval; contamination / knowledge-only control |
+| `SEARCH_BLOCKLIST` | comma-separated domains | exclude benchmark label sources (e.g. fact-check sites for LIAR/PolitiFact) |
+| `VIDEO_STRATEGY` | `native` \| `frames` | `frames` on Gemini gives the same video input as the local backend |
+
+### Local model selection (measured 2026-09-28, Ollama 0.30.10, Apple M4, 24 GB)
+
+| Model | Structured JSON with thinking off | With thinking on | Vision | Note |
+|---|---|---|---|---|
+| `qwen3.5:9b` (Q4_K_M, 6.6 GB) | **ignored**: returned prose, schema not applied | honoured; 1–2 k thinking characters per trivial call | yes | usable only with `OLLAMA_THINK=true` |
+| `gemma4:12b` (Q4_K_M, 7.6 GB) | honoured | not needed | yes (also audio) | **default local model** |
+
+Throughput was 5.3 tokens/s for gemma4:12b with macOS Low Power Mode on and the machine on battery. That puts an image at ~3 min for two stages and makes a 50-item image run ~3 h. Benchmark runs must be made on AC power with Low Power Mode off, and the timing columns report the power state.
+
+### Smoke tests (single items, not results)
+
+These checked that the engine runs end to end. They are not evidence of accuracy.
+
+| Item | Backend | Verdict | What drove it |
+|---|---|---|---|
+| `img_fake_human_picsart_024` (fake) | gemma4:12b | LIKELY_REAL 0.95 | no anomalies observed |
+| same | gemini-3.5-flash-lite | LIKELY_REAL 0.80 | no anomalies observed; hard item for both models |
+| `news_028` (Onion, dead URL) | gemini-3.5-flash-lite | LIKELY_FAKE 0.99 | publisher recognised from the URL; 7 retrieved pages identify the headline as Onion satire. Exposed F11. |
+| `vid_fake_human_gemini_001` (Veo) | gemini-3.5-flash-lite | LIKELY_FAKE 0.99 | C2PA manifest with `digitalSourceType = trainedAlgorithmicMedia` (signed provenance) and a garbled on-screen template string |
+
+The Veo clips carry C2PA content credentials. That is a legitimate, verifiable signal, but a platform re-upload strips it, so the `vid_strip` control now measures exactly how much the video result depends on provenance being present.
+
+### Consequences for earlier runs
+
+All v2 runs in `runs/` before this entry used the old engine (rules R1–R10). They stay as the record of the deployed v2 at that time, labelled `v2` in `results/run_registry.csv`. Runs of the new engine are labelled `v3` with the backend and model in the tag, and the paper's primary results come from `v3`.
+
 ## Observed measurement issues to control for
 
 - **Run-to-run variability.** The same fake video received LIKELY_FAKE (95%) in one production call and LIKELY_REAL in another on 2026-09-24. LLM results must be reported over repeated runs.

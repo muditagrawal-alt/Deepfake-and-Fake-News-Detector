@@ -10,7 +10,7 @@ import asyncio
 import logging
 
 from detector.analyzers.image import analyze_image
-from detector.analyzers.news import analyze_news
+from detector.analyzers.news import analyze_news, analyze_news_text  # noqa: F401  (re-exported for scripts)
 from detector.analyzers.video import analyze_video
 from detector.schemas import AnalysisResult
 from detector.services import Services, get_services
@@ -32,9 +32,9 @@ async def analyze(
     if len(provided) != 1:
         raise ValueError("Provide exactly one of url, image_path, video_path.")
     if url:
-        return await analyze_news(url, services)
+        return await analyze_news(url, services, progress=progress)
     if image_path:
-        return await analyze_image(image_path, services, original_name=original_name)
+        return await analyze_image(image_path, services, original_name=original_name, progress=progress)
     return await analyze_video(video_path, services, original_name=original_name, progress=progress)
 
 

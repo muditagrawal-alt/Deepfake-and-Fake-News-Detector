@@ -36,6 +36,34 @@ class Settings(BaseSettings):
     hf_token: str = ""
 
     # ------------------------------------------------------------------
+    # Engine
+    # ------------------------------------------------------------------
+    # Which model judges the content: "gemini" (hosted) or "ollama" (local).
+    # Chosen once per process; a benchmark run never switches models part-way.
+    llm_engine: str = "gemini"
+    # True: never fall over to gemini_secondary_model on 429/503 (research runs).
+    pin_model: bool = False
+    # "open": retrieve web evidence; "closed": no retrieval (contamination control).
+    research_mode: str = "open"
+    # Comma-separated domains never used as evidence (e.g. fact-check sites that
+    # are also the label source of a benchmark). Empty in production.
+    search_blocklist: str = ""
+    max_search_queries: int = 3
+
+    # ------------------------------------------------------------------
+    # Ollama (local models)
+    # ------------------------------------------------------------------
+    ollama_url: str = "http://127.0.0.1:11434"
+    # gemma4:12b honours the JSON schema with thinking off. qwen3.5:9b ignores
+    # `format` unless OLLAMA_THINK=true (Ollama 0.30.10), which is ~4x slower.
+    ollama_model: str = "gemma4:12b"
+    ollama_num_ctx: int = 16384
+    ollama_think: bool = False
+    ollama_seed: int = 7
+    ollama_timeout_seconds: float = 600.0
+    ollama_keep_alive: str = "30m"
+
+    # ------------------------------------------------------------------
     # Gemini
     # ------------------------------------------------------------------
     # Highest free RPD is on the Flash-Lite tier; Flash is the second pool.
@@ -47,8 +75,7 @@ class Settings(BaseSettings):
     gemini_concurrency: int = 2
     gemini_temperature: float = 0.2
     gemini_timeout_seconds: float = 120.0
-    image_grounding: bool = True         # let Gemini search for the depicted event/person
-    video_strategy: str = "gemini_video" # "gemini_video" (Files API) or "frames" (frames + Whisper)
+    video_strategy: str = "native"       # "native" (backend sees the file) or "frames" (frames + Whisper)
     researcher: str = "auto"             # "auto" (Tavily if key, else DuckDuckGo) or "groq" (browser_search; heavy on quota)
 
     # ------------------------------------------------------------------
@@ -67,9 +94,9 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     # Local forensics
     # ------------------------------------------------------------------
-    # Measured on the benchmark sets: images 0.88 -> 0.94 without it, video
-    # unchanged at 1.00. It also costs ~500 MB resident. Opt in with
-    # ENABLE_ONNX_DETECTOR=true if you want the extra pixel-level signal.
+    # Optional pixel-level classifier; its score is passed to the model as a
+    # measured fact. Off by default (~500 MB resident, no significant gain measured:
+    # research/results/paired_tests.csv).
     enable_onnx_detector: bool = False
     onnx_model_repo: str = "Organika/sdxl-detector"
     onnx_model_dir: Path = BACKEND_DIR / "models"
@@ -103,6 +130,7 @@ class Settings(BaseSettings):
             "mistral": bool(self.mistral_api_key),
             "openrouter": bool(self.openrouter_api_key),
             "tavily": bool(self.tavily_api_key),
+            "ollama": self.llm_engine == "ollama",
             "hf": bool(self.hf_token),
         }
 

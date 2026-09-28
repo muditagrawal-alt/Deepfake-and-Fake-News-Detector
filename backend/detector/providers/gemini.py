@@ -112,7 +112,8 @@ class GeminiProvider:
             raise ProviderError("GEMINI_API_KEY is not configured.")
 
         models = [model or self.settings.gemini_primary_model]
-        if self.settings.gemini_secondary_model and self.settings.gemini_secondary_model not in models:
+        if (not self.settings.pin_model and self.settings.gemini_secondary_model
+                and self.settings.gemini_secondary_model not in models):
             models.append(self.settings.gemini_secondary_model)
         temp = self.settings.gemini_temperature if temperature is None else temperature
         contents = list(contents)
@@ -208,6 +209,7 @@ class GeminiProvider:
                 call_contents.append(self.notes_block(notes, sources))
 
         resp = await self._call(model_id, call_contents, system, temperature, tools=False, schema=schema)
+        self._read_usage(resp, grounding)
         return self._parse(resp, schema), grounding
 
     async def _grounded_call(self, model_id, contents, schema, system, temperature, grounding):
@@ -307,8 +309,16 @@ class GeminiProvider:
                     seen.add(web.uri)
                     grounding.sources.append({"title": web.title or web.uri, "url": web.uri})
             grounding.queries = list(getattr(gm, "web_search_queries", None) or [])
+        GeminiProvider._read_usage(resp, grounding)
+
+    @staticmethod
+    def _read_usage(resp, grounding: Grounding) -> None:
         try:
             um = resp.usage_metadata
-            grounding.usage = {"prompt_tokens": um.prompt_token_count, "output_tokens": um.candidates_token_count, "total_tokens": um.total_token_count}
+            grounding.usage = {"prompt_tokens": um.prompt_token_count, "output_tokens": um.candidates_token_count,
+                               "thinking_tokens": getattr(um, "thoughts_token_count", None),
+                               "total_tokens": um.total_token_count}
         except Exception:
             pass
+        if getattr(resp, "model_version", None):
+            grounding.model = resp.model_version

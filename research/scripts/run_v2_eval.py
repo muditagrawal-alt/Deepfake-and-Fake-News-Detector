@@ -48,6 +48,8 @@ from common import EVAL, TRANSFORMS, read_rows, resolve_image, resolve_video  # 
 RUNS = ROOT / "research" / "runs"
 
 async def main():
+    sys.exit("run_v2_eval.py measured the engine before the 2026-09-28 rebuild (rules R1-R10). "
+             "Its runs are kept as the v2 record; evaluate the current engine with run_eval.py.")
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", choices=["news", "images", "videos"], required=True)
     ap.add_argument("--transform", choices=list(TRANSFORMS), default="none")

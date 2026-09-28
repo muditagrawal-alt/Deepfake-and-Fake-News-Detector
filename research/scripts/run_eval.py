@@ -21,10 +21,14 @@ Items that fail (provider error, timeout) are recorded with the error and are
 never scored as predictions. A run with more than 5% failed items is marked
 invalid. --resume re-runs only failed or missing items.
 
+External benchmarks (downloaded by research/scripts/datasets/*) are selected
+with --bench and --split; the split file in research/splits/ fixes the items.
+
 Usage (repo root):
   LLM_ENGINE=ollama backend/.venv/bin/python research/scripts/run_eval.py --set images
   LLM_ENGINE=gemini backend/.venv/bin/python research/scripts/run_eval.py --set videos --transform vid_strip --run 2
   backend/.venv/bin/python research/scripts/run_eval.py --set news --transform news_text_masked
+  EXCLUDE_FACT_CHECKS=true backend/.venv/bin/python research/scripts/run_eval.py --bench liar --split test
 """
 import argparse
 import asyncio
@@ -51,6 +55,10 @@ from detector.services import get_services                   # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import EVAL, RUNS, TRANSFORMS, read_rows, resolve_image, resolve_video  # noqa: E402
+
+DATA = ROOT / "research" / "data"
+SPLITS = ROOT / "research" / "splits"
+BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop"}
 
 # News controls. The v1/v2 news set is URL-based; these feed the engine the
 # extracted article text instead, with or without the publisher's identity.
@@ -80,9 +88,12 @@ def run_name(settings, args) -> str:
         system += "-frames"
     if backend == "ollama" and settings.ollama_think:
         system += "-think"
-    parts = [args.set, "v3", system, args.transform, settings.research_mode]
+    head = [args.bench, args.split] if args.bench else [args.set]
+    parts = [*head, "v3", system, args.transform, settings.research_mode]
     if settings.search_blocklist:
         parts.append("blocklist")
+    if settings.exclude_fact_checks:
+        parts.append("nofc")
     if settings.enable_onnx_detector:
         parts.append("pixelclf")
     if args.tag:
@@ -96,6 +107,8 @@ def item_key(row: dict, ident: str) -> str:
 
 
 def row_ident(set_name: str, row: dict) -> str:
+    if set_name in BENCHES:
+        return row["id"]
     if set_name == "news":
         return row["url"]
     if set_name == "images":
@@ -104,6 +117,10 @@ def row_ident(set_name: str, row: dict) -> str:
 
 
 async def run_item(set_name, transform, row, services, tmp: Path):
+    if set_name in BENCHES:
+        image = (DATA / set_name / row["image"]).read_bytes() if row.get("image") else None
+        return await analyze_news_text(row["text"][:14000], services, image=image,
+                                       speaker=row.get("speaker") or None, context=row.get("context") or None)
     if set_name == "news":
         if transform in NEWS_TRANSFORMS:
             extraction, text = await extract_article(row["url"])
@@ -123,6 +140,8 @@ async def run_item(set_name, transform, row, services, tmp: Path):
 
 def flat_row(row, ident, gt, res, err, seconds) -> dict:
     out = {"id": row.get("id"), "item": ident, "ground_truth": gt}
+    if row.get("label_orig") not in (None, ""):
+        out["label_orig"] = row["label_orig"]
     if res is None:
         out.update({"predicted": "", "correct": "", "confidence": "", "p_fake": ""})
     else:
@@ -144,7 +163,9 @@ def flat_row(row, ident, gt, res, err, seconds) -> dict:
 
 async def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--set", choices=["news", "images", "videos"], required=True)
+    ap.add_argument("--set", choices=["news", "images", "videos"])
+    ap.add_argument("--bench", choices=sorted(BENCHES))
+    ap.add_argument("--split", help="split file suffix, e.g. test, test1000, dev50")
     ap.add_argument("--transform", choices=list(TRANSFORMS) + sorted(NEWS_TRANSFORMS), default="none")
     ap.add_argument("--tag", default="")
     ap.add_argument("--run", type=int, default=1, help="repeat index, for variance across runs")
@@ -152,33 +173,46 @@ async def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--resume", action="store_true")
     args = ap.parse_args()
+    if bool(args.set) == bool(args.bench) or (args.bench and not args.split):
+        ap.error("give either --set, or --bench with --split")
     allowed = {"news": {"none", *NEWS_TRANSFORMS}, "images": {"none", "img_norm512"},
-               "videos": {"none", "vid_strip", "vid_strip_trim5"}}[args.set]
+               "videos": {"none", "vid_strip", "vid_strip_trim5"}}.get(args.set, {"none"})
     if args.transform not in allowed:
         ap.error(f"transform {args.transform} does not apply to set {args.set}; choose from {sorted(allowed)}")
 
     settings = get_settings()
     services = get_services()
-    rows = read_rows(EVAL / args.set / "metadata.csv")
+    if args.bench:
+        keep = (SPLITS / f"{args.bench}__{args.split}.txt").read_text().split()
+        # Plain DictReader: article text contains blank lines, which read_rows (for the
+        # comment-annotated in-house metadata files) would drop.
+        csv.field_size_limit(sys.maxsize)
+        with open(DATA / args.bench / "items.csv", newline="", encoding="utf-8") as fh:
+            by_id = {r["id"]: r for r in csv.DictReader(fh)}
+        rows = [by_id[i] for i in keep]
+    else:
+        rows = read_rows(EVAL / args.set / "metadata.csv")
+    set_name = args.bench or args.set
     if args.limit:
         rows = rows[: args.limit]
 
     name = run_name(settings, args)
     out_csv, out_jsonl, out_json = (RUNS / f"{name}.{ext}" for ext in ("csv", "jsonl", "json"))
     RUNS.mkdir(parents=True, exist_ok=True)
-    idents = [row_ident(args.set, r) for r in rows]
+    idents = [row_ident(set_name, r) for r in rows]
     keys = [item_key(r, i) for r, i in zip(rows, idents)]
     assert len(set(keys)) == len(keys), "duplicate item keys"
 
     manifest = {
-        "run": name, "engine": "v3", "set": args.set, "n": len(rows), "transform": args.transform,
+        "run": name, "engine": "v3", "set": set_name, "split": args.split, "n": len(rows), "transform": args.transform,
         "backend": settings.llm_engine,
         "model": settings.ollama_model if settings.llm_engine == "ollama" else settings.gemini_primary_model,
         "pinned": True, "temperature": settings.gemini_temperature,
         "ollama": {"num_ctx": settings.ollama_num_ctx, "think": settings.ollama_think, "seed": settings.ollama_seed}
                   if settings.llm_engine == "ollama" else None,
         "research_mode": settings.research_mode, "researcher": services.researcher.name if services.researcher else None,
-        "search_blocklist": settings.search_blocklist, "max_search_queries": settings.max_search_queries,
+        "search_blocklist": settings.search_blocklist, "exclude_fact_checks": settings.exclude_fact_checks,
+        "max_search_queries": settings.max_search_queries,
         "video_strategy": settings.video_strategy, "pixel_classifier": settings.enable_onnx_detector,
         "git_commit": subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip(),
         "git_dirty": bool(subprocess.run(["git", "status", "--porcelain", "backend/detector"], capture_output=True, text=True, cwd=ROOT).stdout.strip()),
@@ -216,11 +250,11 @@ async def main():
         for i, (row, ident, key) in enumerate(zip(rows, idents, keys), 1):
             if key in done:
                 continue
-            gt = row["label"].strip().upper()
+            gt = row["label"].strip().upper()  # REAL | FAKE
             t0 = time.time()
             res, err = None, ""
             try:
-                res = await run_item(args.set, args.transform, row, services, Path(tmp))
+                res = await run_item(set_name, args.transform, row, services, Path(tmp))
             except Exception as exc:
                 err = f"{type(exc).__name__}: {exc}"[:300]
             done[key] = flat_row(row, ident, gt, res, err, round(time.time() - t0, 1))

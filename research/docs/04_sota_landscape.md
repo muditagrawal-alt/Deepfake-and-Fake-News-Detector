@@ -20,6 +20,8 @@ Most published results are **supervised and in-domain**: the model is trained on
 | NewsCLIPpings (400 sample) | same | zero-shot | acc 0.755 (GPT-4V) | Qi et al. 2024 |
 | FakeNewsNet PolitiFact | binary, text + image | supervised, temporal split | acc 0.874, F1 0.896 (SAFE) | Zhou et al., PAKDD 2020 |
 | FakeNewsNet GossipCop | binary, text + image | supervised, temporal split | acc 0.838, F1 0.895 (SAFE) | same |
+| **MM-Soc PolitiFact** (102 test) | binary, article text + image | zero-shot MLLM / fine-tuned | zero-shot **macro-F1 0.749**, acc 0.827 (LLaVA-1.5-13B); fine-tuned macro-F1 0.952 (DeBERTa-v3-large) | Jin et al., ACL Findings 2024, Table 2 |
+| **MM-Soc GossipCop** (2,672 test) | binary, article text + image | zero-shot MLLM / fine-tuned | zero-shot **macro-F1 0.556** (LLaMA-Adapter-v2); acc 0.819 is the majority rate (81% real); fine-tuned macro-F1 0.820 | same |
 | Twitter MediaEval / Weibo | binary, text + image | supervised | F1 0.82 / acc 0.892 (SpotFake) | Singhal et al., BigMM 2019 (secondary) |
 | LIAR | 6-class statement veracity | supervised | acc 0.274 (hybrid CNN) | Wang, ACL 2017 (secondary) |
 | **Chameleon** | real vs AI images built to fool humans | cross-domain (train ProGAN) | **acc 0.584** (AIDE); CNNSpot 0.569 | Yan et al., ICLR 2025 |
@@ -45,6 +47,7 @@ Chosen for fit with the paper's topic (deepfake media + fake news + hybrid AI + 
 | **A** | Chameleon | AI images that humans misjudge; trained detectors are near chance | 0.584 | plausible to exceed; uncertain by how much |
 | **A** | GenVideo (Sora and other unseen-generator subset) | fully synthetic video is what our own fakes are, and what current generators produce | F1 0.726 (one-to-many) | uncertain; zero-shot vs supervised |
 | **B** | FakeNewsNet PolitiFact (+ GossipCop) | named by Reviewer 1 via SAFE; standard | acc 0.874 / F1 0.896 | high leakage risk (§4.4); report open- and closed-book |
+| **A** *(added 2026-09-28)* | MM-Soc PolitiFact and GossipCop | the same FakeNewsNet articles **with their images**, released with a fixed split and a published zero-shot MLLM baseline: a like-for-like comparison, and available without an access request | macro-F1 0.749 / 0.556 zero-shot | plausible to exceed zero-shot with retrieval; fact-check sites must be excluded (labels come from PolitiFact and GossipCop) |
 | **B** | FaceForensics++ c23 → Celeb-DF v2 | named by Reviewer 4; standard face-swap test | cross-dataset AUC 0.753 | **likely below SOTA**: MLLMs are weak at subtle face swaps; report honestly |
 | **B** | LIAR (6-class and binary) | named by Reviewer 4 | 6-class acc 0.274 | valid only closed-book (§4.4) |
 | **B** | GenImage (subset) | most-cited AI-image benchmark | mean acc 0.869 | uncertain |
@@ -65,3 +68,16 @@ Twitter MediaEval and Weibo (SpotFake's benchmarks) are cited for context but no
 **Dataset licences and third-party APIs.** FaceForensics++, Celeb-DF and DFDC are released under access agreements, and NewsCLIPpings depends on VisualNews images, which have their own terms. Free API tiers may allow the provider to use submitted content. Before sending any licensed benchmark item to a hosted model, check the licence terms; the safest route is a paid tier whose terms exclude training on inputs, or an open-weight model run locally.
 
 **Non-determinism.** The same input can receive different verdicts across calls (doc 3). Report LLM results as mean ± sd over repeated runs, and pin model versions in each run's manifest.
+
+## 4.6 Availability (checked 2026-09-28)
+
+| Benchmark | Official source | Access | Status |
+|---|---|---|---|
+| LIAR | author's release, `cs.ucsb.edu/~william/data/liar_dataset.zip` | open | **downloaded**; the release has 10,269 / 1,284 / 1,283 statements (the paper's table lists 1,267 for test); we use the release |
+| MM-Soc PolitiFact, GossipCop | authors' Hugging Face datasets `Ahren09/MMSoc_*` | open | **downloaded**; label 1 = fake per the authors' code (`mmsoc/const.py`) |
+| MMFakeBench | `liuxuannan/MMFakeBench` (Hugging Face) | gated, automatic approval after the account holder accepts the terms | waiting for terms acceptance |
+| NewsCLIPpings | needs VisualNews images | signed request to the VisualNews authors | to request |
+| FaceForensics++, Celeb-DF v2 | author request forms | signed request; terms forbid redistribution, so unofficial mirrors are not used | to request |
+| Chameleon | AIDE authors' release | outside Hugging Face | to locate |
+| GenVideo | DeMamba authors' release | outside Hugging Face (large) | to locate |
+| GenImage | authors' release; Hugging Face mirrors exist (CC BY-NC-SA 4.0 permits redistribution) | open, very large | subset to be sampled from an official or licence-compatible copy |

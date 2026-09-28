@@ -33,12 +33,13 @@ EVIDENCE RULES
 
 # ---------------------------------------------------------------- stage 1
 ANALYSE = {
-    "news": """You analyse a news article for a misinformation-research system.
-Report what the article claims. Do not judge whether it is true yet.
+    "news": """You analyse a news article or a public statement for a misinformation-research system.
+Report what it claims. Do not judge whether it is true yet.
 - Identify the genre and language.
 - Extract 2-4 atomic factual claims that carry the story (who, what, when, where, how many),
   each checkable against independent sources.
 - Write 1-3 web search queries that would find independent reporting on those claims.
+- If an image was published with the article, describe it and state what the article implies it shows.
 """,
     "image": """You analyse an image for a misinformation-research system.
 Report what the image shows and what could be checked. Do not give a verdict yet.
@@ -64,10 +65,10 @@ Report what the video shows and says, and what could be checked. Do not give a v
 
 # ---------------------------------------------------------------- stage 3
 VERIFY = {
-    "news": """You verify a news article for a misinformation-research system.
-You receive the article, the claims extracted from it, and evidence retrieved from sources other
-than the original publisher. Judge each claim as corroborated, contradicted, misleading or
-unverifiable against that evidence, then decide the verdict.
+    "news": """You verify a news article or a public statement for a misinformation-research system.
+You receive the article (and its image, if one was published with it), the claims extracted from
+it, and evidence retrieved from sources other than the original publisher. Judge each claim as
+corroborated, contradicted, misleading or unverifiable against that evidence, then decide the verdict.
 """ + TASK + EVIDENCE_RULES,
     "image": """You verify an image for a misinformation-research system.
 You receive the image, any text published with it, forensic facts about the file, a first-pass

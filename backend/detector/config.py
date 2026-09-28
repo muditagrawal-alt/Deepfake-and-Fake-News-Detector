@@ -47,7 +47,9 @@ class Settings(BaseSettings):
     research_mode: str = "open"
     # Comma-separated domains never used as evidence (e.g. fact-check sites that
     # are also the label source of a benchmark). Empty in production.
-    search_blocklist: str = ""
+    search_blocklist: str = ""          # entries: "domain" or "domain/path-prefix"
+    # Drop fact-check publishers and sections from retrieval (benchmarks labelled by fact-checkers).
+    exclude_fact_checks: bool = False
     max_search_queries: int = 3
 
     # ------------------------------------------------------------------
@@ -76,7 +78,7 @@ class Settings(BaseSettings):
     gemini_temperature: float = 0.2
     gemini_timeout_seconds: float = 120.0
     video_strategy: str = "native"       # "native" (backend sees the file) or "frames" (frames + Whisper)
-    researcher: str = "auto"             # "auto" (Tavily if key, else DuckDuckGo) or "groq" (browser_search; heavy on quota)
+    researcher: str = "auto"             # Tavily if TAVILY_API_KEY is set, else DuckDuckGo
 
     # ------------------------------------------------------------------
     # Groq (Whisper + GPT-OSS browser search fallback)

@@ -49,6 +49,7 @@ async def analyze_image(path: str | Path, services: Services, *, original_name: 
         parts.append(TextPart(f"TEXT PUBLISHED WITH THE IMAGE:\n{caption}"))
     stage = await run_stages(
         services, modality="image", parts=parts, facts=facts,
-        system_analyse=ANALYSE["image"], system_verify=VERIFY["image"], timer=timer, progress=progress,
+        system_analyse=ANALYSE["image"], system_verify=VERIFY["image"], timer=timer, item_text=caption or "",
+        progress=progress,
     )
     return build_result(modality="image", stage=stage, facts=facts, timings=timer.t)

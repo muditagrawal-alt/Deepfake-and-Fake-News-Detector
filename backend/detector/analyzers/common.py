@@ -60,6 +60,8 @@ def evidence_features(stage: StageResult, facts: dict, cited_dropped: int) -> di
         **{f"n_anomalies_{k}": anomalies[k] for k in ("visual", "motion_physics", "audio", "on_screen_text", "text_content")},
         "n_queries": len(stage.queries),
         "n_sources_retrieved": len(stage.sources),
+        "n_pages_read": sum(bool(h.text) for h in stage.retrieval.hits),
+        **{f"n_dropped_{r}": stage.retrieval.dropped.get(r, 0) for r in ("publisher", "blocklist", "fact_check", "duplicate")},
         "n_citations_outside_retrieved": cited_dropped,
         "research_mode": stage.research_mode,
         **_provenance_facts(facts),
@@ -92,11 +94,7 @@ def build_result(*, modality: str, stage: StageResult, facts: dict, extraction: 
     if stage.research_mode == "open" and not stage.sources:
         caveats.append("No independent web evidence was retrieved; claims were judged from the content alone.")
 
-    forensics = {
-        **facts,
-        "retrieval": {"mode": stage.research_mode, "provider": stage.research_provider,
-                      "queries": stage.queries, "sources": stage.sources},
-    }
+    forensics = {**facts, "retrieval": {"mode": stage.research_mode, **stage.retrieval.log()}}
     stages = ("analyse", "verify")
     calls = [{"stage": stages[i] if i < 2 else f"call{i}", "backend": m.backend, "model": m.model,
               "seconds": round(m.seconds, 2), "prompt_tokens": m.prompt_tokens, "output_tokens": m.output_tokens}

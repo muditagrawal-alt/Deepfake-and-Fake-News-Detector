@@ -80,6 +80,9 @@ legacy/
 
 # Research analysis environment
 research/.venv/
+# downloaded benchmarks (licensed; fetched by research/scripts/datasets)
+research/data
+!research/scripts/datasets/
 
 # Research workspace: figures are deliverables; cached arrays and logs are not
 !research/figures/**

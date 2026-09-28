@@ -48,6 +48,7 @@ async def analyze_video(path: str | Path, services: Services, *, original_name: 
             facts["pixel_classifier"] = {"model": settings.onnx_model_repo,
                                          "per_frame_fake_probability": [round(s["fake_probability"], 3) for s in scores]}
 
+        transcript_text = ""
         if native:
             parts = [VideoPart(path)]
             fallback = None
@@ -59,6 +60,7 @@ async def analyze_video(path: str | Path, services: Services, *, original_name: 
                     audio = await extract_audio(str(path), work / "audio.m4a")
                     if audio:
                         transcript = await services.groq.transcribe(audio)
+            transcript_text = transcript.get("text") or ""
             step = duration / len(frames) if frames and duration else None
             parts = [ImagePart(fp.read_bytes(), label=f"frame {i + 1}/{len(frames)}"
                                + (f" at ~{(i + 0.5) * step:.1f}s" if step else ""))
@@ -74,6 +76,7 @@ async def analyze_video(path: str | Path, services: Services, *, original_name: 
 
         stage = await run_stages(
             services, modality="video", parts=parts, facts=facts,
-            system_analyse=ANALYSE["video"], system_verify=VERIFY["video"], timer=timer, progress=report,
+            system_analyse=ANALYSE["video"], system_verify=VERIFY["video"], timer=timer,
+            item_text=transcript_text, progress=report,
         )
     return build_result(modality="video", stage=stage, facts=facts, timings=timer.t, fallback_used=fallback)

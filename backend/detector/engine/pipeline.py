@@ -4,10 +4,10 @@ The three-stage analysis shared by every modality: analyse -> retrieve -> verify
 import json
 import logging
 from dataclasses import dataclass, field
-from urllib.parse import urlparse
 
 from detector.engine.backends import CallMeta
 from detector.engine.parts import Part, TextPart
+from detector.engine.retrieval import Retrieval, retrieve
 from detector.schemas import Analysis, LLMVerdict
 
 log = logging.getLogger(__name__)
@@ -17,11 +17,22 @@ log = logging.getLogger(__name__)
 class StageResult:
     analysis: Analysis
     verdict: LLMVerdict
-    sources: list[dict] = field(default_factory=list)      # retrieved: {"title", "url"}
-    queries: list[str] = field(default_factory=list)
-    research_provider: str | None = None
+    retrieval: Retrieval
     research_mode: str = "open"
     calls: list[CallMeta] = field(default_factory=list)
+
+    # Convenience views used by build_result.
+    @property
+    def sources(self) -> list[dict]:
+        return self.retrieval.sources()
+
+    @property
+    def queries(self) -> list[str]:
+        return self.retrieval.queries
+
+    @property
+    def research_provider(self) -> str | None:
+        return self.retrieval.provider if self.retrieval.hits else None
 
 
 def facts_block(facts: dict) -> TextPart:
@@ -29,21 +40,25 @@ def facts_block(facts: dict) -> TextPart:
                     + json.dumps(facts, indent=1, default=str, ensure_ascii=False))
 
 
-def _domain(url: str) -> str:
-    h = urlparse(url).netloc.lower()
-    return h[4:] if h.startswith("www.") else h
-
-
 def blocklist(settings) -> frozenset[str]:
     return frozenset(d.strip().lower().removeprefix("www.") for d in settings.search_blocklist.split(",") if d.strip())
 
 
+def _queries(analysis: Analysis, limit: int) -> list[str]:
+    q = list(dict.fromkeys(s.strip() for s in analysis.search_queries if s.strip()))
+    if not q:  # the model gave no queries: search its claims instead
+        q = list(dict.fromkeys(c.strip() for c in analysis.claims if c.strip()))
+    return q[:limit]
+
+
 async def run_stages(services, *, modality: str, parts: list[Part], facts: dict, system_analyse: str,
-                     system_verify: str, timer, publisher_domain: str | None = None, progress=None) -> StageResult:
+                     system_verify: str, timer, publisher_domain: str | None = None, item_text: str = "",
+                     progress=None) -> StageResult:
     settings = services.settings
     llm = services.llm
     report = progress or (lambda _s: None)
     calls: list[CallMeta] = []
+    mode = settings.research_mode
     try:
         # 1. analyse
         report("analysing content")
@@ -53,35 +68,25 @@ async def run_stages(services, *, modality: str, parts: list[Part], facts: dict,
         calls.append(meta)
 
         # 2. retrieve (a tool, not a model)
-        queries = list(dict.fromkeys(q.strip() for q in analysis.search_queries if q.strip()))
-        if not queries:
-            queries = list(dict.fromkeys(c.strip() for c in analysis.claims if c.strip()))
-        queries = queries[: settings.max_search_queries]
-        sources, notes, provider = [], [], None
-        mode = settings.research_mode
-        if mode == "open" and queries and services.researcher:
+        queries = _queries(analysis, settings.max_search_queries)
+        if mode == "open":
             report("retrieving evidence")
-            block = blocklist(settings)
             with timer.track("retrieve"):
-                for q in queries:
-                    n, srcs, prov = await services.research(q, exclude_domain=publisher_domain, blocklist=block)
-                    if n:
-                        provider = prov
-                        notes.append(f"### Query: {q}\n{n}")
-                        sources.extend(srcs)
-        seen, unique = set(), []
-        for s in sources:
-            if s["url"] not in seen:
-                seen.add(s["url"]); unique.append(s)
+                ret = await retrieve(services.researcher, queries, publisher=publisher_domain,
+                                     blocklist=blocklist(settings), exclude_fact_checks=settings.exclude_fact_checks,
+                                     item_text=item_text)
+        else:
+            ret = Retrieval(queries=[])
 
         if mode == "closed":
-            evidence = "NO EXTERNAL EVIDENCE: this run is closed-book by design. Judge claims from the content alone and mark those you cannot verify as unverifiable."
-        elif notes:
-            src_lines = "\n".join(f"- {s['title']}: {s['url']}" for s in unique)
-            evidence = ("RETRIEVED EVIDENCE (from sources other than the original publisher):\n\n"
-                        + "\n\n".join(notes) + "\n\nSOURCE LIST:\n" + src_lines)
+            evidence = ("NO EXTERNAL EVIDENCE: this run is closed-book by design. Judge the claims from the content "
+                        "alone and mark those you cannot verify as unverifiable.")
+        elif ret.hits:
+            evidence = ("RETRIEVED EVIDENCE (search results and page extracts from sources other than the item's "
+                        "publisher; queries: " + "; ".join(queries) + "):\n\n" + ret.evidence_text())
         else:
-            evidence = "NO EXTERNAL EVIDENCE WAS FOUND for the queries below. Claims that cannot be checked are unverifiable.\nQueries: " + "; ".join(queries or ["(none)"])
+            evidence = ("NO EXTERNAL EVIDENCE WAS FOUND for the queries: " + ("; ".join(queries) or "(none)")
+                        + ". Claims that cannot be checked are unverifiable.")
 
         # 3. verify
         report("verifying claims")
@@ -94,5 +99,4 @@ async def run_stages(services, *, modality: str, parts: list[Part], facts: dict,
     finally:
         await llm.release()
 
-    return StageResult(analysis=analysis, verdict=verdict, sources=unique, queries=queries,
-                       research_provider=provider, research_mode=mode, calls=calls)
+    return StageResult(analysis=analysis, verdict=verdict, retrieval=ret, research_mode=mode, calls=calls)

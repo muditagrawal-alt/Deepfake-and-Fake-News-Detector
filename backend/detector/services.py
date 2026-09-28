@@ -1,7 +1,6 @@
 """
 Lazily constructed singletons shared by the API and the eval scripts.
 """
-import logging
 from functools import lru_cache
 
 from detector.config import Settings, get_settings
@@ -11,8 +10,6 @@ from detector.providers.gemini import GeminiProvider
 from detector.providers.groq_provider import GroqProvider
 from detector.providers.research import pick_researcher
 from detector.quota import LLMGate
-
-log = logging.getLogger(__name__)
 
 
 class Services:
@@ -29,18 +26,6 @@ class Services:
         self.llm = make_backend(settings, self.gemini)
         self.onnx = OnnxImageDetector(settings)
 
-    async def research(self, query: str, *, exclude_domain: str | None = None,
-                       blocklist: frozenset[str] = frozenset()) -> tuple[str, list[dict], str | None]:
-        """Web retrieval. Failures return no evidence; they never raise into the analysis."""
-        if not self.researcher or not query:
-            return "", [], None
-        try:
-            notes, sources = await self.researcher.research(query, exclude_domain=exclude_domain, blocklist=blocklist)
-            return notes, sources, self.researcher.name
-        except Exception as exc:
-            log.warning("retrieval failed for %r: %s", query[:80], exc)
-            return "", [], None
-
     def status(self) -> dict:
         return {
             "providers": self.settings.configured_providers(),
@@ -49,6 +34,7 @@ class Services:
                 "model": self.llm.model,
                 "pinned": self.settings.pin_model,
                 "research_mode": self.settings.research_mode,
+                "exclude_fact_checks": self.settings.exclude_fact_checks,
                 "researcher": self.researcher.name if self.researcher else None,
                 "video_strategy": self.settings.video_strategy,
                 "onnx_detector": self.settings.onnx_model_repo if self.onnx.enabled else None,

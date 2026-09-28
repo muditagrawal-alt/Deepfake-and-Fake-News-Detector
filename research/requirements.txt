@@ -8,3 +8,5 @@ matplotlib>=3.9
 opencv-python-headless>=4.10,<5   # 5.x removed CascadeClassifier; v1 used 4.x
 onnxruntime>=1.18
 pillow>=10.3
+pyarrow>=17                        # benchmark parquet files
+huggingface_hub>=0.24

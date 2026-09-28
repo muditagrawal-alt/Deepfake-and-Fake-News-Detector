@@ -170,6 +170,31 @@ The Veo clips carry C2PA content credentials. That is a legitimate, verifiable s
 
 All v2 runs in `runs/` before this entry used the old engine (rules R1–R10). They stay as the record of the deployed v2 at that time, labelled `v2` in `results/run_registry.csv`. Runs of the new engine are labelled `v3` with the backend and model in the tag, and the paper's primary results come from `v3`.
 
+## 2026-09-29 — v3.1: retrieval as a shared, filtered stage; external benchmarks; engine freeze
+
+**Retrieval (`engine/retrieval.py`).** Search back-ends now only return raw hits (title, URL, snippet, date). Filtering, page reading and formatting are one shared function, so the evidence does not depend on the search API. Every dropped hit is counted by reason and stored with the run (`forensics.retrieval.dropped`, `f_n_dropped_*` in run CSVs):
+
+| Filter | Removes | When |
+|---|---|---|
+| `publisher` | the item's own publisher, including subdomains | always, when the publisher is known |
+| `blocklist` | `SEARCH_BLOCKLIST` entries, as a domain or a domain/path prefix | per run |
+| `fact_check` | fact-check publishers (a fixed list of IFCN signatories and similar) and fact-check sections of general outlets (URL path matching `fact-check`, `factcheck`, `/verify/`, `hoax`) | `EXCLUDE_FACT_CHECKS=true`; on for benchmarks labelled by fact-checkers (LIAR, MM-Soc/FakeNewsNet), off in production |
+| `duplicate` | a snippet or page whose 8-word shingles are ≥ 50% contained in the item's own text (syndicated or scraped copies of the item) | always, when the item has text |
+
+The duplicate filter matters most on text benchmarks, where the publisher is unknown and a copy of the article would otherwise "corroborate" itself. The Groq browser-search researcher was removed: a model that searches and summarises cannot be held to these filters. Tests: `backend/tests/test_retrieval.py` (5 cases, all passing).
+
+**Inputs for external benchmarks.** `analyze_news_text` takes article or statement text with an optional image, speaker and context, and with no publisher (publisher-masked by construction). The news prompts now say "a news article or a public statement".
+
+**Benchmarks available without a request, downloaded 2026-09-29** (`research/scripts/datasets/`, items in `research/splits/`):
+
+| Benchmark | Items for evaluation | Development items | Label source | Notes |
+|---|---|---|---|---|
+| LIAR | all 1,283 test statements | 50 validation (stratified) | PolitiFact ratings; binary FAKE = pants-fire/false/barely-true | release has 1,283 test statements, the paper's table 1,267 |
+| MM-Soc PolitiFact | all 102 test articles, each with image | 50 train | PolitiFact via FakeNewsNet | label 1 = fake (authors' `const.py`) |
+| MM-Soc GossipCop | 1,000 of 2,672 test articles, stratified, seed 2026 | 50 train | GossipCop via FakeNewsNet | 18.8% fake in test |
+
+**Engine freeze.** From the commit that merges this entry, the prompts, schemas, pipeline and retrieval are frozen for the benchmark programme. A change after the freeze is a bug fix only, and every run it could affect is re-run in full. The v3.0 Gemini run that was in progress (22 of 50 in-house images) was stopped so that every reported number comes from the frozen engine; its rows are kept as a pilot in `runs/pilot/` and are not reported as results.
+
 ## Observed measurement issues to control for
 
 - **Run-to-run variability.** The same fake video received LIKELY_FAKE (95%) in one production call and LIKELY_REAL in another on 2026-09-24. LLM results must be reported over repeated runs.

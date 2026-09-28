@@ -22,9 +22,10 @@ from google.genai import types
 from detector.config import get_settings
 s = get_settings()
 try:
-    genai.Client(api_key=s.gemini_api_key).models.generate_content(
+    client = genai.Client(api_key=s.gemini_api_key)   # keep a reference: the SDK closes unreferenced clients
+    client.models.generate_content(
         model=s.gemini_primary_model, contents="Reply OK",
-        config=types.GenerateContentConfig(max_output_tokens=5))
+        config=types.GenerateContentConfig(max_output_tokens=16))
     sys.exit(0)
 except Exception:
     sys.exit(1)

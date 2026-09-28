@@ -174,4 +174,5 @@ All v2 runs in `runs/` before this entry used the old engine (rules R1–R10). T
 
 - **Run-to-run variability.** The same fake video received LIKELY_FAKE (95%) in one production call and LIKELY_REAL in another on 2026-09-24. LLM results must be reported over repeated runs.
 - **Provider availability.** Free-tier Flash-Lite returned HTTP 503 for extended periods on 2026-09-28. Runs must pin the model and wait out outages rather than fall back to a different model, which would change the system under test mid-run.
+- **Health-check defect (found 2026-09-28).** The drivers' availability check created a `genai.Client` without keeping a reference, and the installed google-genai SDK closes such clients before the request is sent, so the check always failed. The 503 errors recorded inside benchmark runs were real, but the drivers' "unavailable; waiting" log lines are not evidence of outages. Fixed in `v3_runs.sh` (commit `d27d038`).
 - **Model drift.** Hosted model versions change. Every run records the model identifier and git commit in its manifest.

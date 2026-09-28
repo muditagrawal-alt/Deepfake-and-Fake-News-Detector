@@ -2,6 +2,7 @@
 
 **Paper:** *A Multimodal Framework for Detecting Deepfake Media and Fake News Using Hybrid AI and External Verification* — ICMACC 2026 (IEEE), paper 2707, accepted with revisions.
 **Written:** 2026-09-28, after a full audit of the submitted (v1) system, the deployed (v2) system, and the reviews.
+**Revised:** 2026-09-28 (evening). The engine was rebuilt as **v3**: no hand-written decision rules, analyse → retrieve → verify, runnable on Gemini or a local model (doc 3, "Engine rebuilt"). Finding F11 withdrew the in-house news set. Changes to this plan are marked *(rev.)*.
 **Scope rule:** every phase below serves the paper's topic as titled — multimodal detection of deepfake media *and* fake news, by a *hybrid* of local forensics and AI, with *external verification*. Work that does not serve that topic is out of scope.
 
 Supporting documents: [1 Legacy analysis](docs/01_legacy_analysis.md) · [2 Review response matrix](docs/02_review_response_matrix.md) · [3 v2 research log](docs/03_v2_research_log.md) · [4 SOTA and benchmarks](docs/04_sota_landscape.md)
@@ -15,20 +16,22 @@ These change what the camera-ready contains. Each needs your answer, and two nee
 | # | Decision | Why it matters | Recommendation |
 |---|---|---|---|
 | D1 | **Camera-ready deadline and page limit** | Sets whether Track A (§4) fits before the deadline | Check the ICMACC author kit now |
-| D2 | **Which system the camera-ready describes** | v1 was accepted; v2 is the same framework reimplemented. Replacing the evaluated system after acceptance may exceed what a camera-ready revision allows | **Ask the chairs.** If allowed: corrected v1 plus v2 as the revised instantiation, both under the same controls. If not: corrected v1 only; v2 and the full benchmark programme become an extended journal paper |
+| D2 | **Which system the camera-ready describes** *(rev.)* | v1 was accepted; v3 is the same framework (hybrid forensics + AI + external verification) rebuilt without hand-written rules. The corrected v1 results must be reported either way | Present v3 as the revised framework, with corrected v1 as the baseline it replaces, both under the same controls. State the change and the reason (the audit) in the point-by-point response to reviewers, which is the channel the chairs read |
 | D3 | **The headline numbers must change** | The 100% video figure and the 0.86 image figure are explained by metadata and resolution shortcuts (doc 1, F4–F6). They cannot be carried into the camera-ready unchanged | Report corrected figures with the controls that produced them, and present the controls as a contribution (§3) |
-| D4 | **API budget** | The benchmark programme needs roughly 15–25k model calls (§5). Free-tier quotas and outages (sustained HTTP 503 on 2026-09-28) make that weeks of waiting; free-tier terms may also conflict with licensed datasets (doc 4, §4.4) | A paid Gemini tier for benchmark runs; keep the free tier for the public demo |
-| D5 | **Dataset access** | FaceForensics++, Celeb-DF and VisualNews (for NewsCLIPpings) need signed access requests, which take days | Submit the requests this week, even if those benchmarks come later |
+| D4 | **API budget and compute** *(rev.)* | The benchmark programme needs roughly 15–25k model calls (§5). The local backend (gemma4:12b via Ollama) removes the quota limit but runs ~3 min per image with Low Power Mode on; on AC power it should be about twice as fast | Run the full programme on the local model (reproducible, no licence conflict), and a hosted Gemini run on fixed slices for comparison. A paid Gemini tier is optional, not required |
+| D5 | **Dataset access** *(rev.)* | MMFakeBench is gated on Hugging Face (terms accepted by the account holder; approval is automatic). FaceForensics++, Celeb-DF and VisualNews (for NewsCLIPpings) need signed request forms; unofficial mirrors violate their terms and are not used. Chameleon and GenVideo are distributed by their authors outside Hugging Face | Accept MMFakeBench's terms now; submit the FF++, Celeb-DF and VisualNews forms this week. Available today without any request: LIAR (official), MM-Soc PolitiFact and GossipCop (text + image) |
 
 ## 1. Where things stand
 
-| Modality | v1 reported | v1 corrected | v2 on the same set | Significant v1 → v2? |
+| Modality | v1 reported | v1 corrected | v2 on the same set | v3 *(rev.)* |
 |---|---|---|---|---|
-| News (n = 50) | 0.86 | not measurable: FAKE class solved by a domain list | 0.92 [0.81, 0.97] (before satire rule) | no, p = 0.51 |
-| Images (n = 50) | 0.86 | **0.756 ± 0.013** without size features | 0.96 [0.86, 0.99] (detector off, n = 49) | no, p = 0.18 |
-| Video (n = 30) | 1.00 | **0.633** with metadata stripped | 1.00 | pending controls |
+| News (n = 50) | 0.86 | not measurable: domain list (F1); 24/25 FAKE URLs dead (F11) | 0.92 [0.81, 0.97] (before satire rule) | set withdrawn; news moves to external benchmarks |
+| Images (n = 50) | 0.86 | **0.756 ± 0.013** without size features | 0.96 [0.86, 0.99] (detector off, n = 49) | running (Gemini), original and 512 px-normalised |
+| Video (n = 30) | 1.00 | **0.633** with metadata stripped | 1.00 | running (Gemini), original, stripped, stripped + 5 s |
 
-Three conclusions drive the plan. **(i)** The original sets cannot support the paper's claims: they are small and each has at least one label shortcut. **(ii)** v2 looks stronger but is not yet shown to be: no difference is significant, and v2 may exploit the same shortcuts — the controlled runs that test this are queued. **(iii)** The reviewers' central concerns are confirmed and now quantified, which makes the revision's direction clear.
+Provenance facts that now enter the engine, per `results/provenance_audit_summary.csv`: 13/15 fake videos carry a valid C2PA manifest declaring `trainedAlgorithmicMedia` (0/15 real); both video controls remove it. No image in either class carries C2PA or an XMP source type; 8/25 real images have an EXIF camera make (0/25 fake), removed by the 512 px control. A C2PA-only baseline therefore reaches 28/30 on the original videos and must be reported next to v3.
+
+Three conclusions drive the plan. **(i)** The original sets cannot support the paper's claims: they are small and each has at least one label shortcut; the news set cannot be used at all (F11). **(ii)** v2 looked stronger but was never shown to be, and it contained hand-written rules tuned on the same sets, so v3 replaces it and v2 is kept only as a record. **(iii)** The reviewers' central concerns are confirmed and now quantified, which makes the revision's direction clear.
 
 ## 2. Rules for all remaining experiments
 
@@ -39,15 +42,17 @@ Three conclusions drive the plan. **(i)** The original sets cannot support the p
 5. **Controls are always on.** Every benchmark is reported with trivial file-property baselines and with the relevant input controls (resolution normalisation, metadata stripping, duration matching).
 6. **Every number has an interval; every comparison has a test.** Wilson intervals for proportions, bootstrap intervals for F1 and AUC, exact McNemar for paired comparisons, and mean ± sd over at least 3 runs for anything involving an LLM.
 7. **Negative results are reported.** If the framework loses on a benchmark, the paper says so.
+8. **No hand-written decision rules** *(rev.)*. No code path sets or adjusts a verdict or confidence; prompts define the task and state neutral facts only; nothing learned from an evaluation set is written into a prompt. Weighting of evidence is learned only on development splits (P4).
+9. **One model per run** *(rev.)*. `PIN_MODEL=true`; every call records the model version that served it, so a run that mixed models is detectable.
 
 ## 3. Contributions the revised paper can claim
 
 Answering Reviewer 1's point on novelty, the paper should state contributions it can defend:
 
-- **C1 — Evidence-grounded hybrid framework.** A multimodal pipeline in which local forensic signals (container metadata, EXIF/C2PA, frame and audio analysis) and external verification (claim-level retrieval that excludes the original publisher) are fused by a multimodal LLM into a verdict with claim-level evidence, stated confidence and caveats.
+- **C1 — Evidence-grounded hybrid framework** *(rev.)*. A three-stage pipeline: a multimodal model reports claims and located observations without a verdict; a retrieval tool gathers evidence from sources other than the original publisher; the model then judges each claim against that evidence and the measured file facts (EXIF/XMP, container metadata, signed C2PA provenance). No hand-written rule touches the verdict, citations outside the retrieved set are removed, and the same pipeline runs on a hosted or a local open-weight model.
 - **C2 — Shortcut audit for misinformation benchmarks.** A protocol of trivial baselines and input controls that exposes label shortcuts, demonstrated on the paper's own data: resolution alone reaches 0.92 on the image set, duration alone 0.967 on the video set, and metadata removal cuts v1 video accuracy from 1.00 to 0.63. This turns the audit findings into a contribution rather than only a correction.
 - **C3 — Controlled multi-benchmark evaluation.** Results on established benchmarks under the controls of C2, with ablations and significance tests.
-- **C4 — Fusion study.** Hand-set weights versus learned fusion versus an LLM judge over the same signals, compared on accuracy, calibration and interpretability.
+- **C4 — Fusion study.** Hand-set weights (v1) versus a scorer learned on development splits over v3's `evidence_features` versus the LLM judge alone, compared on accuracy, calibration and interpretability.
 
 Two tracks deliver these:
 
@@ -67,11 +72,12 @@ Effort assumes one person. Model-call counts assume ~2 calls per item (first pas
 | v1 image calibrator ablation | `results/v1_image_ablation.csv`, `fig01`, `fig02` | **done** |
 | v1 video reproduction and metadata ablation | `runs/videos__v1repro__*.csv`, `fig03` | **done** |
 | Statistics for all existing runs | `results/benchmark_summary.csv`, `paired_tests.csv`, `fig04`–`fig07` | **done** |
-| v2 image, resolution-normalised | `runs/images__v2__…__img_norm512__run1.csv` | queued, waiting for model availability |
-| v2 video, metadata stripped; and stripped + trimmed to 5 s | `runs/videos__v2__…__vid_strip*__run1.csv` | queued |
-| v2 news re-run with the current code (satire rule) | new news run | to do |
-| Trivial baselines on all three sets (size, duration, format, domain) | `results/trivial_baselines.csv` | to do |
-| 3 repeated runs of each v2 configuration | `run2`, `run3` per configuration | to do |
+| News URL audit (F11) | `results/news_url_audit*.csv` | **done** |
+| Provenance coverage audit | `results/provenance_audit*.csv` | **done** |
+| v3 (Gemini) on images and videos, with img_norm512, vid_strip, vid_strip_trim5 | `runs/{images,videos}__v3__gemini-…__run1.*` | **running** |
+| v3 (gemma4:12b, local) on the same five configurations | `runs/*__v3__ollama-gemma412b__*` | to do (needs AC power) |
+| Trivial baselines on all sets (size, duration, format, domain, extraction success, C2PA-only, EXIF-make-only) | `results/trivial_baselines.csv` | to do |
+| 3 repeated runs of each v3 configuration | `run2`, `run3` per configuration | to do |
 | Corrected-results table for the camera-ready | `results/corrected_results.csv` | to do |
 
 **Acceptance:** every number in the revised paper's results section traces to a run file and a script; no number depends on a known shortcut without saying so.
@@ -83,11 +89,11 @@ Effort assumes one person. Model-call counts assume ~2 calls per item (first pas
 
 | Task | Detail |
 |---|---|
-| Dataset loaders | One module per benchmark returning `(id, inputs, label, subcategory)`; fixed item lists in `research/splits/` |
-| Research mode in the backend | A domain blocklist for search (fact-check sites; doc 4, §4.4), logging of every retrieved URL, and a closed-book switch that disables external verification |
+| Dataset loaders | One module per benchmark returning `(id, inputs, label, subcategory)`; fixed item lists in `research/splits/`. Engine entry points exist for text news (`analyze_news_text`, with publisher masking) and image + caption (`analyze_image(caption=…)`) *(rev.)* |
+| Research mode in the backend | **done** *(rev.)*: `SEARCH_BLOCKLIST`, `RESEARCH_MODE=closed`, every retrieved URL stored in `forensics.retrieval` and the run's JSONL |
 | Response cache | Keyed by model, prompt hash and input hash, so metrics can be recomputed and runs resumed without spending quota |
-| Cost and latency capture | Tokens from the API's usage metadata, wall-clock per stage, peak memory |
-| Repeat runs | `--runs N` with per-run files and aggregate mean ± sd |
+| Cost and latency capture | **done** *(rev.)*: tokens and seconds per stage in every run CSV; power state in the manifest |
+| Repeat runs | `--run N` per invocation; aggregate mean ± sd in `build_results.py` |
 | Metric tests | Unit tests comparing the metric code with scikit-learn on fixed toy data |
 
 **Acceptance:** the existing runs are reproduced exactly from cache; a new benchmark needs only a loader and a protocol file.
@@ -103,6 +109,7 @@ Priority order and sizes from doc 4, §4.3. Sizes are chosen so a 95% interval i
 | Chameleon | 100 / 1,000 (500 / 500) | accuracy, AUC | 0.584 | ~6.6k |
 | GenVideo | 50 / 400 (200 / 200, stratified by generator incl. Sora) | F1, AP, per-generator recall | F1 0.726 one-to-many | ~2.7k |
 | FakeNewsNet PolitiFact | SAFE's temporal 80/20 split | accuracy, F1, open- and closed-book | 0.874 / 0.896 | ~1.3k |
+| MM-Soc PolitiFact / GossipCop *(rev.)* | official train as dev / test 102 and a stratified 1,000 of 2,672 | accuracy, F1; text + image; open-book with fact-check sites blocklisted, and closed-book | MM-Soc paper's zero-shot MLLM results (to be verified) | ~0.6k / ~6k |
 | FF++ c23 → Celeb-DF v2 | 400 per dataset | video AUC | 0.753 cross-dataset | ~4.8k |
 | LIAR | official test (1,267) | 6-class and binary, closed-book | 0.274 (6-class) | ~3.8k (1 call/item) |
 | GenImage | 1,000 stratified over 8 generators | mean accuracy | 0.869 | ~6k |
@@ -122,7 +129,8 @@ On a fixed 400-item slice of each priority-A benchmark:
 | Publisher exclusion off | Whether corroboration or mere existence drives the gain |
 | Each forensic signal removed (metadata, EXIF/C2PA, pixel detector, transcript) | Each module's contribution (Reviewer 4) |
 | Input controls on and off | How much each result depends on shortcuts |
-| Model swap: Flash-Lite, Flash, an open-weight VLM | Whether the framework or one particular model is responsible; the open-weight run also gives a reproducible baseline |
+| Model swap: Gemini Flash-Lite, gemma4:12b, qwen3.5:9b (thinking) *(rev.)* | Whether the framework or one particular model is responsible; the open-weight runs are reproducible by anyone |
+| Native video vs frames + transcript (`VIDEO_STRATEGY`) *(rev.)* | What seeing motion and audio adds over sampled frames |
 
 **Deliverable:** `results/ablations.csv`, and an ablation figure per benchmark.
 
@@ -168,7 +176,9 @@ What "beating state of the art" can honestly mean for a zero-shot system. A **cl
 | Risk | Effect | Mitigation |
 |---|---|---|
 | v2 also relies on the shortcuts | Its current results do not hold | Being tested now (P0); the plan does not rely on the current v2 numbers |
-| Provider outages and quota | Runs stall or silently mix models | Pinned model, health-check driver, resume-on-failure, paid tier (D4) |
+| Provider outages and quota | Runs stall or silently mix models | Pinned model, health-check driver, resume-on-failure, local backend (D4) |
+| Local throughput *(rev.)* | A 1,000-item benchmark takes days | AC power with Low Power Mode off; one generation at a time; fixed slices for repeats |
+| Publisher identity as a shortcut *(rev.)* | The model recognises satire outlets by name, as in F11 | Publisher-masked text condition (`news_text_masked`) on every news benchmark |
 | Contamination and search leakage | Inflated results on older benchmarks | Blocklist, URL logging, closed-book condition, fresh post-cutoff set |
 | Model versions change | Results cannot be reproduced later | Manifests record identifiers; open-weight baseline in P3 |
 | Dataset licence terms | Cannot use a benchmark as planned | Check before use; paid no-training tier or local open-weight model |
@@ -189,10 +199,10 @@ What "beating state of the art" can honestly mean for a zero-shot system. A **cl
 
 If the camera-ready deadline is sooner, Track A runs P0, P6 on the existing evidence, and at most one priority-A benchmark (MMFakeBench, the best topic fit).
 
-## 8. This week
+## 8. This week *(rev.)*
 
-1. Answer D1–D5; email the chairs about D2.
-2. Let the queued controlled runs finish, then regenerate results: `research/.venv/bin/python research/scripts/build_results.py && research/.venv/bin/python research/scripts/make_figures.py`.
-3. Re-run v2 news with the current code; add trivial baselines; start repeated runs.
-4. Request FaceForensics++, Celeb-DF and VisualNews access.
-5. Start P1: loaders and research mode, beginning with MMFakeBench.
+1. Accept MMFakeBench's terms on Hugging Face; submit the FaceForensics++, Celeb-DF and VisualNews forms.
+2. Let the v3 Gemini runs finish, then run the same five configurations on gemma4:12b (on AC power), then regenerate results: `research/.venv/bin/python research/scripts/build_results.py && research/.venv/bin/python research/scripts/make_figures.py`.
+3. Add the trivial baselines, including C2PA-only and extraction-success.
+4. Write loaders for LIAR and MM-Soc PolitiFact/GossipCop; commit their protocols; run them open-book (fact-check sites blocklisted), closed-book and publisher-masked.
+5. Start repeated runs (run2, run3) of the v3 configurations.

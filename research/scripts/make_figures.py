@@ -183,6 +183,63 @@ def fig_roc():
     save(fig, "fig07_roc_curves")
 
 
+def fig_trivial_baselines():
+    """How far one file/URL property gets on each in-house set (results/trivial_baselines.csv)."""
+    t = pd.read_csv(RES / "trivial_baselines.csv")
+    names = {"max_side_px": "longest side (px)", "pixels": "pixel count", "file_bytes": "file size",
+             "exif_make": "EXIF camera make", "duration_s": "duration", "c2pa_ai": "C2PA AI credential",
+             "encoder": "encoder tag = Google", "domain": "v1 satire-domain list", "extraction": "text extractable",
+             "text_chars": "extracted text length"}
+    t = t[t.baseline != "pixels"]
+    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.3), sharex=True)
+    for ax, set_ in zip(axes, ["images", "videos", "news"]):
+        d = t[t.set == set_].sort_values("accuracy")
+        y = np.arange(len(d))
+        ax.errorbar(d.accuracy, y, xerr=[d.accuracy - d.ci95_low, d.ci95_high - d.accuracy], fmt="o",
+                    color=C["control"], ecolor="#bbbbbb", elinewidth=1.2, capsize=0, markersize=4)
+        ax.set_yticks(y); ax.set_yticklabels([names.get(b, b) for b in d.baseline])
+        ax.axvline(0.5, color="#999", linestyle=":", linewidth=0.8)
+        ax.set_xlim(0.4, 1.02); ax.set_title(f"{set_.capitalize()} (n = {int(d.n.iloc[0])})")
+        ax.set_xlabel("Accuracy (95% CI)")
+    fig.suptitle("One property, no content analysis: label shortcuts in the in-house sets", y=0.99, fontsize=10)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    save(fig, "fig08_trivial_baselines")
+
+
+def fig_v3_controls():
+    """v3 accuracy on original vs controlled inputs, next to the best trivial baseline on each input."""
+    summ = pd.read_csv(RES / "benchmark_summary.csv")
+    v3 = summ[summ.system.str.startswith("v3") & summ.set.isin(["images", "videos"])]
+    if v3.empty:
+        print("skip fig09_v3_controls: no v3 runs yet")
+        return
+    order = [("images", "none"), ("images", "img_norm512"), ("videos", "none"), ("videos", "vid_strip"),
+             ("videos", "vid_strip_trim5")]
+    label = {"none": "original", "img_norm512": "512 px, no EXIF", "vid_strip": "metadata stripped",
+             "vid_strip_trim5": "stripped + 5 s"}
+    systems = sorted(v3.system.unique())
+    fig, ax = plt.subplots(figsize=(6.4, 2.6))
+    x = np.arange(len(order))
+    width = 0.8 / max(len(systems), 1)
+    palette = [C["v2"], C["real"], C["fake"]]
+    for k, sysname in enumerate(systems):
+        acc, lo, hi = [], [], []
+        for set_, tf in order:
+            r = v3[(v3.system == sysname) & (v3.set == set_) & v3.configuration.str.startswith(tf + ";") & (v3.run.astype(str) == "1")]
+            if r.empty:
+                acc.append(np.nan); lo.append(0); hi.append(0); continue
+            r = r.iloc[0]
+            acc.append(r.accuracy); lo.append(r.accuracy - r.acc_ci95_low); hi.append(r.acc_ci95_high - r.accuracy)
+        ax.bar(x + (k - (len(systems) - 1) / 2) * width, acc, width * 0.9, yerr=[lo, hi], color=palette[k % 3],
+               error_kw={"elinewidth": 0.8, "ecolor": "#555"}, label=sysname)
+    ax.axhline(0.5, color="#999", linestyle=":", linewidth=0.8)
+    ax.set_xticks(x); ax.set_xticklabels([f"{s}\n{label[t]}" for s, t in order])
+    ax.set_ylim(0, 1.05); ax.set_ylabel("Accuracy (95% CI)")
+    ax.legend(frameon=False, fontsize=7, loc="lower left")
+    ax.set_title("v3 under shortcut controls (in-house sets)")
+    save(fig, "fig09_v3_controls")
+
+
 if __name__ == "__main__":
     fig_image_size_confound()
     fig_v1_image_ablation()
@@ -191,3 +248,5 @@ if __name__ == "__main__":
     fig_confusions()
     fig_sample_size()
     fig_roc()
+    fig_trivial_baselines()
+    fig_v3_controls()

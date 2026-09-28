@@ -8,19 +8,19 @@ Every reviewer point is grouped into a theme below. For each theme: who raised i
 
 | # | Theme | Raised by | Status |
 |---|---|---|---|
-| T1 | Dataset too small | #1, #2, #4 | planned (P2) |
-| T2 | No comparison with SOTA (SpotFake, SAFE, FakeNewsNet approaches) | #1, #2, #4 | SOTA table verified; experiments planned (P2) |
-| T3 | 100% video accuracy vs "video module under development" | #1, #2, #4 | **root cause found**; correction ready |
+| T1 | Dataset too small | #1, #2, #4 | **in progress**: LIAR (1,283), MM-Soc PolitiFact (102) and GossipCop (1,000) downloaded with fixed splits; MMFakeBench, FF++/Celeb-DF, NewsCLIPpings pending access (2026-09-29) |
+| T2 | No comparison with SOTA (SpotFake, SAFE, FakeNewsNet approaches) | #1, #2, #4 | SOTA table verified, MM-Soc zero-shot/fine-tuned references added; harness runs external benchmarks (P2) |
+| T3 | 100% video accuracy vs "video module under development" | #1, #2, #4 | **root cause found** (metadata, duration, C2PA: trivial baselines 0.93–0.97); v3 controlled runs in progress |
 | T4 | No statistical significance or cross-validation | #2, #4 | **done for existing results**; built into harness |
 | T5 | No ablation studies | #4 | **partly done** (v1 image, v1 video, v2 detector); full set planned (P3) |
-| T6 | Weighted fusion described too briefly | #4 | **formalised** (doc 1, §1.2); learned alternative planned (P4) |
+| T6 | Weighted fusion described too briefly | #4 | **formalised** (doc 1, §1.2); v3 replaces hand-set weights with a model judge over measured facts and evidence, and logs `evidence_features` for the learned-scorer comparison (P4) |
 | T7 | Hyperparameters, training settings, computational complexity | #4 | partly documented; cost and latency study planned (P5) |
 | T8 | Literature review weak; add 2023–2025 multimodal and explainable work | #1, #4 | sources collected (doc 4); writing planned (P6) |
-| T9 | Novelty and methodological contribution unclear | #1 | reframing proposed (plan §3) |
+| T9 | Novelty and methodological contribution unclear | #1 | reframing proposed (plan §3): evidence-grounded three-stage engine without hand-written rules (C1) and the shortcut audit (C2) |
 | T10 | Confusion matrices, ROC curves | #4 | **done for existing results** (fig05, fig07) |
 | T11 | Grammar, duplicated statements, formatting, figure quality | #2, #4 | planned (P6); figures regenerated at 300 dpi + vector |
 | T12 | Real-world evaluation, scalability, deployment | #2, #4 | system deployed; measurements planned (P5) |
-| T13 | Discuss limitations in more detail | #2 | material now exists (doc 1) |
+| T13 | Discuss limitations in more detail | #2 | material now exists (doc 1, F1–F11; doc 3 engine limits: publisher unknown on text benchmarks, local-model throughput) |
 
 ---
 

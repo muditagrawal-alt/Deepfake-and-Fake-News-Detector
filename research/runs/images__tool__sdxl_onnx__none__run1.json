@@ -1,0 +1,18 @@
+{
+  "run": "images__tool__sdxl_onnx__none__run1",
+  "engine": "tool",
+  "set": "images",
+  "split": null,
+  "n": 50,
+  "transform": "none",
+  "backend": "tool",
+  "model": "Organika/sdxl-detector",
+  "tool": "sdxl_onnx",
+  "no_face_frames": null,
+  "threshold": 0.5,
+  "errors": 0,
+  "accuracy_completed": 0.66,
+  "valid": true,
+  "git_commit": "c422ca9",
+  "finished_utc": "2026-09-29T04:21:21+00:00"
+}

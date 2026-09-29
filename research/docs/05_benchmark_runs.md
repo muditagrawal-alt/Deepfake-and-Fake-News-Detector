@@ -41,8 +41,35 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 - **Errors:** none recorded in the final attempt.
 - **Result:** accuracy **0.967** (29/30), higher than on original files. FAKE recall 14/15, REAL recall 15/15.
 - **Finding:** with C2PA gone, the model cited the visible "Veo" watermark for every detected fake; the only miss is the InVideo clip, which has no watermark. → **F12 / I-11**. Run-to-run variation is visible too: `vid_fake_human_gemini_013` was called real in R2 and fake here.
-### R5 — in-house videos, stripped + trimmed to 5 s (`vid_strip_trim5`) — queued
-### R6 — MM-Soc PolitiFact test (102), fact-check sites excluded — queued
+### R5 — in-house videos, stripped + trimmed to 5 s (`vid_strip_trim5`) — paused at 14/30
+- **Errors:** 16 × HTTP 429 `RESOURCE_EXHAUSTED`: the free-tier daily quota for gemini-3.5-flash-lite ran out at 09:41 IST after ~380 calls that day. The secondary model still answered, but the run is pinned, so the driver waits for the quota to reset (midnight Pacific, ≈12:30 IST) instead of switching models. → **I-13**.
+- **Partial result (not reportable, run invalid):** 14/14 correct.
+
+### R6 — MM-Soc PolitiFact test (102), fact-check sites excluded — queued behind R5 (Gemini)
+### R7 — Celeb-DF v2 test100, gemma4:12b (local), v3.1.1 — running
+- **Config:** v3.1.1 (`4692dce`), Ollama gemma4:12b, 8 frames per clip (Celeb-DF clips have no audio track, so no transcript), retrieval open.
+- **Throughput:** 8–10 min per video with Low Power Mode on and the tool baselines sharing the GPU (≈ 14 h for 100 videos). → **I-14**.
+
+---
+
+## Existing tools on the same items
+
+Run by `scripts/baselines_tools.py` (each tool used as released, threshold 0.5; face tools classify the largest face in 8 frames and average). Runs are `runs/<set>__tool__<tool>__<transform>__run1.*`; paired tests against v3 are in `results/paired_tests.csv`.
+
+| Set (n) | Tool | Accuracy [95% CI] | FAKE / REAL recall | v3 on the same items | Paired difference (McNemar) |
+|---|---|---|---|---|---|
+| In-house images (50) | Organika/sdxl-detector | 0.660 [0.52, 0.78] | 0.64 / 0.68 | 0.880 | **+0.22** [0.08, 0.36], p = 0.013 |
+| In-house images, 512 px | same | 0.760 [0.63, 0.86] | 0.84 / 0.68 | 0.820 | +0.06 [−0.10, 0.22], p = 0.61 |
+| In-house images, 512 px + border crop | same | 0.780 [0.65, 0.87] | 0.84 / 0.72 | queued | — |
+| In-house videos (30) | dima806/deepfake_vs_real_image_detection | 0.400 [0.25, 0.58] | 0.07 / 0.73 | 0.933 | **+0.53** [0.37, 0.70], p < 0.001 |
+| In-house videos (30) | prithivMLmods/Deep-Fake-Detector-v2-Model | 0.667 [0.49, 0.81] | 0.93 / 0.40 | 0.933 | **+0.27** [0.07, 0.47], p = 0.039 |
+| Celeb-DF v2 test100 | dima806/deepfake_vs_real_image_detection | 0.610 [0.51, 0.70] | 0.79 / 0.26 | running (R7) | — |
+| Celeb-DF v2 test100 | prithivMLmods/Deep-Fake-Detector-v2-Model | 0.510 [0.41, 0.61] | 0.42 / 0.68 | running (R7) | — |
+| MM-Soc PolitiFact test (102) | jy46604790/Fake-News-Bert-Detect (v1's news model) | 0.402 [0.31, 0.50] | 0.97 / 0.18 | queued (R6) | — |
+| MM-Soc GossipCop test1000 | same | 0.207 [0.18, 0.23] | 0.99 / 0.03 | not yet run | — |
+| LIAR test (1,283) | same | 0.460 [0.43, 0.49] | 0.95 / 0.09 | not yet run | — |
+
+Two readings for the paper. (1) The two most-used open face-deepfake classifiers are near chance on Celeb-DF v2 (0.61 with the majority class at 0.66; 0.51), consistent with the cross-dataset collapse DeepfakeBench reports for trained detectors. (2) v1's news classifier labels nearly every real article fake on public benchmarks (REAL recall 0.03–0.18): its reported news result did not measure a transferable detector (doc 1, F1).
 
 ---
 
@@ -62,3 +89,5 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 | I-10 | Gemini token usage was not recorded on plain calls | 2026-09-28 smoke test | no cost data | fixed before v3.1 |
 | I-11 | **Visible generator watermark** ("Veo") on 14/15 in-house fake videos survives metadata stripping and trimming (doc 1, F12) | R4 | the video result measures watermark reading | border-crop controls `vid_strip_trim5_crop` and `img_norm512_crop` (central 80%, both classes), queued on Gemini |
 | I-12 | gemma4:12b sometimes returns `confidence` as a percentage (100); Ollama's grammar enforces JSON shape but not numeric ranges, and with a fixed seed all retries repeated the same invalid output | v3.2 smoke test on an MM-Soc development image | local-model items would fail as errors | v3.1.1: repair by showing the model its output and the validation error; `repairs` is recorded per call; test `backend/tests/test_backends.py` |
+| I-13 | Gemini free-tier daily quota exhausted (HTTP 429) after ~380 calls | R5 | runs pause until the reset | pinned model: the driver waits rather than switching to the secondary model; runs are budgeted per day |
+| I-14 | Local video throughput 8–10 min per clip with Low Power Mode on and other GPU work running | R7 | 100 Celeb-DF clips ≈ 14 h | AC power and Low Power Mode off; no concurrent GPU jobs during local runs |

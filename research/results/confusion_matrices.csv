@@ -59,6 +59,36 @@ videos,v2,detector off,FAKE,UNCERTAIN,0
 videos,v2,detector off,REAL,FAKE,0
 videos,v2,detector off,REAL,REAL,15
 videos,v2,detector off,REAL,UNCERTAIN,0
+celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,FAKE,52
+celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,REAL,14
+celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,UNCERTAIN,0
+celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,FAKE,25
+celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,REAL,9
+celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,UNCERTAIN,0
+celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,FAKE,28
+celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,REAL,38
+celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,UNCERTAIN,0
+celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,FAKE,11
+celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,REAL,23
+celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,UNCERTAIN,0
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,FAKE,FAKE,21
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,FAKE,REAL,4
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,FAKE,UNCERTAIN,0
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,REAL,FAKE,8
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,REAL,REAL,17
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,REAL,UNCERTAIN,0
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512_crop,FAKE,FAKE,21
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512_crop,FAKE,REAL,4
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512_crop,FAKE,UNCERTAIN,0
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512_crop,REAL,FAKE,7
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512_crop,REAL,REAL,18
+images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512_crop,REAL,UNCERTAIN,0
+images,tool: sdxl_onnx (Organika/sdxl-detector),none,FAKE,FAKE,16
+images,tool: sdxl_onnx (Organika/sdxl-detector),none,FAKE,REAL,9
+images,tool: sdxl_onnx (Organika/sdxl-detector),none,FAKE,UNCERTAIN,0
+images,tool: sdxl_onnx (Organika/sdxl-detector),none,REAL,FAKE,8
+images,tool: sdxl_onnx (Organika/sdxl-detector),none,REAL,REAL,17
+images,tool: sdxl_onnx (Organika/sdxl-detector),none,REAL,UNCERTAIN,0
 images,v3 (gemini gemini-3.5-flash-lite),img_norm512; open,FAKE,FAKE,18
 images,v3 (gemini gemini-3.5-flash-lite),img_norm512; open,FAKE,REAL,6
 images,v3 (gemini gemini-3.5-flash-lite),img_norm512; open,FAKE,UNCERTAIN,1
@@ -71,9 +101,51 @@ images,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,UNCERTAIN,0
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,FAKE,2
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,REAL,23
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,UNCERTAIN,0
+liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,526
+liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,30
+liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
+liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,663
+liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,64
+liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
+mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,186
+mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,2
+mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
+mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,791
+mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,21
+mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,28
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,1
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,60
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,13
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
+videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,FAKE,1
+videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,REAL,14
+videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,UNCERTAIN,0
+videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,FAKE,4
+videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,REAL,11
+videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,UNCERTAIN,0
+videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,FAKE,14
+videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,REAL,1
+videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,UNCERTAIN,0
+videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,FAKE,9
+videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,REAL,6
+videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,UNCERTAIN,0
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,FAKE,13
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,REAL,2
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,UNCERTAIN,0
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,FAKE,0
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,REAL,15
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,UNCERTAIN,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip; open,FAKE,FAKE,14
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip; open,FAKE,REAL,1
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip; open,FAKE,UNCERTAIN,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip; open,REAL,FAKE,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip; open,REAL,REAL,15
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip; open,REAL,UNCERTAIN,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip_trim5; open,FAKE,FAKE,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip_trim5; open,FAKE,REAL,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip_trim5; open,FAKE,UNCERTAIN,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip_trim5; open,REAL,FAKE,0
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip_trim5; open,REAL,REAL,14
+videos,v3 (gemini gemini-3.5-flash-lite),vid_strip_trim5; open,REAL,UNCERTAIN,0

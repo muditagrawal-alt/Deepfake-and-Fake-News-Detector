@@ -183,8 +183,15 @@ V1_BASELINE = {  # v3 transform -> the v1 run on the same inputs
 def discover_v3() -> tuple[list, list]:
     """Registry rows and pairs for every v3 run with a manifest."""
     reg, runs = [], []
-    for mf in sorted(RUNS.glob("*__v3__*.json")):
+    for mf in sorted(list(RUNS.glob("*__v3__*.json")) + list(RUNS.glob("*__tool__*.json"))):
         m = json.loads(mf.read_text())
+        if m.get("engine") == "tool":
+            set_ = m["set"] + (f"/{m['split']}" if m.get("split") else "")
+            system = f"tool: {m['tool']} ({m['model']})"
+            reg.append((set_, system, m["transform"], mf.stem, f"existing detector used as released, threshold 0.5; commit {m['git_commit']}"))
+            runs.append({"stem": mf.stem, "set": set_, "base": m["set"], "system": system, "transform": m["transform"],
+                         "mode": "tool", "fc": False, "backend": "tool", "run": "1", "config": m["transform"]})
+            continue
         flags = [m.get("research_mode", "open")] + (["fact-checks excluded"] if m.get("exclude_fact_checks") else []) \
             + (["blocklist"] if m.get("search_blocklist") else [])
         system = f"v3 ({m['backend']} {m['model']})"
@@ -204,6 +211,11 @@ def discover_v3() -> tuple[list, list]:
             if o is r or o["set"] != r["set"] or o["run"] != r["run"]:
                 continue
             same = lambda *ks: all(o[k] == r[k] for k in ks)
+            if "tool" in (r["backend"], o["backend"]):
+                # engine vs tool on the same inputs (tool as system a)
+                if r["backend"] == "tool" and o["backend"] != "tool" and r["transform"] == o["transform"]:
+                    pairs.append((r["set"], r["stem"], o["stem"]))
+                continue
             if r["transform"] == "none" and o["transform"] != "none" and same("system", "mode", "fc"):
                 pairs.append((r["set"], r["stem"], o["stem"]))           # control effect
             elif same("transform", "mode", "fc") and r["backend"] < o["backend"]:
@@ -213,7 +225,7 @@ def discover_v3() -> tuple[list, list]:
             elif same("system", "transform", "mode") and not r["fc"] and o["fc"]:
                 pairs.append((r["set"], r["stem"], o["stem"]))           # fact-check exclusion
         v1 = V1_BASELINE.get((r["base"], r["transform"]))
-        if v1 and r["run"] == "1":
+        if v1 and r["run"] == "1" and r["backend"] != "tool":
             pairs.append((r["set"], v1, r["stem"]))
     return reg, pairs
 

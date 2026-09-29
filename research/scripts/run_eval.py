@@ -58,7 +58,7 @@ from common import EVAL, RUNS, TRANSFORMS, read_rows, resolve_image, resolve_vid
 
 DATA = ROOT / "research" / "data"
 SPLITS = ROOT / "research" / "splits"
-BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop", "celebdf_v2", "mmfakebench"}
+BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop", "celebdf_v2", "mmfakebench", "ffpp_c23"}
 CAPTIONED_IMAGE = {"mmfakebench"}   # image-caption pairs: image analyzer with the text as its caption
 
 # News controls. The v1/v2 news set is URL-based; these feed the engine the

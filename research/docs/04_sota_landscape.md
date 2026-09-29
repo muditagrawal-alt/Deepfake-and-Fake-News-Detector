@@ -78,7 +78,8 @@ Twitter MediaEval and Weibo (SpotFake's benchmarks) are cited for context but no
 | MMFakeBench | `liuxuannan/MMFakeBench` (Hugging Face) | gated; terms accepted by the account holder 2026-09-29 | **downloaded**: all 1,000 validation pairs (development) and a stratified 1,000 of the 10,000 test pairs; generator/source fields kept away from the model |
 | NewsCLIPpings | needs VisualNews images | signed request to the VisualNews authors | to request |
 | Celeb-DF v2 | authors' Google Drive, after their request form | research use, no redistribution | **downloaded** 2026-09-29 (9.95 GB); official test list 518 videos (340 fake / 178 real) |
-| FaceForensics++ | authors' request form | research use, no redistribution; mirrors not used | form submitted 2026-09-29, awaiting the download link |
+| FaceForensics++ (c23) | authors' EU2 server, after their request form (access granted 2026-09-29) | research use, no redistribution; mirrors not used | **downloading** the official test split (140 originals + 4 × 140 manipulated, c23, ~1.9 GB) and 20 validation videos, with the authors' file layout (`datasets/ffpp.py`; curl, because Python's TLS handshake with the server times out) |
+| FaceForensics benchmark (online) | 1,000 test images from the authors | labels hidden; scored by uploading predictions on the benchmark website | images downloading; predictions can be generated, the upload is the account holder's |
 | Chameleon | AIDE authors' release | outside Hugging Face | to locate |
 | GenVideo | DeMamba authors' release | outside Hugging Face (large) | to locate |
 | GenImage | authors' release; Hugging Face mirrors exist (CC BY-NC-SA 4.0 permits redistribution) | open, very large | subset to be sampled from an official or licence-compatible copy |

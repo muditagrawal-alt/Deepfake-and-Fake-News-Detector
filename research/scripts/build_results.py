@@ -11,6 +11,7 @@ Outputs: research/results/
                            difference, for every pair evaluated on the same items
   run_registry.csv         what each run is, and what produced it
   benchmark_repeats.csv    mean and sd over repeated runs (run1..runN) of one configuration
+  subtype_breakdown.csv    accuracy per benchmark sub-label (MMFakeBench fake type, LIAR rating, ...)
 
 v3 runs are discovered from their manifests (runs/*__v3__*.json); v1/v2 runs
 are listed in REGISTRY. Pairs for v3 are generated: each control against the
@@ -230,6 +231,31 @@ def discover_v3() -> tuple[list, list]:
     return reg, pairs
 
 
+DATA = ROOT / "research" / "data"
+
+
+def subtypes(set_: str, system: str, config: str, df: pd.DataFrame) -> list[dict]:
+    """Accuracy per original sub-label, from the run CSV or the benchmark's items.csv."""
+    bench = set_.split("/")[0]
+    if "label_orig" not in df or (df["label_orig"] == "").all():
+        items = DATA / bench / "items.csv"
+        if not items.exists():
+            return []
+        csv.field_size_limit(10**9)
+        with open(items, newline="", encoding="utf-8") as fh:
+            lab = {r["id"]: r["label_orig"] for r in csv.DictReader(fh)}
+        df = df.assign(label_orig=df["id"].map(lab).fillna(""))
+    ok = df[(df["error"] == "") & (df["label_orig"] != "")]
+    out = []
+    for sub, g in ok.groupby("label_orig"):
+        k = int((g["predicted"] == g["ground_truth"]).sum())
+        lo, hi = proportion_confint(k, len(g), alpha=0.05, method="wilson")
+        out.append({"set": set_, "system": system, "configuration": config, "subtype": sub,
+                    "gold": g["ground_truth"].iloc[0], "n": len(g), "accuracy": round(k / len(g), 4),
+                    "ci95_low": round(lo, 4), "ci95_high": round(hi, 4)})
+    return out
+
+
 def repeats(summary: list[dict]) -> list[dict]:
     groups = {}
     for s in summary:
@@ -248,7 +274,7 @@ def repeats(summary: list[dict]) -> list[dict]:
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    summary, cms, reg = [], [], []
+    summary, cms, reg, subs = [], [], [], []
     frames = {}
     v3_reg, v3_pairs = discover_v3()
     REGISTRY.extend(v3_reg)
@@ -265,6 +291,8 @@ def main():
         m = metrics(df)
         summary.append({"set": set_, "system": system, "configuration": config, **m, "run_file": f"{stem}.csv",
                         "run": stem.rsplit("__run", 1)[-1] if "__run" in stem else ""})
+        if "/" in set_:
+            subs.extend(subtypes(set_, system, config, df))
         ok = df[df["error"] == ""]
         for gt in ("FAKE", "REAL"):
             for pr in ("FAKE", "REAL", "UNCERTAIN"):
@@ -287,6 +315,7 @@ def main():
     write("paired_tests.csv", tests)
     write("run_registry.csv", reg)
     write("benchmark_repeats.csv", repeats(summary))
+    write("subtype_breakdown.csv", subs)
 
     pd.set_option("display.width", 220)
     s = pd.DataFrame(summary)

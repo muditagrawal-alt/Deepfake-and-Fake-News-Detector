@@ -9,6 +9,22 @@ Supporting documents: [1 Legacy analysis](docs/01_legacy_analysis.md) · [2 Revi
 
 ---
 
+## Scope decision (2026-09-29) *(rev. 2)*
+
+The author restricted the benchmark programme to what the reviews ask for: **FakeNewsNet**
+(PolitiFact and GossipCop, run on the MM-Soc release, which pairs each article with its image),
+**LIAR** and **FaceForensics++ (c23)**, plus the paper's own in-house sets, whose published
+results the reviewers questioned. MMFakeBench, Celeb-DF v2, NewsCLIPpings, Chameleon, GenVideo
+and GenImage are out of scope; runs already made on MMFakeBench and Celeb-DF are kept in
+`runs/out_of_scope/` and not reported. Where §4–§5 below list other benchmarks, this decision
+overrides them.
+
+Compute: all benchmark runs on Gemini 3.5 Flash-Lite with a paid key (pay-as-you-go), pinned,
+with parallel requests; the local model is kept for a reproducibility check on small slices.
+Estimated cost of the whole programme about US$36 (≈ ₹3,500 at ₹96/US$), up to about US$58
+(≈ ₹5,600) if thinking tokens are billed at the same volume as answers; measured on the first
+paid batch before any large run (`docs/05_benchmark_runs.md`).
+
 ## 0. Decisions needed before work starts
 
 These change what the camera-ready contains. Each needs your answer, and two need an email to the programme chairs.

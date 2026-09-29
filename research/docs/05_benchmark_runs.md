@@ -50,7 +50,10 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 - **Config:** v3.1.1 (`4692dce`), Ollama gemma4:12b, 8 frames per clip (Celeb-DF clips have no audio track, so no transcript), retrieval open.
 - **Throughput:** 8–10 min per video with Low Power Mode on and the tool baselines sharing the GPU (≈ 14 h for 100 videos). → **I-14**.
 
-### R8 / R9 — v3.1.1 vs v3.2 on the development sets (local gemma4:12b) — running
+### Scope change (2026-09-29)
+The benchmark programme was restricted to the benchmarks the reviewers name (FakeNewsNet, LIAR, FaceForensics++) and the in-house sets. Stopped and moved to `runs/out_of_scope/`: R7 (Celeb-DF test100, 5 items), the Celeb-DF and MMFakeBench tool baselines, and R8/R9 below (MMFakeBench val100, 5–6 items per version, not analysed). The v3.2 protocol now uses development splits of the reviewer benchmarks.
+
+### R8 / R9 — v3.1.1 vs v3.2 on the development sets (local gemma4:12b) — stopped (scope change)
 - **Protocol:** `research/protocols/v3.2_dev_validation.md`, written and committed before the runs (decision rule: adopt v3.2 if pooled paired accuracy is higher and it is not significantly worse on any set).
 - **Items:** MMFakeBench val100, MM-Soc PolitiFact dev30 (fact-check sites excluded), Celeb-DF dev20. No test items.
 - **Engines:** v3.1.1 tree `4692dce` (main) and v3.2 tree `0fece62` (engine-dev), run side by side on one Ollama server; runs tagged `v3.1.1` / `v3.2`.

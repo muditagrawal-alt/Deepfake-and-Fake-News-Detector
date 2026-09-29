@@ -75,9 +75,10 @@ Twitter MediaEval and Weibo (SpotFake's benchmarks) are cited for context but no
 |---|---|---|---|
 | LIAR | author's release, `cs.ucsb.edu/~william/data/liar_dataset.zip` | open | **downloaded**; the release has 10,269 / 1,284 / 1,283 statements (the paper's table lists 1,267 for test); we use the release |
 | MM-Soc PolitiFact, GossipCop | authors' Hugging Face datasets `Ahren09/MMSoc_*` | open | **downloaded**; label 1 = fake per the authors' code (`mmsoc/const.py`) |
-| MMFakeBench | `liuxuannan/MMFakeBench` (Hugging Face) | gated, automatic approval after the account holder accepts the terms | waiting for terms acceptance |
+| MMFakeBench | `liuxuannan/MMFakeBench` (Hugging Face) | gated; terms accepted by the account holder 2026-09-29 | **downloaded**: all 1,000 validation pairs (development) and a stratified 1,000 of the 10,000 test pairs; generator/source fields kept away from the model |
 | NewsCLIPpings | needs VisualNews images | signed request to the VisualNews authors | to request |
-| FaceForensics++, Celeb-DF v2 | author request forms | signed request; terms forbid redistribution, so unofficial mirrors are not used | to request |
+| Celeb-DF v2 | authors' Google Drive, after their request form | research use, no redistribution | **downloaded** 2026-09-29 (9.95 GB); official test list 518 videos (340 fake / 178 real) |
+| FaceForensics++ | authors' request form | research use, no redistribution; mirrors not used | form submitted 2026-09-29, awaiting the download link |
 | Chameleon | AIDE authors' release | outside Hugging Face | to locate |
 | GenVideo | DeMamba authors' release | outside Hugging Face (large) | to locate |
 | GenImage | authors' release; Hugging Face mirrors exist (CC BY-NC-SA 4.0 permits redistribution) | open, very large | subset to be sampled from an official or licence-compatible copy |

@@ -40,7 +40,34 @@ commit**, with the **same model and settings**, on a **fixed, non-overlapping sh
    on the same Wi-Fi share one limit — use different connections (e.g. phone hotspots).
 7. **Power.** Plug in, turn Low Power Mode off, and keep the machine awake (`caffeinate -i` on macOS).
 
-## 1. Assignments
+## 1a. Compact plan for the deadline (use this)
+
+Fixed stratified subsets of the official test splits (seed 2026), chosen before any run:
+FakeNewsNet-PolitiFact test (all 102), FakeNewsNet-GossipCop `test300`, LIAR `test300`,
+FaceForensics++ c23 `test200`. About 900 items, open-book, plus closed-book on PolitiFact as the
+external-verification ablation. One machine with a paid key ≈ 90 min; two machines ≈ 45 min.
+
+| Person | Commands |
+|---|---|
+| **P1 (Mudit)** | FF++ test200; PolitiFact test open + closed; GossipCop test300 shard 1/2; LIAR test300 shard 1/2 |
+| **P2** (optional) | GossipCop test300 shard 2/2; LIAR test300 shard 2/2 |
+
+```bash
+PY=backend/.venv/bin/python; RE=research/scripts/run_eval.py
+# P1
+caffeinate -i $PY $RE --bench ffpp_c23 --split test200 --workers 6 --resume
+EXCLUDE_FACT_CHECKS=true caffeinate -i $PY $RE --bench mmsoc_politifact --split test --workers 6 --resume
+EXCLUDE_FACT_CHECKS=true RESEARCH_MODE=closed caffeinate -i $PY $RE --bench mmsoc_politifact --split test --workers 10 --resume
+# P1 with K=1, P2 with K=2 (alone: drop --shard)
+EXCLUDE_FACT_CHECKS=true caffeinate -i $PY $RE --bench mmsoc_gossipcop --split test300 --shard $K/2 --workers 6 --resume
+EXCLUDE_FACT_CHECKS=true caffeinate -i $PY $RE --bench liar --split test300 --shard $K/2 --workers 6 --resume
+```
+Merge (Mudit): `merge_shards.py mmsoc_gossipcop__test300__v3__gemini-gemini35flashlite__none__open__nofc__run1`
+and the same for `liar__test300__...`.
+
+## 1b. Full plan (if there is time later)
+
+
 
 Times assume 6 concurrent items per machine for open-book runs and 10 for closed-book runs,
 measured Gemini latency, and no DuckDuckGo throttling (if throttled, the harness retries; runs

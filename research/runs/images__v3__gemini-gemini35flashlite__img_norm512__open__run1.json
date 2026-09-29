@@ -1,0 +1,38 @@
+{
+  "run": "images__v3__gemini-gemini35flashlite__img_norm512__open__run1",
+  "engine": "v3",
+  "set": "images",
+  "split": null,
+  "n": 50,
+  "transform": "img_norm512",
+  "backend": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "pinned": true,
+  "temperature": 0.2,
+  "ollama": null,
+  "research_mode": "open",
+  "researcher": "duckduckgo",
+  "search_blocklist": "",
+  "exclude_fact_checks": false,
+  "max_search_queries": 3,
+  "video_strategy": "native",
+  "pixel_classifier": false,
+  "git_commit": "c14d6c1",
+  "git_dirty": false,
+  "engine_tree": "76848a6",
+  "power": {
+    "source": "battery",
+    "low_power_mode": true
+  },
+  "started_utc": "2026-09-29T03:32:59+00:00",
+  "finished_utc": "2026-09-29T03:41:08+00:00",
+  "power_end": {
+    "source": "battery",
+    "low_power_mode": true
+  },
+  "errors": 0,
+  "completed": 50,
+  "accuracy_completed": 0.82,
+  "uncertain": 1,
+  "valid": true
+}

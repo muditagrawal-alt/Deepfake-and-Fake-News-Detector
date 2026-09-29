@@ -9,5 +9,6 @@ videos,v1 (reproduced),original files,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1
 videos,v1 (reproduced),metadata stripped,30,0,True,0.9333,0.6333,0.4551,0.7813,1.0,0.3333,0.5,0.7368,0.6184,0.9333,0.6333,0.4472,0.7178,5,0,10,14,2,videos__v1repro__rules_metadata__vid_strip.csv,
 videos,v2,detector on,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,15,0,0,15,0,videos__v2__gemini35fl__detector_on__run1.csv,1
 videos,v2,detector off,30,0,True,1.0,1.0,0.8865,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,15,0,0,15,0,videos__v2__gemini35fl__detector_off__run1.csv,1
+images,v3 (gemini gemini-3.5-flash-lite),img_norm512; open,50,0,True,0.98,0.82,0.692,0.9023,0.9,0.72,0.8,0.8519,0.8259,0.92,0.82,0.6532,0.8856,18,2,7,23,1,images__v3__gemini-gemini35flashlite__img_norm512__open__run1.csv,1
 images,v3 (gemini gemini-3.5-flash-lite),none; open,50,0,True,1.0,0.88,0.762,0.9438,0.913,0.84,0.875,0.8846,0.8798,0.92,0.88,0.7624,0.8976,21,2,4,23,0,images__v3__gemini-gemini35flashlite__none__open__run1.csv,1
 videos,v3 (gemini gemini-3.5-flash-lite),none; open,30,0,True,1.0,0.9333,0.7868,0.9815,1.0,0.8667,0.9286,0.9375,0.933,1.0,0.9333,0.8745,0.9556,13,0,2,15,0,videos__v3__gemini-gemini35flashlite__none__open__run1.csv,1

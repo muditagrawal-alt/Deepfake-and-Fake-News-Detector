@@ -8,6 +8,7 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 |---|---|---|
 | v3.0 | (commit 9abfe71) | analyse → retrieve → verify; no hand-written decision rules. Pilot only |
 | v3.1 | `76848a6` | shared filtered retrieval (publisher, blocklist, fact-check, duplicate filters); external benchmark inputs. **Frozen for the benchmark programme** |
+| v3.1.1 | (this commit) | bug fix in the Ollama backend only (I-12): a schema-invalid output is repaired by showing the model the validation error. The Gemini code path is unchanged, so Gemini runs on v3.1 and v3.1.1 are the same system |
 | v3.2 | (in development) | web image search as external verification for media (§ Issues, I-6) |
 
 ---
@@ -35,7 +36,11 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 - **Errors:** 2 × ReadTimeout; 1 × ConnectError (DNS failure while the Mac was asleep overnight). The run stalled from 01:56 to ~09:00 IST while the machine slept; the driver was restarted under `caffeinate -i` and resumed the 19 completed items.
 - **Result:** accuracy **0.820** [0.692, 0.902]; FAKE recall 0.72, REAL recall 0.92; AUC 0.886. vs R1: −0.06, 95% CI [−0.16, +0.04], p = 0.45. All trivial baselines are at chance on this input.
 
-### R4 — in-house videos, metadata stripped (`vid_strip`) — running
+### R4 — in-house videos, metadata stripped (`vid_strip`)
+- **Config:** as R1; container and stream metadata removed (C2PA included, `results/provenance_audit_summary.csv`), frames bit-identical.
+- **Errors:** none recorded in the final attempt.
+- **Result:** accuracy **0.967** (29/30), higher than on original files. FAKE recall 14/15, REAL recall 15/15.
+- **Finding:** with C2PA gone, the model cited the visible "Veo" watermark for every detected fake; the only miss is the InVideo clip, which has no watermark. → **F12 / I-11**. Run-to-run variation is visible too: `vid_fake_human_gemini_013` was called real in R2 and fake here.
 ### R5 — in-house videos, stripped + trimmed to 5 s (`vid_strip_trim5`) — queued
 ### R6 — MM-Soc PolitiFact test (102), fact-check sites excluded — queued
 
@@ -55,3 +60,5 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 | I-8 | Manifests kept only the last attempt's start time, and retried errors were overwritten | this record | error history incomplete for R1–R3 (reconstructed from the driver log above) | harness now keeps `first_started_utc`, `attempt`, and `<run>.errors.csv` |
 | I-9 | `qwen3.5:9b` ignores the JSON schema with thinking off (Ollama 0.30.10) | 2026-09-28 local tests | unusable local default | `gemma4:12b` is the local default |
 | I-10 | Gemini token usage was not recorded on plain calls | 2026-09-28 smoke test | no cost data | fixed before v3.1 |
+| I-11 | **Visible generator watermark** ("Veo") on 14/15 in-house fake videos survives metadata stripping and trimming (doc 1, F12) | R4 | the video result measures watermark reading | border-crop controls `vid_strip_trim5_crop` and `img_norm512_crop` (central 80%, both classes), queued on Gemini |
+| I-12 | gemma4:12b sometimes returns `confidence` as a percentage (100); Ollama's grammar enforces JSON shape but not numeric ranges, and with a fixed seed all retries repeated the same invalid output | v3.2 smoke test on an MM-Soc development image | local-model items would fail as errors | v3.1.1: repair by showing the model its output and the validation error; `repairs` is recorded per call; test `backend/tests/test_backends.py` |

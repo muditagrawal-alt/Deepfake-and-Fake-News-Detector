@@ -79,4 +79,38 @@ def vid_strip_trim5(src: Path, dst_dir: Path) -> Path:
     return out
 
 
-TRANSFORMS = {"none": None, "img_norm512": img_norm512, "vid_strip": vid_strip, "vid_strip_trim5": vid_strip_trim5}
+def img_norm512_crop(src: Path, dst_dir: Path) -> Path:
+    """
+    As img_norm512, after keeping only the central 80% of the image (10% cut from each side).
+    Removes corner watermarks that image generators stamp on their output (finding F12),
+    identically for both classes.
+    """
+    from PIL import Image
+    im = Image.open(src).convert("RGB")
+    w, h = im.size
+    im = im.crop((round(0.1 * w), round(0.1 * h), round(0.9 * w), round(0.9 * h)))
+    tmp = dst_dir / (src.stem + "_crop.png")
+    im.save(tmp)
+    return img_norm512(tmp, dst_dir)
+
+
+def vid_strip_trim5_crop(src: Path, dst_dir: Path) -> Path:
+    """
+    As vid_strip_trim5, keeping only the central 80% of every frame (10% cut from each side).
+    Removes visible generator watermarks (e.g. Veo's corner mark, finding F12) for both classes.
+    """
+    out = dst_dir / (src.stem + "_t5c.mp4")
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-t", "5",
+         "-map", "0:v:0", "-map", "0:a?", "-map_metadata", "-1",
+         "-vf", "crop=trunc(iw*0.8/2)*2:trunc(ih*0.8/2)*2:trunc(iw*0.1):trunc(ih*0.1)",
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+         "-c:a", "aac", "-b:a", "128k",
+         "-fflags", "+bitexact", "-flags:v", "+bitexact", "-flags:a", "+bitexact", str(out)],
+        check=True,
+    )
+    return out
+
+
+TRANSFORMS = {"none": None, "img_norm512": img_norm512, "vid_strip": vid_strip, "vid_strip_trim5": vid_strip_trim5,
+              "img_norm512_crop": img_norm512_crop, "vid_strip_trim5_crop": vid_strip_trim5_crop}

@@ -182,21 +182,35 @@ class OllamaBackend:
             },
         }
         last = None
+        base_messages = body["messages"]
         async with self._sem:
             for attempt in range(3):
                 t0 = time.perf_counter()
+                content = None
                 try:
                     async with httpx.AsyncClient(timeout=self.settings.ollama_timeout_seconds) as c:
                         r = await c.post(f"{self.url}/api/chat", json=body)
                         r.raise_for_status()
                         data = r.json()
                     msg = data.get("message") or {}
-                    obj = _parse_json(msg.get("content", ""), schema)
+                    content = msg.get("content", "")
+                    obj = _parse_json(content, schema)
                     return obj, CallMeta(backend=self.name, model=self.model, seconds=time.perf_counter() - t0,
                                          prompt_tokens=data.get("prompt_eval_count"),
                                          output_tokens=data.get("eval_count"),
-                                         extra={"thinking_chars": len(msg.get("thinking") or "")})
-                except (httpx.HTTPError, ValidationError, json.JSONDecodeError) as exc:
+                                         extra={"thinking_chars": len(msg.get("thinking") or ""),
+                                                "repairs": attempt})
+                except (ValidationError, json.JSONDecodeError) as exc:
+                    # Ollama's grammar fixes the JSON shape but not value ranges (e.g. confidence 100 for 1.0),
+                    # and with a fixed seed a plain retry repeats the same output. Show the model its output
+                    # and the validation error, and ask for a corrected object.
+                    last = exc
+                    log.warning("ollama output invalid (attempt %d): %s", attempt + 1, str(exc)[:200])
+                    body["messages"] = base_messages + [
+                        {"role": "assistant", "content": (content or "")[:8000]},
+                        {"role": "user", "content": "That JSON does not satisfy the required schema:\n"
+                                                    f"{str(exc)[:1500]}\nReturn the corrected JSON object only."}]
+                except httpx.HTTPError as exc:
                     last = exc
                     log.warning("ollama attempt %d failed: %s", attempt + 1, str(exc)[:200])
                     await asyncio.sleep(2 * (attempt + 1))

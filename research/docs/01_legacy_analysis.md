@@ -121,6 +121,9 @@ Consequences:
 
 For the paper: report the in-house news set as audited and withdrawn, and evaluate news on established benchmarks with retrievable text (FakeNewsNet PolitiFact/GossipCop, LIAR, MMFakeBench; doc 4), plus a rebuilt in-house set whose every URL is verified live and archived at collection time.
 
+### F12 (major). The fake videos carry a visible generator watermark
+Found 2026-09-29 while analysing the v3.1 `vid_strip` run. Fourteen of the 15 fake videos are Veo outputs with Google's visible "Veo" mark in the bottom-right corner of every frame; the InVideo clip has none. Real videos carry no generator mark. Because the mark is in the pixels, stripping metadata (`vid_strip`) and trimming duration (`vid_strip_trim5`) both leave it in place: with metadata stripped, v3.1 detected 14/15 fakes and cited the watermark for each, while the one unmarked fake was called real. Reading a visible watermark is legitimate evidence, but it measures generator attribution, not the ability to detect synthetic content. Control: `vid_strip_trim5_crop` keeps the central 80% of every frame (10% removed from each side, identically for both classes), which removes the mark (checked on extracted frames); `img_norm512_crop` does the same for images, where generator marks were cited for only 2–3 of 25 fakes.
+
 ## 1.4 What v1 contributes, stated accurately
 
 The framework's structure is sound and matches the paper's topic: independent modality modules, local forensic signals, external verification, and an explicit fusion step with an UNCERTAIN outcome. What the current evaluation does not support is the reported performance. Corrected v1 numbers, with the shortcuts identified above removed:

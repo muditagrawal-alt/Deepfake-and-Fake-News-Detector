@@ -177,8 +177,8 @@ async def main():
     args = ap.parse_args()
     if bool(args.set) == bool(args.bench) or (args.bench and not args.split):
         ap.error("give either --set, or --bench with --split")
-    allowed = {"news": {"none", *NEWS_TRANSFORMS}, "images": {"none", "img_norm512"},
-               "videos": {"none", "vid_strip", "vid_strip_trim5"}}.get(args.set, {"none"})
+    allowed = {"news": {"none", *NEWS_TRANSFORMS}, "images": {"none", "img_norm512", "img_norm512_crop"},
+               "videos": {"none", "vid_strip", "vid_strip_trim5", "vid_strip_trim5_crop"}}.get(args.set, {"none"})
     if args.transform not in allowed:
         ap.error(f"transform {args.transform} does not apply to set {args.set}; choose from {sorted(allowed)}")
 

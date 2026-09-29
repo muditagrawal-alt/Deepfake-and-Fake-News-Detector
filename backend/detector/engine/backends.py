@@ -72,10 +72,11 @@ class GeminiBackend:
         self.model = settings.gemini_primary_model
         self._uploads: dict[str, Any] = {}   # path -> uploaded file, reused across stages
 
-    async def release(self) -> None:
-        for f in self._uploads.values():
+    async def release(self, paths: set[str] | None = None) -> None:
+        """Delete this item's uploads only; other items may be running concurrently."""
+        for key in list(self._uploads) if paths is None else [k for k in paths if k in self._uploads]:
+            f = self._uploads.pop(key)
             await self.provider.delete_file(f.name)
-        self._uploads.clear()
 
     @property
     def enabled(self) -> bool:
@@ -142,7 +143,7 @@ class OllamaBackend:
         self._sem = asyncio.Semaphore(1)     # one generation at a time on a laptop GPU
         self.enabled = True
 
-    async def release(self) -> None:
+    async def release(self, paths: set[str] | None = None) -> None:
         return None
 
     async def health(self) -> bool:

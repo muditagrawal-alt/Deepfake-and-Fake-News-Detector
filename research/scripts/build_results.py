@@ -185,6 +185,8 @@ def discover_v3() -> tuple[list, list]:
     """Registry rows and pairs for every v3 run with a manifest."""
     reg, runs = [], []
     for mf in sorted(list(RUNS.glob("*__v3__*.json")) + list(RUNS.glob("*__tool__*.json"))):
+        if "__shard" in mf.stem:      # shards are counted through their merged run (merge_shards.py)
+            continue
         m = json.loads(mf.read_text())
         if m.get("engine") == "tool":
             set_ = m["set"] + (f"/{m['split']}" if m.get("split") else "")

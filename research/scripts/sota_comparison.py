@@ -108,6 +108,8 @@ def main():
     ref = pd.read_csv(RES / "sota_reference.csv")
     rows = []
     for mf in sorted(RUNS.glob("*.json")):
+        if "__shard" in mf.stem:
+            continue
         m = json.loads(mf.read_text())
         bench = BENCH.get(m.get("set", ""))
         if not bench or not (RUNS / f"{mf.stem}.csv").exists():

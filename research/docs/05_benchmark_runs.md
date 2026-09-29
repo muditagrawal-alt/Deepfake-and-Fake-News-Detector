@@ -10,7 +10,8 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 | v3.1 | `76848a6` | shared filtered retrieval (publisher, blocklist, fact-check, duplicate filters); external benchmark inputs. **Frozen for the benchmark programme** |
 | v3.1.1 | (this commit) | bug fix in the Ollama backend only (I-12): a schema-invalid output is repaired by showing the model the validation error. The Gemini code path is unchanged, so Gemini runs on v3.1 and v3.1.1 are the same system |
 | v3.1.2 | (this commit) | failure handling only (I-19): refused or timed-out searches are retried, and an item whose searches all fail is an error to re-run, not an item judged without evidence. Identical to v3.1.1 whenever searches succeed. R5's remaining 16 items run on it |
-| v3.2 | (in development) | web image search as external verification for media (§ Issues, I-6) |
+| v3.1.3 | (this commit) | concurrency fix only (I-20): a finished item deletes only its own uploaded video, so items can run in parallel. Identical to v3.1.2 for sequential runs. **Engine for the reviewer benchmarks** |
+| v3.2 | (in development; not used for the reviewer benchmarks, its development check could not run in the 2-hour window) | web image search as external verification for media (§ Issues, I-6) |
 
 ---
 
@@ -50,6 +51,9 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 ### R7 — Celeb-DF v2 test100, gemma4:12b (local), v3.1.1 — running
 - **Config:** v3.1.1 (`4692dce`), Ollama gemma4:12b, 8 frames per clip (Celeb-DF clips have no audio track, so no transcript), retrieval open.
 - **Throughput:** 8–10 min per video with Low Power Mode on and the tool baselines sharing the GPU (≈ 14 h for 100 videos). → **I-14**.
+
+### Final scope and team run (2026-09-29)
+Only FakeNewsNet (PolitiFact, GossipCop), LIAR and FaceForensics++ are run; the in-house control queue was stopped (its completed runs R1–R4 stand). The benchmarks are split across teammates with `run_eval.py --shard k/N --workers W`, merged by `merge_shards.py`, which rejects shards made with a different engine, model or settings. Procedure: `research/TEAM_RUNBOOK.md`.
 
 ### Scope change (2026-09-29)
 The benchmark programme was restricted to the benchmarks the reviewers name (FakeNewsNet, LIAR, FaceForensics++) and the in-house sets. Stopped and moved to `runs/out_of_scope/`: R7 (Celeb-DF test100, 5 items), the Celeb-DF and MMFakeBench tool baselines, and R8/R9 below (MMFakeBench val100, 5–6 items per version, not analysed). The v3.2 protocol now uses development splits of the reviewer benchmarks.
@@ -106,3 +110,5 @@ Two readings for the paper. (1) The two most-used open face-deepfake classifiers
 | I-17 | The comparison script first compared binary scores with MMFakeBench's 4-class reference | this record | would have produced an invalid comparison | comparisons now require the same task and split |
 | I-18 | Python's TLS handshake with the FaceForensics server times out; curl works | FF++ loader | silent download failure | loader uses curl |
 | I-19 | **A refused web search looked like "no evidence found"**: the DuckDuckGo wrapper swallowed rate-limit errors and returned an empty list, so under load an open-book run could silently become closed-book | planning parallel paid runs | none so far: every finished item with search queries got sources (checked on all v3 runs) | v3.1.2: retries with backoff; all-failed items become errors; tests added |
+| I-20 | With items in parallel, the Gemini backend's cleanup deleted every uploaded video, including other items' | planning the team run | would have broken parallel video runs; no past run affected (all were sequential) | v3.1.3: release per item |
+| I-21 | FaceForensics++ server serves ~13 KB/s per connection; 700 videos would not arrive before the run window | FF++ loader | full test split may not be ready | development videos and a fixed 200-video test subset are fetched first, 8 connections |

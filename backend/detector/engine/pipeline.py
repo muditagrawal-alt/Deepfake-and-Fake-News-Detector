@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass, field
 
 from detector.engine.backends import CallMeta
-from detector.engine.parts import Part, TextPart
+from detector.engine.parts import Part, TextPart, VideoPart
 from detector.engine.retrieval import Retrieval, retrieve
 from detector.schemas import Analysis, LLMVerdict
 
@@ -97,6 +97,6 @@ async def run_stages(services, *, modality: str, parts: list[Part], facts: dict,
                 schema=LLMVerdict)
         calls.append(meta)
     finally:
-        await llm.release()
+        await llm.release({str(p.path) for p in parts if isinstance(p, VideoPart)})
 
     return StageResult(analysis=analysis, verdict=verdict, retrieval=ret, research_mode=mode, calls=calls)

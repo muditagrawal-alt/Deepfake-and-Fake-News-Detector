@@ -178,6 +178,9 @@ async def main():
     ap.add_argument("--sleep", type=float, default=0.0)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--shard", default="", help="k/N: run only every N-th item starting at k (1-based), for splitting "
+                                                "a benchmark across machines; merge with merge_shards.py")
+    ap.add_argument("--workers", type=int, default=1, help="items processed concurrently")
     args = ap.parse_args()
     if bool(args.set) == bool(args.bench) or (args.bench and not args.split):
         ap.error("give either --set, or --bench with --split")
@@ -201,8 +204,13 @@ async def main():
     set_name = args.bench or args.set
     if args.limit:
         rows = rows[: args.limit]
+    if args.shard:
+        k, n = (int(x) for x in args.shard.split("/"))
+        if not 1 <= k <= n:
+            ap.error("--shard must be k/N with 1 <= k <= N")
+        rows = rows[k - 1::n]          # deterministic: the split file's order, every N-th item
 
-    name = run_name(settings, args)
+    name = run_name(settings, args) + (f"__shard{args.shard.replace('/', 'of')}" if args.shard else "")
     out_csv, out_jsonl, out_json = (RUNS / f"{name}.{ext}" for ext in ("csv", "jsonl", "json"))
     out_err = RUNS / f"{name}.errors.csv"     # every error ever hit, kept even after a successful retry
     RUNS.mkdir(parents=True, exist_ok=True)
@@ -212,6 +220,7 @@ async def main():
 
     manifest = {
         "run": name, "engine": "v3", "set": set_name, "split": args.split, "n": len(rows), "transform": args.transform,
+        "shard": args.shard or None, "workers": args.workers,
         "backend": settings.llm_engine,
         "model": settings.ollama_model if settings.llm_engine == "ollama" else settings.gemini_primary_model,
         "pinned": True, "temperature": settings.gemini_temperature,
@@ -262,10 +271,11 @@ async def main():
                 if k in full:
                     fh.write(json.dumps(full[k], ensure_ascii=False, default=str) + "\n")
 
-    with tempfile.TemporaryDirectory(prefix="eval_") as tmp:
-        for i, (row, ident, key) in enumerate(zip(rows, idents, keys), 1):
-            if key in done:
-                continue
+    sem = asyncio.Semaphore(max(1, args.workers))
+    counter = {"n": len(done)}
+
+    async def one(row, ident, key, tmp):
+        async with sem:
             gt = row["label"].strip().upper()  # REAL | FAKE
             t0 = time.time()
             res, err = None, ""
@@ -285,11 +295,16 @@ async def main():
             if res is not None:
                 full[key] = {"key": key, "ground_truth": gt, "result": res.model_dump(mode="json")}
             flush()
+            counter["n"] += 1
             r = done[key]
-            print(f"[{i}/{len(rows)}] {gt:4s} -> {r['predicted'] or 'ERROR':9s} {r['confidence'] or '':>5} "
+            print(f"[{counter['n']}/{len(rows)}] {gt:4s} -> {r['predicted'] or 'ERROR':9s} {r['confidence'] or '':>5} "
                   f"{r['seconds']:6.1f}s {('ERR ' + err[:80]) if err else ''}", flush=True)
             if args.sleep:
                 await asyncio.sleep(args.sleep)
+
+    with tempfile.TemporaryDirectory(prefix="eval_") as tmp:
+        await asyncio.gather(*[one(row, ident, key, tmp) for row, ident, key in zip(rows, idents, keys)
+                               if key not in done])
 
     out = [done[k] for k in keys if k in done]
     ok = [r for r in out if not r["error"]]

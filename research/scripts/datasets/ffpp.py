@@ -74,16 +74,18 @@ def main():
         test200 |= set(rng.sample(sorted(r["id"] for r in test if r["label_orig"] == m), 25))
     dev20 = set(rng.sample(sorted(r["id"] for r in val if r["label"] == "REAL"), 10))
     dev20 |= set(rng.sample(sorted(r["id"] for r in val if r["label"] == "FAKE"), 10))
-    wanted = [r for r in test] + [r for r in val if r["id"] in dev20]
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    write_split(NAME, "test", sorted(r["id"] for r in test))
+    write_split(NAME, "test200", sorted(test200))
+    write_split(NAME, "dev20", sorted(dev20))
+    # Fetch the development items and the test200 subset first, then the rest of the test split.
+    wanted = ([r for r in val if r["id"] in dev20] + [r for r in test if r["id"] in test200]
+              + [r for r in test if r["id"] not in test200])
+    with ThreadPoolExecutor(max_workers=8) as pool:
         ok = list(pool.map(lambda r: fetch(BASE + r["rel"], FOLDER / r["rel"]), wanted))
     failed = [r["id"] for r, good in zip(wanted, ok) if not good]
     rows = [{"id": r["id"], "split": "test" if r in test else "val", "label": r["label"],
              "label_orig": r["label_orig"], "video": r["rel"]} for r, good in zip(wanted, ok) if good]
     write_items(NAME, rows)
-    write_split(NAME, "test", sorted(r["id"] for r in test))
-    write_split(NAME, "test200", sorted(test200))
-    write_split(NAME, "dev20", sorted(dev20))
     print(f"{NAME}: {len(rows)} videos fetched, {len(failed)} failed {failed[:5]}; test {len(test)}, "
           f"test200 {len(test200)}, dev20 {len(dev20)}", file=sys.stderr)
 

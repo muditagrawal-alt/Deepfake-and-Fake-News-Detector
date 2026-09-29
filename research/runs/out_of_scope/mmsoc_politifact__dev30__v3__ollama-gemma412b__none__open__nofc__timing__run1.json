@@ -1,0 +1,46 @@
+{
+  "run": "mmsoc_politifact__dev30__v3__ollama-gemma412b__none__open__nofc__timing__run1",
+  "engine": "v3",
+  "set": "mmsoc_politifact",
+  "split": "dev30",
+  "n": 1,
+  "transform": "none",
+  "shard": null,
+  "workers": 1,
+  "backend": "ollama",
+  "model": "gemma4:12b",
+  "pinned": true,
+  "temperature": 0.2,
+  "ollama": {
+    "num_ctx": 16384,
+    "think": false,
+    "seed": 7
+  },
+  "research_mode": "open",
+  "researcher": "duckduckgo",
+  "search_blocklist": "",
+  "exclude_fact_checks": true,
+  "max_search_queries": 3,
+  "video_strategy": "native",
+  "pixel_classifier": false,
+  "git_commit": "2d17626",
+  "git_dirty": false,
+  "engine_tree": "6ce791e",
+  "power": {
+    "source": "battery",
+    "low_power_mode": true
+  },
+  "started_utc": "2026-09-29T06:31:08+00:00",
+  "first_started_utc": "2026-09-29T06:31:08+00:00",
+  "attempt": 1,
+  "finished_utc": "2026-09-29T06:39:14+00:00",
+  "power_end": {
+    "source": "battery",
+    "low_power_mode": true
+  },
+  "errors": 0,
+  "completed": 1,
+  "accuracy_completed": 1.0,
+  "uncertain": 0,
+  "valid": true
+}

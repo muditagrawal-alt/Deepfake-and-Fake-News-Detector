@@ -1,0 +1,6 @@
+id,item,ground_truth,label_orig,predicted,correct,confidence,p_fake,error,seconds
+valid_10371,valid_10371,REAL,true,,,,,"BackendError: Ollama (gemma4:12b) failed: 5 validation errors for LLMVerdict
+claims.0.sources.0.title
+  Field required [type=missing, input_value={'url': 'https://travel.s...sa-waiver-program.html'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+claims",715.8

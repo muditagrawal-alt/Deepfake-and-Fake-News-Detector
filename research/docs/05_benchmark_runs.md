@@ -52,6 +52,9 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 - **Config:** v3.1.1 (`4692dce`), Ollama gemma4:12b, 8 frames per clip (Celeb-DF clips have no audio track, so no transcript), retrieval open.
 - **Throughput:** 8–10 min per video with Low Power Mode on and the tool baselines sharing the GPU (≈ 14 h for 100 videos). → **I-14**.
 
+### Local throughput, measured (2026-09-29, Low Power Mode off, charging, no other load)
+gemma4:12b generates 6–10 tokens/s. One FakeNewsNet-PolitiFact development item: 8.1 min (analyse 114 s, retrieval 47 s, verify 325 s), correct. One LIAR development item: 11.9 min, failed schema validation after three repairs (I-22). At ~8–10 min per item the 900-item compact plan needs ~5 days on one machine, so the reviewer benchmarks are run on Gemini 3.5 Flash-Lite (paid) instead. The sharding and merge path was verified end to end on 4 LIAR development items (two shards, merged; the merge completed and rejected nothing), although 3 of those items failed for I-22/I-23. Test files are in `runs/out_of_scope/`.
+
 ### Final scope and team run (2026-09-29)
 Only FakeNewsNet (PolitiFact, GossipCop), LIAR and FaceForensics++ are run; the in-house control queue was stopped (its completed runs R1–R4 stand). The benchmarks are split across teammates with `run_eval.py --shard k/N --workers W`, merged by `merge_shards.py`, which rejects shards made with a different engine, model or settings. Procedure: `research/TEAM_RUNBOOK.md`.
 
@@ -112,3 +115,5 @@ Two readings for the paper. (1) The two most-used open face-deepfake classifiers
 | I-19 | **A refused web search looked like "no evidence found"**: the DuckDuckGo wrapper swallowed rate-limit errors and returned an empty list, so under load an open-book run could silently become closed-book | planning parallel paid runs | none so far: every finished item with search queries got sources (checked on all v3 runs) | v3.1.2: retries with backoff; all-failed items become errors; tests added |
 | I-20 | With items in parallel, the Gemini backend's cleanup deleted every uploaded video, including other items' | planning the team run | would have broken parallel video runs; no past run affected (all were sequential) | v3.1.3: release per item |
 | I-21 | FaceForensics++ server serves ~13 KB/s per connection; 700 videos would not arrive before the run window | FF++ loader | full test split may not be ready | development videos and a fixed 200-video test subset are fetched first, 8 connections |
+| I-22 | **Local model breaks the output schema** (omits required fields such as a source's `title`) and three repair rounds do not fix it | sharding test and timing run, 2026-09-29 | 3 of the last 5 local items failed | local runs are not used for the reviewer benchmarks; Gemini's structured output conformed on every item run so far |
+| I-23 | Ollama stopped answering after runs were killed mid-generation; requests queued indefinitely | sharding test | local runs stall silently | runner process restarted; kill local runs only between items |

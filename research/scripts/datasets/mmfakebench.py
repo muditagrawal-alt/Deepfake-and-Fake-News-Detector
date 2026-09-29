@@ -15,6 +15,8 @@ meta        text_source and image_source as JSON. These name the generator or so
 Evaluation items (research/splits/):
   mmfakebench__test1000.txt  1,000 of the 10,000 test pairs, stratified by fake_cls, seed 2026
   mmfakebench__val200.txt    200 of the 1,000 validation pairs, stratified: development only
+  mmfakebench__val100.txt    100 validation pairs, stratified (datasets.stratified_sample): development only
+All 1,000 validation images are extracted; test images only for test1000.
 
 Only the images of the selected items are extracted from the archives.
 
@@ -67,15 +69,19 @@ def main():
                          "meta": json.dumps({"text_source": rec["text_source"], "image_source": rec["image_source"]})})
     val = [r for r in rows if r["split"] == "val"]
     test = [r for r in rows if r["split"] == "test"]
-    val200 = set(stratified(val, 200, "label_orig"))
+    val200 = set(stratified(val, 200, "label_orig"))   # val100 (research/splits) is a stratified subset of val
     test1000 = set(stratified(test, 1000, "label_orig"))
     paths = {}
-    for split, zip_name, keep in (("val", "MMFakeBench_val.zip", val200), ("test", "MMFakeBench_test.zip", test1000)):
+    all_val = {r["id"] for r in val}           # validation is small: extract all of it, so any development subset works
+    for split, zip_name, keep in (("val", "MMFakeBench_val.zip", all_val), ("test", "MMFakeBench_test.zip", test1000)):
         if (FOLDER / zip_name).exists():
-            paths[split] = extract(zip_name, {r["image_json"] for r in rows if r["id"] in keep})
+            try:
+                paths[split] = extract(zip_name, {r["image_json"] for r in rows if r["id"] in keep})
+            except zipfile.BadZipFile:
+                print(f"{zip_name} is incomplete; its images are not extracted yet", file=sys.stderr)
     kept = []
     for r in rows:
-        if r["id"] in val200 | test1000:
+        if r["id"] in all_val | test1000:
             local = paths.get(r["split"], {}).get(r["image_json"], "")
             kept.append({**{k: v for k, v in r.items() if k != "image_json"}, "image": local})
     missing = [r["id"] for r in kept if not r["image"]]

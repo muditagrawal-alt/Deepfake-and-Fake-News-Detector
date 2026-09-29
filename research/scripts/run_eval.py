@@ -58,7 +58,8 @@ from common import EVAL, RUNS, TRANSFORMS, read_rows, resolve_image, resolve_vid
 
 DATA = ROOT / "research" / "data"
 SPLITS = ROOT / "research" / "splits"
-BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop", "celebdf_v2"}
+BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop", "celebdf_v2", "mmfakebench"}
+CAPTIONED_IMAGE = {"mmfakebench"}   # image-caption pairs: image analyzer with the text as its caption
 
 # News controls. The v1/v2 news set is URL-based; these feed the engine the
 # extracted article text instead, with or without the publisher's identity.
@@ -117,6 +118,9 @@ def row_ident(set_name: str, row: dict) -> str:
 
 
 async def run_item(set_name, transform, row, services, tmp: Path):
+    if set_name in CAPTIONED_IMAGE:
+        from detector.analyzers.image import analyze_image
+        return await analyze_image(DATA / set_name / row["image"], services, caption=row["text"])
     if set_name in BENCHES and row.get("video"):
         return await analyze(video_path=str(DATA / set_name / row["video"]), services=services)
     if set_name in BENCHES:

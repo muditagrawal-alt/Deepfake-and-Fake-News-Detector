@@ -5,7 +5,8 @@ common schema:
 
   id, split, label (REAL|FAKE), label_orig, text, title, image, speaker, context
 
-`image` and `video` are paths relative to the benchmark folder, or empty. Fixed item lists
+`image` and `video` are paths relative to the benchmark folder, or empty. `meta` holds source
+information for analysis only; the harness never passes it to the model. Fixed item lists
 for evaluation are committed to research/splits/<name>__<split>.txt, so every
 run of a benchmark scores exactly the same items.
 
@@ -19,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 DATA = ROOT / "research" / "data"
 SPLITS = ROOT / "research" / "splits"
-FIELDS = ["id", "split", "label", "label_orig", "text", "title", "image", "video", "speaker", "context"]
+FIELDS = ["id", "split", "label", "label_orig", "text", "title", "image", "video", "speaker", "context", "meta"]
 
 
 def write_items(name: str, rows: list[dict]) -> Path:

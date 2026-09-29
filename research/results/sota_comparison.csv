@@ -1,0 +1,14 @@
+benchmark,split,our_system,run,run_valid_and_complete,n,metric,ours,ours_ci95_low,ours_ci95_high,reference_method,reference_score,reference_regime,comparison,note
+Celeb-DF v2,test100,tool: face_dima806,celebdf_v2__test100__tool__face_dima806__none__run1,True,100,frame AUC,0.4773,0.3534,0.6027,UCF,0.7527,supervised,below,"reference is frame-level AUC of a detector trained on FF++; ours is video-level, zero-shot, on the official test list (or a stratified subset of it)"
+Celeb-DF v2,test100,tool: face_prithiv,celebdf_v2__test100__tool__face_prithiv__none__run1,True,100,frame AUC,0.5521,0.4288,0.6751,UCF,0.7527,supervised,below,"reference is frame-level AUC of a detector trained on FF++; ours is video-level, zero-shot, on the official test list (or a stratified subset of it)"
+MM-Soc GossipCop,test1000,tool: bert_news,mmsoc_gossipcop__test1000__tool__bert_news__none__run1,True,1000,macro-F1,0.1848,0.1636,0.2056,LLaMA-Adapter-v2,0.556,zero-shot,below,"we score a fixed stratified 1,000 of the 2,672 test items"
+MM-Soc GossipCop,test1000,tool: bert_news,mmsoc_gossipcop__test1000__tool__bert_news__none__run1,True,1000,accuracy,0.207,0.182,0.232,BLIP2-FLAN-T5-XL,0.819,zero-shot,below,"we score a fixed stratified 1,000 of the 2,672 test items"
+MM-Soc GossipCop,test1000,tool: bert_news,mmsoc_gossipcop__test1000__tool__bert_news__none__run1,True,1000,macro-F1,0.1848,0.1642,0.2062,RoBERTa-large,0.82,supervised,below,"we score a fixed stratified 1,000 of the 2,672 test items"
+MM-Soc GossipCop,test1000,tool: bert_news,mmsoc_gossipcop__test1000__tool__bert_news__none__run1,True,1000,accuracy,0.207,0.182,0.232,DeBERTa-v3-large,0.895,supervised,below,"we score a fixed stratified 1,000 of the 2,672 test items"
+MM-Soc GossipCop,test1000,tool: bert_news,mmsoc_gossipcop__test1000__tool__bert_news__none__run1,True,1000,macro-F1,0.1848,0.1642,0.2054,random,0.448,none,below,"we score a fixed stratified 1,000 of the 2,672 test items"
+MM-Soc PolitiFact,test,tool: bert_news,mmsoc_politifact__test__tool__bert_news__none__run1,True,102,macro-F1,0.3887,0.2938,0.4804,LLaVA-v1.5-13B,0.749,zero-shot,below,
+MM-Soc PolitiFact,test,tool: bert_news,mmsoc_politifact__test__tool__bert_news__none__run1,True,102,accuracy,0.402,0.3039,0.5,LLaVA-v1.5-13B,0.827,zero-shot,below,
+MM-Soc PolitiFact,test,tool: bert_news,mmsoc_politifact__test__tool__bert_news__none__run1,True,102,AUC,0.7248,0.6167,0.8218,LLaVA-v1.5-13B,0.721,zero-shot,inconclusive,
+MM-Soc PolitiFact,test,tool: bert_news,mmsoc_politifact__test__tool__bert_news__none__run1,True,102,macro-F1,0.3887,0.2936,0.482,DeBERTa-v3-large,0.952,supervised,below,
+MM-Soc PolitiFact,test,tool: bert_news,mmsoc_politifact__test__tool__bert_news__none__run1,True,102,accuracy,0.402,0.3039,0.5,DeBERTa-v3-large,0.962,supervised,below,
+MM-Soc PolitiFact,test,tool: bert_news,mmsoc_politifact__test__tool__bert_news__none__run1,True,102,macro-F1,0.3887,0.2936,0.482,random,0.471,none,inconclusive,

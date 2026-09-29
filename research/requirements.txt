@@ -10,3 +10,6 @@ onnxruntime>=1.18
 pillow>=10.3
 pyarrow>=17                        # benchmark parquet files
 huggingface_hub>=0.24
+torch>=2.4                         # existing-tool baselines only (scripts/baselines_tools.py)
+torchvision>=0.19
+transformers>=4.45

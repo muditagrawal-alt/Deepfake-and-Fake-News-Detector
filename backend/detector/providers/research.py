@@ -11,6 +11,7 @@ on which search API was configured.
 """
 import asyncio
 import logging
+import time
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -19,6 +20,10 @@ import httpx
 from detector.config import Settings
 
 log = logging.getLogger(__name__)
+
+
+class SearchUnavailable(Exception):
+    """The search back-end refused or timed out after retries."""
 
 
 @dataclass
@@ -60,21 +65,42 @@ class DDGResearcher:
     name = "duckduckgo"
     enabled = True
 
+    @staticmethod
+    def _call(fn, what: str) -> list[dict]:
+        """One ddgs call with retries. Refusals and timeouts are retried and then raised, never
+        returned as an empty result: an empty result would read as 'no evidence exists'."""
+        from ddgs.exceptions import DDGSException, RatelimitException, TimeoutException
+        last = None
+        for attempt in range(3):
+            try:
+                return fn() or []
+            except (RatelimitException, TimeoutException) as exc:
+                last = exc
+            except DDGSException as exc:
+                if "no results" in str(exc).lower():
+                    return []
+                last = exc
+            time.sleep(3 * (attempt + 1) ** 2)          # 3 s, 12 s, 27 s
+        raise SearchUnavailable(f"ddg {what} search failed: {last}")
+
     def _search_sync(self, query: str, max_results: int) -> list[Hit]:
         from ddgs import DDGS
 
         hits: list[Hit] = []
+        failures = []
         try:
-            for r in DDGS().text(query, max_results=max_results) or []:
+            for r in self._call(lambda: DDGS().text(query, max_results=max_results), "text"):
                 hits.append(Hit(title=r.get("title", ""), url=r.get("href", ""), snippet=r.get("body", "")))
-        except Exception as exc:
-            log.info("ddg text search failed: %s", exc)
+        except SearchUnavailable as exc:
+            failures.append(exc)
         try:
-            for r in DDGS().news(query, max_results=5) or []:
+            for r in self._call(lambda: DDGS().news(query, max_results=5), "news"):
                 hits.append(Hit(title=r.get("title", ""), url=r.get("url", ""), snippet=r.get("body", ""),
                                 kind="news", date=(r.get("date") or "")[:10]))
-        except Exception as exc:
-            log.info("ddg news search failed: %s", exc)
+        except SearchUnavailable as exc:
+            failures.append(exc)
+        if len(failures) == 2:                          # both searches refused: nothing was checked
+            raise failures[0]
         return [h for h in hits if h.url]
 
     async def search(self, query: str, max_results: int = 8) -> list[Hit]:

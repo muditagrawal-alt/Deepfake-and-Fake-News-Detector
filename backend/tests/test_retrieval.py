@@ -70,3 +70,27 @@ def test_duplicate_urls_across_queries_counted_once():
     r = asyncio.run(retrieve(FakeResearcher([h]), ["q1", "q2"], publisher=None, blocklist=frozenset(),
                              exclude_fact_checks=False))
     assert len(r.hits) == 1
+
+
+class FailingResearcher:
+    name = "failing"
+
+    def __init__(self, fail_on):
+        self.fail_on = fail_on
+
+    async def search(self, query, max_results=8):
+        if query in self.fail_on:
+            raise RuntimeError("refused")
+        return [Hit(query, f"https://x.org/{query}")]
+
+
+def test_all_searches_failing_is_an_error_not_missing_evidence():
+    with pytest.raises(retrieval.RetrievalUnavailable):
+        asyncio.run(retrieve(FailingResearcher({"a", "b"}), ["a", "b"], publisher=None,
+                             blocklist=frozenset(), exclude_fact_checks=False))
+
+
+def test_partial_search_failure_is_counted():
+    r = asyncio.run(retrieve(FailingResearcher({"a"}), ["a", "b"], publisher=None,
+                             blocklist=frozenset(), exclude_fact_checks=False))
+    assert r.dropped["search_error"] == 1 and len(r.hits) == 1

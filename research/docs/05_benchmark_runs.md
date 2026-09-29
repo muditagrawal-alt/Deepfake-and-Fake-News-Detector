@@ -9,6 +9,7 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 | v3.0 | (commit 9abfe71) | analyse → retrieve → verify; no hand-written decision rules. Pilot only |
 | v3.1 | `76848a6` | shared filtered retrieval (publisher, blocklist, fact-check, duplicate filters); external benchmark inputs. **Frozen for the benchmark programme** |
 | v3.1.1 | (this commit) | bug fix in the Ollama backend only (I-12): a schema-invalid output is repaired by showing the model the validation error. The Gemini code path is unchanged, so Gemini runs on v3.1 and v3.1.1 are the same system |
+| v3.1.2 | (this commit) | failure handling only (I-19): refused or timed-out searches are retried, and an item whose searches all fail is an error to re-run, not an item judged without evidence. Identical to v3.1.1 whenever searches succeed. R5's remaining 16 items run on it |
 | v3.2 | (in development) | web image search as external verification for media (§ Issues, I-6) |
 
 ---
@@ -104,3 +105,4 @@ Two readings for the paper. (1) The two most-used open face-deepfake classifiers
 | I-16 | Single-modality tools collapse to one class on multimodal and cross-domain benchmarks (v1's BERT: REAL recall 0.03–0.18; sdxl-detector near chance on MMFakeBench) | tool baselines | — | reported per subtype (`results/subtype_breakdown.csv`) |
 | I-17 | The comparison script first compared binary scores with MMFakeBench's 4-class reference | this record | would have produced an invalid comparison | comparisons now require the same task and split |
 | I-18 | Python's TLS handshake with the FaceForensics server times out; curl works | FF++ loader | silent download failure | loader uses curl |
+| I-19 | **A refused web search looked like "no evidence found"**: the DuckDuckGo wrapper swallowed rate-limit errors and returned an empty list, so under load an open-book run could silently become closed-book | planning parallel paid runs | none so far: every finished item with search queries got sources (checked on all v3 runs) | v3.1.2: retries with backoff; all-failed items become errors; tests added |

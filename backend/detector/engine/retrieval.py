@@ -65,6 +65,10 @@ def _shingles(text: str) -> set[tuple[str, ...]]:
     return {tuple(w[i:i + _SHINGLE]) for i in range(max(0, len(w) - _SHINGLE + 1))}
 
 
+class RetrievalUnavailable(Exception):
+    """Every search for an item failed. The item is an error to be re-run, not an item without evidence."""
+
+
 @dataclass
 class Retrieval:
     queries: list[str]
@@ -157,4 +161,6 @@ async def retrieve(researcher, queries: list[str], *, publisher: str | None, blo
                     h.text = t
                     n_read += 1
             out.hits.extend(kept[:per_query])
+    if queries and out.dropped["search_error"] == len(queries):
+        raise RetrievalUnavailable(f"all {len(queries)} searches failed")
     return out

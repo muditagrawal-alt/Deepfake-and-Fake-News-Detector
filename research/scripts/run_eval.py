@@ -58,7 +58,7 @@ from common import EVAL, RUNS, TRANSFORMS, read_rows, resolve_image, resolve_vid
 
 DATA = ROOT / "research" / "data"
 SPLITS = ROOT / "research" / "splits"
-BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop"}
+BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop", "celebdf_v2"}
 
 # News controls. The v1/v2 news set is URL-based; these feed the engine the
 # extracted article text instead, with or without the publisher's identity.
@@ -117,6 +117,8 @@ def row_ident(set_name: str, row: dict) -> str:
 
 
 async def run_item(set_name, transform, row, services, tmp: Path):
+    if set_name in BENCHES and row.get("video"):
+        return await analyze(video_path=str(DATA / set_name / row["video"]), services=services)
     if set_name in BENCHES:
         image = (DATA / set_name / row["image"]).read_bytes() if row.get("image") else None
         return await analyze_news_text(row["text"][:14000], services, image=image,
@@ -198,6 +200,7 @@ async def main():
 
     name = run_name(settings, args)
     out_csv, out_jsonl, out_json = (RUNS / f"{name}.{ext}" for ext in ("csv", "jsonl", "json"))
+    out_err = RUNS / f"{name}.errors.csv"     # every error ever hit, kept even after a successful retry
     RUNS.mkdir(parents=True, exist_ok=True)
     idents = [row_ident(set_name, r) for r in rows]
     keys = [item_key(r, i) for r, i in zip(rows, idents)]
@@ -221,6 +224,13 @@ async def main():
         "power": power_state(),
         "started_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
+    if out_json.exists():   # a resumed run keeps its first start time and counts attempts
+        prev = json.loads(out_json.read_text())
+        manifest["first_started_utc"] = prev.get("first_started_utc", prev.get("started_utc"))
+        manifest["attempt"] = prev.get("attempt", 1) + 1
+    else:
+        manifest["first_started_utc"] = manifest["started_utc"]
+        manifest["attempt"] = 1
 
     done: dict[str, dict] = {}
     full: dict[str, dict] = {}
@@ -260,6 +270,14 @@ async def main():
             except Exception as exc:
                 err = f"{type(exc).__name__}: {exc}"[:300]
             done[key] = flat_row(row, ident, gt, res, err, round(time.time() - t0, 1))
+            if err:
+                new = not out_err.exists()
+                with open(out_err, "a", newline="", encoding="utf-8") as fh:
+                    w = csv.writer(fh)
+                    if new:
+                        w.writerow(["utc", "attempt", "id", "item", "error", "seconds"])
+                    w.writerow([datetime.now(timezone.utc).isoformat(timespec="seconds"), manifest["attempt"],
+                                row.get("id"), ident, err, round(time.time() - t0, 1)])
             if res is not None:
                 full[key] = {"key": key, "ground_truth": gt, "result": res.model_dump(mode="json")}
             flush()

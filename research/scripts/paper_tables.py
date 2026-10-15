@@ -93,6 +93,8 @@ def main():
         df = load_run(m["stem"])
         frames[m["stem"]] = df
         cond = "with web search" if m["research_mode"] == "open" else "without web search (closed-book)"
+        if m.get("scorer"):
+            cond += f" + learned evidence scorer (trained on {m['scorer']['n_train']} training items)"
         row = {"benchmark": BENCH[(m["set"], m["split"])], "round": m["round"], "engine_version": m.get("engine_version"),
                "condition": cond, "model": m["model"], **metrics(df), "valid_run": m.get("valid"),
                "run_file": f"runs/{m['stem']}.csv", "engine_tree": m.get("engine_tree"), "git_commit": m.get("git_commit"),
@@ -107,6 +109,8 @@ def main():
     # Round 1 vs Round 2 on the same items and condition.
     by_key = {}
     for m in runs:
+        if m.get("scorer"):
+            continue          # scored runs are compared through table1/table3; table2 pairs raw engine rounds
         by_key.setdefault((m["set"], m["split"], m["research_mode"]), {})[m["round"]] = m["stem"]
     for (set_, split, mode), rounds in by_key.items():
         if 1 in rounds and 2 in rounds:

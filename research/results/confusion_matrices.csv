@@ -59,18 +59,18 @@ videos,v2,detector off,FAKE,UNCERTAIN,0
 videos,v2,detector off,REAL,FAKE,0
 videos,v2,detector off,REAL,REAL,15
 videos,v2,detector off,REAL,UNCERTAIN,0
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,FAKE,52
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,REAL,14
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,UNCERTAIN,0
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,FAKE,25
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,REAL,9
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,UNCERTAIN,0
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,FAKE,28
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,REAL,38
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,UNCERTAIN,0
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,FAKE,11
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,REAL,23
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,UNCERTAIN,0
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,FAKE,25
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,REAL,75
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,UNCERTAIN,0
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,FAKE,24
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,REAL,76
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,REAL,UNCERTAIN,0
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,FAKE,71
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,REAL,29
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FAKE,UNCERTAIN,0
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,FAKE,65
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,REAL,35
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,REAL,UNCERTAIN,0
 images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,FAKE,FAKE,21
 images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,FAKE,REAL,4
 images,tool: sdxl_onnx (Organika/sdxl-detector),img_norm512,FAKE,UNCERTAIN,0
@@ -101,30 +101,30 @@ images,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,UNCERTAIN,0
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,FAKE,2
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,REAL,23
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,UNCERTAIN,0
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,FAKE,0
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,REAL,1
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,UNCERTAIN,0
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,FAKE,1
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,REAL,3
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,UNCERTAIN,0
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,526
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,30
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,663
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,64
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,651
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,49
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,255
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,45
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,FAKE,FAKE,470
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,FAKE,REAL,230
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,FAKE,UNCERTAIN,0
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,REAL,FAKE,134
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,REAL,REAL,166
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,REAL,UNCERTAIN,0
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,186
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,2
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,791
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,21
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,FAKE,0
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,REAL,1
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,UNCERTAIN,0
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,FAKE,0
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,REAL,4
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,UNCERTAIN,0
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,28
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,1
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0

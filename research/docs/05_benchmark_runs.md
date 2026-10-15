@@ -11,6 +11,7 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 | v3.1.1 | (this commit) | bug fix in the Ollama backend only (I-12): a schema-invalid output is repaired by showing the model the validation error. The Gemini code path is unchanged, so Gemini runs on v3.1 and v3.1.1 are the same system |
 | v3.1.2 | (this commit) | failure handling only (I-19): refused or timed-out searches are retried, and an item whose searches all fail is an error to re-run, not an item judged without evidence. Identical to v3.1.1 whenever searches succeed. R5's remaining 16 items run on it |
 | v3.1.3 | (this commit) | concurrency fix only (I-20): a finished item deletes only its own uploaded video, so items can run in parallel. Identical to v3.1.2 for sequential runs. **Engine for the reviewer benchmarks** |
+| v3.1.4 | (this commit) | metadata only: results record `engine_version` and each call's thinking tokens and repair count. **Engine for Round 1** |
 | v3.2 | (in development; not used for the reviewer benchmarks, its development check could not run in the 2-hour window) | web image search as external verification for media (§ Issues, I-6) |
 
 ---
@@ -54,6 +55,13 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 
 ### Local throughput, measured (2026-09-29, Low Power Mode off, charging, no other load)
 gemma4:12b generates 6–10 tokens/s. One FakeNewsNet-PolitiFact development item: 8.1 min (analyse 114 s, retrieval 47 s, verify 325 s), correct. One LIAR development item: 11.9 min, failed schema validation after three repairs (I-22). At ~8–10 min per item the 900-item compact plan needs ~5 days on one machine, so the reviewer benchmarks are run on Gemini 3.5 Flash-Lite (paid) instead. The sharding and merge path was verified end to end on 4 LIAR development items (two shards, merged; the merge completed and rejected nothing), although 3 of those items failed for I-22/I-23. Test files are in `runs/out_of_scope/`.
+
+### Paper run plan (2026-10-15)
+Chosen by the author: fixed subsets, two rounds. **Round 1** = engine v3.1.4 on FakeNewsNet-PolitiFact test (102, with and without web search), FakeNewsNet-GossipCop `test300`, LIAR `test300`, FaceForensics++ c23 `test200`. Then enhancements developed on development items only (v3.2 and anything the development runs show), then **Round 2** = the enhanced engine on the same test items. Runs are labelled `__round1__` / `__round2__`; every manifest records `engine_version`, `round`, cost in rupees, and the shared spend ledger total. Budget: ₹1,000 prepaid on the AI Studio account (auto-reload off), plus up to $40 of Google Developer Program credits if they can be claimed; the harness stops starting paid items at `SPEND_CAP_INR` (default ₹1,000).
+
+**Measured cost (cost check, 10 development items, free tier, `runs/cost_check/`):** FakeNewsNet article + image 6,771 input / 1,051 output tokens, ₹0.45 per item, 50 s; LIAR statement 2,909 / 814 tokens, ₹0.28 per item, 28 s; no thinking tokens. Projected: one subset round ≈ ₹380, both rounds plus the development check ≈ ₹850.
+
+**Existing tools on FaceForensics++ c23 test200** (`runs/ffpp_c23__test200__tool__*`): dima806/deepfake_vs_real_image_detection 0.505 (FAKE recall 0.25, REAL 0.76); prithivMLmods/Deep-Fake-Detector-v2-Model 0.530 (FAKE 0.71, REAL 0.35). The Haar face detector found no face in ~41% of frames (FF++ c23 frames are low-resolution), which were then classified whole; reported as a limitation of this baseline.
 
 ### Final scope and team run (2026-09-29)
 Only FakeNewsNet (PolitiFact, GossipCop), LIAR and FaceForensics++ are run; the in-house control queue was stopped (its completed runs R1–R4 stand). The benchmarks are split across teammates with `run_eval.py --shard k/N --workers W`, merged by `merge_shards.py`, which rejects shards made with a different engine, model or settings. Procedure: `research/TEAM_RUNBOOK.md`.

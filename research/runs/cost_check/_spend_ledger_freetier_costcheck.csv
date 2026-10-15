@@ -1,0 +1,11 @@
+utc,run,item,cost_inr
+2026-10-15T16:35:13+00:00,mmsoc_politifact__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,train_00008|train_00008,0.5016
+2026-10-15T16:35:17+00:00,mmsoc_politifact__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,train_00031|train_00031,0.519
+2026-10-15T16:35:24+00:00,mmsoc_politifact__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,train_00052|train_00052,0.4584
+2026-10-15T16:35:46+00:00,mmsoc_politifact__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,train_00094|train_00094,0.2846
+2026-10-15T16:36:06+00:00,mmsoc_politifact__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,train_00077|train_00077,0.473
+2026-10-15T16:36:24+00:00,liar__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,valid_10371|valid_10371,0.2215
+2026-10-15T16:36:40+00:00,liar__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,valid_11669|valid_11669,0.266
+2026-10-15T16:36:44+00:00,liar__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,valid_11630|valid_11630,0.3161
+2026-10-15T16:36:52+00:00,liar__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,valid_12131|valid_12131,0.3091
+2026-10-15T16:37:04+00:00,liar__dev30__v3__gemini-gemini35flashlite__none__open__nofc__costcheck__run1,valid_12733|valid_12733,0.283

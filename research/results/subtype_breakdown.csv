@@ -1,23 +1,26 @@
 set,system,configuration,subtype,gold,n,accuracy,ci95_low,ci95_high
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,0,FAKE,66,0.7879,0.6749,0.8692
-celebdf_v2/test100,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,1,REAL,34,0.2647,0.146,0.4312
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,0,FAKE,66,0.4242,0.3124,0.5444
-celebdf_v2/test100,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,1,REAL,34,0.6765,0.5084,0.8087
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,Deepfakes,FAKE,25,0.16,0.064,0.3465
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,Face2Face,FAKE,25,0.2,0.0886,0.3913
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FaceSwap,FAKE,25,0.48,0.3003,0.665
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,NeuralTextures,FAKE,25,0.16,0.064,0.3465
+ffpp_c23/test200,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,original,REAL,100,0.76,0.6677,0.8331
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,Deepfakes,FAKE,25,0.84,0.6535,0.936
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,Face2Face,FAKE,25,0.84,0.6535,0.936
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FaceSwap,FAKE,25,0.36,0.2025,0.5548
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,NeuralTextures,FAKE,25,0.8,0.6087,0.9114
+ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,original,REAL,100,0.35,0.2636,0.4475
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",false,FAKE,1,0.0,0.0,0.7935
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",mostly-true,REAL,2,1.0,0.3424,1.0
+liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",true,REAL,2,0.5,0.0945,0.9055
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,barely-true,FAKE,214,0.9346,0.8932,0.9606
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,false,FAKE,250,0.96,0.9279,0.9781
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,half-true,REAL,267,0.0712,0.046,0.1085
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,mostly-true,REAL,249,0.0884,0.0591,0.1301
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,pants-fire,FAKE,92,0.9348,0.8649,0.9698
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,true,REAL,211,0.109,0.0737,0.1583
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,mismatch,FAKE,300,0.8533,0.8088,0.8889
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,original,REAL,300,0.15,0.114,0.1948
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,textual_veracity_distortion,FAKE,300,0.9867,0.9662,0.9948
-mmfakebench/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,visual_veracity_distortion,FAKE,100,0.99,0.9455,0.9982
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,mismatch,FAKE,300,0.64,0.5842,0.6922
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,original,REAL,300,0.5533,0.4968,0.6086
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,textual_veracity_distortion,FAKE,300,0.7233,0.6701,0.7709
-mmfakebench/test1000,tool: sdxl_onnx (Organika/sdxl-detector),none,visual_veracity_distortion,FAKE,100,0.61,0.512,0.6998
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,0,REAL,812,0.0259,0.017,0.0392
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,1,FAKE,188,0.9894,0.962,0.9971
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",0,REAL,4,1.0,0.5101,1.0
+mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",1,FAKE,1,0.0,0.0,0.7935
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,0,REAL,73,0.1781,0.1071,0.2812
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,1,FAKE,29,0.9655,0.8282,0.9939

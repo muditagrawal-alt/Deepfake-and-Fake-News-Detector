@@ -83,6 +83,7 @@ class LLMVerdict(BaseModel):
 # API response
 # ----------------------------------------------------------------------
 class Provenance(BaseModel):
+    engine_version: str = ""               # detector.__version__
     provider: str                          # backend: gemini | ollama
     model: str                             # model that produced the verdict
     grounded: bool = False                 # kept for API compatibility; retrieval is a separate stage

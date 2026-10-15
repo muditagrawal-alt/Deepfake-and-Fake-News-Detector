@@ -52,11 +52,46 @@ from detector.config import get_settings                     # noqa: E402
 from detector.forensics.article import extract_article       # noqa: E402
 from detector.pipeline import analyze, analyze_news_text     # noqa: E402
 from detector.services import get_services                   # noqa: E402
+from detector import __version__ as ENGINE_VERSION            # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import EVAL, RUNS, TRANSFORMS, read_rows, resolve_image, resolve_video  # noqa: E402
 
 DATA = ROOT / "research" / "data"
+PRICING = json.loads((Path(__file__).parent / "pricing.json").read_text())
+LEDGER = ROOT / "research" / "runs" / "_spend_ledger.csv"     # every paid item, across all runs and shards
+
+
+def item_cost_inr(calls: list[dict]) -> float:
+    """Estimated cost of one item from its recorded token counts (thinking billed as output)."""
+    total = 0.0
+    for c in calls:
+        price = PRICING["models"].get(c.get("model") or "")
+        if not price:
+            continue                      # local model or unpriced: no API cost
+        inp = c.get("prompt_tokens") or 0
+        out = (c.get("output_tokens") or 0) + (c.get("thinking_tokens") or 0)
+        total += (inp * price["input_usd_per_m"] + out * price["output_usd_per_m"]) / 1e6
+    return total * PRICING["usd_inr"]
+
+
+def ledger_total_inr() -> float:
+    if not LEDGER.exists():
+        return 0.0
+    with open(LEDGER, newline="", encoding="utf-8") as fh:
+        return sum(float(r["cost_inr"] or 0) for r in csv.DictReader(fh))
+
+
+def ledger_add(run: str, item: str, cost: float) -> None:
+    import fcntl
+    new = not LEDGER.exists()
+    with open(LEDGER, "a", newline="", encoding="utf-8") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        w = csv.writer(fh)
+        if new:
+            w.writerow(["utc", "run", "item", "cost_inr"])
+        w.writerow([datetime.now(timezone.utc).isoformat(timespec="seconds"), run, item, round(cost, 4)])
+        fcntl.flock(fh, fcntl.LOCK_UN)
 SPLITS = ROOT / "research" / "splits"
 BENCHES = {"liar", "mmsoc_politifact", "mmsoc_gossipcop", "celebdf_v2", "mmfakebench", "ffpp_c23"}
 CAPTIONED_IMAGE = {"mmfakebench"}   # image-caption pairs: image analyzer with the text as its caption
@@ -97,6 +132,8 @@ def run_name(settings, args) -> str:
         parts.append("nofc")
     if settings.enable_onnx_detector:
         parts.append("pixelclf")
+    if args.round:
+        parts.append(f"round{args.round}")
     if args.tag:
         parts.append(args.tag)
     return "__".join(parts) + f"__run{args.run}"
@@ -160,7 +197,10 @@ def flat_row(row, ident, gt, res, err, seconds) -> dict:
         for c in res.provenance.calls:
             st = c["stage"]
             out.update({f"{st}_model": c["model"], f"{st}_seconds": c["seconds"],
-                        f"{st}_prompt_tokens": c["prompt_tokens"], f"{st}_output_tokens": c["output_tokens"]})
+                        f"{st}_prompt_tokens": c["prompt_tokens"], f"{st}_output_tokens": c["output_tokens"],
+                        f"{st}_thinking_tokens": c.get("thinking_tokens")})
+        out["cost_inr"] = round(item_cost_inr(res.provenance.calls), 4)
+        out["engine_version"] = res.provenance.engine_version
         out["retrieve_ms"] = res.timings_ms.get("retrieve", 0)
     out["error"] = err
     out["seconds"] = seconds
@@ -174,6 +214,10 @@ async def main():
     ap.add_argument("--split", help="split file suffix, e.g. test, test1000, dev50")
     ap.add_argument("--transform", choices=list(TRANSFORMS) + sorted(NEWS_TRANSFORMS), default="none")
     ap.add_argument("--tag", default="")
+    ap.add_argument("--round", type=int, choices=[1, 2], default=None,
+                    help="paper round: 1 = baseline engine, 2 = enhanced engine (labels runs and manifests)")
+    ap.add_argument("--cap-inr", type=float, default=float(os.environ.get("SPEND_CAP_INR", "1000")),
+                    help="stop starting new paid items once the shared ledger reaches this many rupees")
     ap.add_argument("--run", type=int, default=1, help="repeat index, for variance across runs")
     ap.add_argument("--sleep", type=float, default=0.0)
     ap.add_argument("--limit", type=int, default=0)
@@ -219,7 +263,8 @@ async def main():
     assert len(set(keys)) == len(keys), "duplicate item keys"
 
     manifest = {
-        "run": name, "engine": "v3", "set": set_name, "split": args.split, "n": len(rows), "transform": args.transform,
+        "run": name, "engine": "v3", "engine_version": ENGINE_VERSION, "round": args.round,
+        "set": set_name, "split": args.split, "n": len(rows), "transform": args.transform,
         "shard": args.shard or None, "workers": args.workers,
         "backend": settings.llm_engine,
         "model": settings.ollama_model if settings.llm_engine == "ollama" else settings.gemini_primary_model,
@@ -274,8 +319,13 @@ async def main():
     sem = asyncio.Semaphore(max(1, args.workers))
     counter = {"n": len(done)}
 
+    stopped = {"cap": False}
+
     async def one(row, ident, key, tmp):
         async with sem:
+            if settings.llm_engine == "gemini" and ledger_total_inr() >= args.cap_inr:
+                stopped["cap"] = True         # leave the item unrun; --resume after a top-up continues
+                return
             gt = row["label"].strip().upper()  # REAL | FAKE
             t0 = time.time()
             res, err = None, ""
@@ -284,6 +334,8 @@ async def main():
             except Exception as exc:
                 err = f"{type(exc).__name__}: {exc}"[:300]
             done[key] = flat_row(row, ident, gt, res, err, round(time.time() - t0, 1))
+            if res is not None and done[key].get("cost_inr"):
+                ledger_add(name, key, done[key]["cost_inr"])
             if err:
                 new = not out_err.exists()
                 with open(out_err, "a", newline="", encoding="utf-8") as fh:
@@ -309,6 +361,9 @@ async def main():
     out = [done[k] for k in keys if k in done]
     ok = [r for r in out if not r["error"]]
     manifest["finished_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    manifest["cost_inr_this_run"] = round(sum(float(r.get("cost_inr") or 0) for r in out), 2)
+    manifest["ledger_total_inr"] = round(ledger_total_inr(), 2)
+    manifest["stopped_at_cap"] = stopped["cap"]
     manifest["power_end"] = power_state()
     manifest["errors"] = len(out) - len(ok)
     manifest["completed"] = len(ok)

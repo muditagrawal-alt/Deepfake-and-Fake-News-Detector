@@ -3,6 +3,7 @@ import uuid
 from collections import Counter
 from contextlib import contextmanager
 
+from detector import __version__
 from detector.engine.pipeline import StageResult
 from detector.schemas import AnalysisResult, Extraction, Provenance, Source
 
@@ -97,7 +98,8 @@ def build_result(*, modality: str, stage: StageResult, facts: dict, extraction: 
     forensics = {**facts, "retrieval": {"mode": stage.research_mode, **stage.retrieval.log()}}
     stages = ("analyse", "verify")
     calls = [{"stage": stages[i] if i < 2 else f"call{i}", "backend": m.backend, "model": m.model,
-              "seconds": round(m.seconds, 2), "prompt_tokens": m.prompt_tokens, "output_tokens": m.output_tokens}
+              "seconds": round(m.seconds, 2), "prompt_tokens": m.prompt_tokens, "output_tokens": m.output_tokens,
+              "thinking_tokens": (m.extra or {}).get("thinking_tokens"), "repairs": (m.extra or {}).get("repairs")}
              for i, m in enumerate(stage.calls)]
 
     return AnalysisResult(
@@ -121,6 +123,7 @@ def build_result(*, modality: str, stage: StageResult, facts: dict, extraction: 
         analysis=stage.analysis,
         evidence_features=evidence_features(stage, facts, dropped),
         provenance=Provenance(
+            engine_version=__version__,
             provider=stage.calls[-1].backend if stage.calls else "unknown",
             model=stage.calls[-1].model if stage.calls else "unknown",
             research_provider=stage.research_provider,

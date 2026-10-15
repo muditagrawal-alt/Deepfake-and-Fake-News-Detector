@@ -225,6 +225,8 @@ async def main():
     ap.add_argument("--shard", default="", help="k/N: run only every N-th item starting at k (1-based), for splitting "
                                                 "a benchmark across machines; merge with merge_shards.py")
     ap.add_argument("--workers", type=int, default=1, help="items processed concurrently")
+    ap.add_argument("--seed-from", default="", help="comma-separated finished run stems whose completed items are "
+                    "copied into this run (e.g. a subset run of the same split family); settings must match exactly")
     args = ap.parse_args()
     if bool(args.set) == bool(args.bench) or (args.bench and not args.split):
         ap.error("give either --set, or --bench with --split")
@@ -301,6 +303,32 @@ async def main():
                 if d["key"] in done:
                     full[d["key"]] = d
         print(f"resume: {len(done)} complete, {len(rows) - len(done)} to run", flush=True)
+
+    if args.seed_from:
+        # Reuse items already scored by an identical configuration (e.g. extending a fixed subset to the
+        # full test split). One item is still run once; every setting that defines the system must match.
+        must = ["engine_tree", "model", "backend", "research_mode", "exclude_fact_checks", "search_blocklist",
+                "max_search_queries", "video_strategy", "pixel_classifier", "transform", "set", "round", "pinned"]
+        manifest["seeded_from"] = {}
+        for stem in [x for x in args.seed_from.split(",") if x]:
+            sm = json.loads((RUNS / f"{stem}.json").read_text())
+            bad = [k for k in must if sm.get(k) != manifest.get(k)]
+            if bad:
+                ap.error(f"--seed-from {stem}: settings differ on {bad}")
+            n0 = len(done)
+            with open(RUNS / f"{stem}.csv", newline="", encoding="utf-8") as fh:
+                for r in csv.DictReader(fh):
+                    k = f"{r['id']}|{r['item']}"
+                    if k in keys and k not in done and not r["error"]:
+                        done[k] = r
+            jl = RUNS / f"{stem}.jsonl"
+            if jl.exists():
+                for line in jl.read_text(encoding="utf-8").splitlines():
+                    d = json.loads(line)
+                    if d["key"] in done and d["key"] not in full:
+                        full[d["key"]] = d
+            manifest["seeded_from"][stem] = len(done) - n0
+        print(f"seeded {sum(manifest['seeded_from'].values())} items from {list(manifest['seeded_from'])}", flush=True)
 
     def flush():
         ordered = [done[k] for k in keys if k in done]

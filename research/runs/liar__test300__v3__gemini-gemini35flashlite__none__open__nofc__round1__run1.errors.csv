@@ -1,0 +1,198 @@
+utc,attempt,id,item,error,seconds
+2026-10-15T18:15:02+00:00,1,test_2568,test_2568,RetrievalUnavailable: all 1 searches failed,135.6
+2026-10-15T18:17:54+00:00,1,test_2646,test_2646,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",172.2
+2026-10-15T18:18:05+00:00,1,test_2769,test_2769,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",10.2
+2026-10-15T18:18:15+00:00,1,test_2796,test_2796,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",10.1
+2026-10-15T18:18:18+00:00,1,test_2719,test_2719,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",159.9
+2026-10-15T18:18:48+00:00,1,test_275,test_275,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",97.9
+2026-10-15T18:19:05+00:00,1,test_2852,test_2852,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",47.2
+2026-10-15T18:19:09+00:00,1,test_2830,test_2830,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",54.0
+2026-10-15T18:19:12+00:00,1,test_2885,test_2885,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",23.3
+2026-10-15T18:19:48+00:00,1,test_2894,test_2894,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",43.1
+2026-10-15T18:19:55+00:00,1,test_2911,test_2911,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",45.7
+2026-10-15T18:20:05+00:00,1,test_293,test_293,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.2
+2026-10-15T18:20:05+00:00,1,test_2720,test_2720,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",191.8
+2026-10-15T18:20:18+00:00,1,test_2975,test_2975,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",29.8
+2026-10-15T18:20:48+00:00,1,test_3046,test_3046,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",43.7
+2026-10-15T18:20:55+00:00,1,test_3087,test_3087,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",49.4
+2026-10-15T18:21:05+00:00,1,test_3036,test_3036,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",70.1
+2026-10-15T18:21:08+00:00,1,test_3103,test_3103,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.3
+2026-10-15T18:21:12+00:00,1,test_3107,test_3107,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",23.2
+2026-10-15T18:21:48+00:00,1,test_3186,test_3186,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.7
+2026-10-15T18:21:55+00:00,1,test_3235,test_3235,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",46.7
+2026-10-15T18:22:05+00:00,1,test_3284,test_3284,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.4
+2026-10-15T18:22:05+00:00,1,test_3228,test_3228,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",60.6
+2026-10-15T18:22:15+00:00,1,test_3330,test_3330,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",26.6
+2026-10-15T18:22:48+00:00,1,test_3436,test_3436,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",43.4
+2026-10-15T18:22:55+00:00,1,test_3399,test_3399,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",60.0
+2026-10-15T18:23:05+00:00,1,test_3453,test_3453,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",59.4
+2026-10-15T18:23:05+00:00,1,test_3458,test_3458,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.4
+2026-10-15T18:23:18+00:00,1,test_3460,test_3460,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",29.7
+2026-10-15T18:23:48+00:00,1,test_3637,test_3637,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",43.7
+2026-10-15T18:23:55+00:00,1,test_3518,test_3518,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",60.1
+2026-10-15T18:24:05+00:00,1,test_3679,test_3679,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",59.7
+2026-10-15T18:24:08+00:00,1,test_3700,test_3700,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.3
+2026-10-15T18:24:18+00:00,1,test_378,test_378,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",29.8
+2026-10-15T18:24:49+00:00,1,test_3789,test_3789,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.3
+2026-10-15T18:24:55+00:00,1,test_3818,test_3818,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",46.4
+2026-10-15T18:25:05+00:00,1,test_3931,test_3931,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",10.1
+2026-10-15T18:25:09+00:00,1,test_3800,test_3800,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",64.0
+2026-10-15T18:25:17+00:00,1,test_3904,test_3904,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",28.7
+2026-10-15T18:25:18+00:00,1,test_3885,test_3885,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",60.0
+2026-10-15T18:25:59+00:00,1,test_3991,test_3991,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.6
+2026-10-15T18:26:06+00:00,1,test_4198,test_4198,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",48.3
+2026-10-15T18:26:09+00:00,1,test_4105,test_4105,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",60.1
+2026-10-15T18:26:14+00:00,1,test_4212,test_4212,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",56.1
+2026-10-15T18:26:49+00:00,1,test_4309,test_4309,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",43.0
+2026-10-15T18:26:55+00:00,1,test_4287,test_4287,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",56.8
+2026-10-15T18:27:05+00:00,1,test_4400,test_4400,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",55.6
+2026-10-15T18:27:09+00:00,1,test_4537,test_4537,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",54.6
+2026-10-15T18:27:14+00:00,1,test_4553,test_4553,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",25.7
+2026-10-15T18:27:46+00:00,1,test_4593,test_4593,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",40.7
+2026-10-15T18:27:49+00:00,1,test_4568,test_4568,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.3
+2026-10-15T18:28:09+00:00,1,test_4689,test_4689,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",59.6
+2026-10-15T18:28:09+00:00,1,test_4698,test_4698,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",54.6
+2026-10-15T18:28:17+00:00,1,test_4708,test_4708,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",31.7
+2026-10-15T18:28:18+00:00,1,test_4770,test_4770,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",29.6
+2026-10-15T18:28:49+00:00,1,test_4866,test_4866,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",39.7
+2026-10-15T18:28:55+00:00,1,test_4825,test_4825,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",46.8
+2026-10-15T18:29:11+00:00,1,test_4888,test_4888,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",54.0
+2026-10-15T18:29:14+00:00,1,test_4929,test_4929,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",25.7
+2026-10-15T18:29:49+00:00,1,test_4995,test_4995,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.3
+2026-10-15T18:29:55+00:00,1,test_4901,test_4901,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",96.9
+2026-10-15T18:30:06+00:00,1,test_5061,test_5061,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",54.0
+2026-10-15T18:30:09+00:00,1,test_5124,test_5124,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",54.8
+2026-10-15T18:30:18+00:00,1,test_5170,test_5170,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",28.8
+2026-10-15T18:30:46+00:00,1,test_526,test_526,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.6
+2026-10-15T18:30:56+00:00,1,test_5314,test_5314,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.0
+2026-10-15T18:31:06+00:00,1,test_544,test_544,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",48.0
+2026-10-15T18:31:06+00:00,1,test_5363,test_5363,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",56.6
+2026-10-15T18:31:18+00:00,1,test_5461,test_5461,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",31.7
+2026-10-15T18:31:46+00:00,1,test_5512,test_5512,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.1
+2026-10-15T18:31:49+00:00,1,test_5693,test_5693,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",43.2
+2026-10-15T18:32:09+00:00,1,test_5723,test_5723,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",51.2
+2026-10-15T18:32:12+00:00,1,test_5551,test_5551,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",66.7
+2026-10-15T18:32:16+00:00,1,test_5732,test_5732,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",29.9
+2026-10-15T18:32:56+00:00,1,test_574,test_574,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",66.6
+2026-10-15T18:32:56+00:00,1,test_5749,test_5749,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",47.1
+2026-10-15T18:32:59+00:00,1,test_575,test_575,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",46.7
+2026-10-15T18:33:05+00:00,1,test_5753,test_5753,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",49.8
+2026-10-15T18:33:19+00:00,1,test_5779,test_5779,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",22.7
+2026-10-15T18:33:49+00:00,1,test_582,test_582,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.1
+2026-10-15T18:33:55+00:00,1,test_5759,test_5759,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",59.7
+2026-10-15T18:34:05+00:00,1,test_5836,test_5836,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",60.0
+2026-10-15T18:34:10+00:00,1,test_5848,test_5848,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",51.0
+2026-10-15T18:34:18+00:00,1,test_5913,test_5913,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",28.7
+2026-10-15T18:34:46+00:00,1,test_6026,test_6026,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",36.0
+2026-10-15T18:34:55+00:00,1,test_6033,test_6033,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",37.5
+2026-10-15T18:34:56+00:00,1,test_6010,test_6010,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.7
+2026-10-15T18:35:12+00:00,1,test_5985,test_5985,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",76.9
+2026-10-15T18:35:18+00:00,1,test_6045,test_6045,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",32.0
+2026-10-15T18:35:46+00:00,1,test_6141,test_6141,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",49.6
+2026-10-15T18:35:49+00:00,1,test_6112,test_6112,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.7
+2026-10-15T18:36:05+00:00,1,test_624,test_624,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",53.2
+2026-10-15T18:36:09+00:00,1,test_6264,test_6264,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",51.3
+2026-10-15T18:36:18+00:00,1,test_63,test_63,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",32.0
+2026-10-15T18:36:49+00:00,1,test_6485,test_6485,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",40.1
+2026-10-15T18:36:56+00:00,1,test_636,test_636,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",66.4
+2026-10-15T18:36:56+00:00,1,test_6401,test_6401,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",50.4
+2026-10-15T18:37:06+00:00,1,test_6577,test_6577,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",48.1
+2026-10-15T18:37:18+00:00,1,test_6684,test_6684,"BackendError: Gemini error (429): You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metr",22.0

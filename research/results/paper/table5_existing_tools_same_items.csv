@@ -1,0 +1,6 @@
+benchmark,system,n_scored,n_errors,accuracy,acc_ci95,macro_f1,macro_f1_ci95,auc,fake_recall,real_recall,uncertain,run_file,note
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",existing tool: jy46604790/Fake-News-Bert-Detect,102,0,0.402,"[0.312, 0.499]",0.3887,"[0.294, 0.487]",0.7248,0.9655,0.1781,0,runs/mmsoc_politifact__test__tool__bert_news__none__run1.csv,
+FakeNewsNet-GossipCop (300 of MM-Soc test),existing tool: jy46604790/Fake-News-Bert-Detect,300,0,0.2133,"[0.171, 0.263]",0.1944,"[0.154, 0.237]",0.4619,0.9821,0.0369,0,runs/mmsoc_gossipcop__test1000__tool__bert_news__none__run1.csv,filtered to the paper's subset
+LIAR (300 of test),existing tool: jy46604790/Fake-News-Bert-Detect,300,0,0.46,"[0.404, 0.517]",0.3862,"[0.336, 0.436]",0.5473,0.9308,0.1,0,runs/liar__test__tool__bert_news__none__run1.csv,filtered to the paper's subset
+FaceForensics++ c23 (200 of test),existing tool: dima806/deepfake_vs_real_image_detection,200,0,0.505,"[0.436, 0.574]",0.4706,"[0.401, 0.540]",0.5095,0.25,0.76,0,runs/ffpp_c23__test200__tool__face_dima806__none__run1.csv,
+FaceForensics++ c23 (200 of test),existing tool: prithivMLmods/Deep-Fake-Detector-v2-Model,200,0,0.53,"[0.461, 0.598]",0.5143,"[0.446, 0.584]",0.5921,0.71,0.35,0,runs/ffpp_c23__test200__tool__face_prithiv__none__run1.csv,

@@ -9,9 +9,6 @@ ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),
 ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,FaceSwap,FAKE,25,0.36,0.2025,0.5548
 ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,NeuralTextures,FAKE,25,0.8,0.6087,0.9114
 ffpp_c23/test200,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model),none,original,REAL,100,0.35,0.2636,0.4475
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",false,FAKE,1,0.0,0.0,0.7935
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",mostly-true,REAL,2,1.0,0.3424,1.0
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",true,REAL,2,0.5,0.0945,0.9055
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,barely-true,FAKE,214,0.9346,0.8932,0.9606
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,false,FAKE,250,0.96,0.9279,0.9781
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,half-true,REAL,267,0.0712,0.046,0.1085
@@ -20,7 +17,7 @@ liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,pants-fire,FAK
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,true,REAL,211,0.109,0.0737,0.1583
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,0,REAL,812,0.0259,0.017,0.0392
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,1,FAKE,188,0.9894,0.962,0.9971
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",0,REAL,4,1.0,0.5101,1.0
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",1,FAKE,1,0.0,0.0,0.7935
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,0,REAL,73,0.1781,0.1071,0.2812
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,1,FAKE,29,0.9655,0.8282,0.9939
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",0,REAL,73,0.9589,0.886,0.9859
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",1,FAKE,29,0.4138,0.2551,0.5926

@@ -101,12 +101,6 @@ images,v3 (gemini gemini-3.5-flash-lite),none; open,FAKE,UNCERTAIN,0
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,FAKE,2
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,REAL,23
 images,v3 (gemini gemini-3.5-flash-lite),none; open,REAL,UNCERTAIN,0
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,FAKE,0
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,REAL,1
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,UNCERTAIN,0
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,FAKE,1
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,REAL,3
-liar/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,UNCERTAIN,0
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,526
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,30
 liar/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
@@ -119,18 +113,18 @@ mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,791
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,21
 mmsoc_gossipcop/test1000,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,FAKE,0
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,REAL,1
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,UNCERTAIN,0
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,FAKE,0
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,REAL,4
-mmsoc_politifact/dev30,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,UNCERTAIN,0
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,FAKE,28
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,REAL,1
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,FAKE,UNCERTAIN,0
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,FAKE,60
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,REAL,13
 mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect),none,REAL,UNCERTAIN,0
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,FAKE,12
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,REAL,16
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",FAKE,UNCERTAIN,1
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,FAKE,0
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,REAL,70
+mmsoc_politifact/test,v3 (gemini gemini-3.5-flash-lite),"none; open, fact-checks excluded",REAL,UNCERTAIN,3
 videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,FAKE,1
 videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,REAL,14
 videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection),none,FAKE,UNCERTAIN,0

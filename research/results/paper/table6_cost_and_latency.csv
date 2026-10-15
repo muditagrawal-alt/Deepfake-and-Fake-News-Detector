@@ -1,0 +1,2 @@
+benchmark,round,condition,items,cost_inr_total,cost_inr_per_item,seconds_per_item_median
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,102,49.05,0.481,67.9

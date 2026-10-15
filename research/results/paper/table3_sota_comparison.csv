@@ -1,0 +1,7 @@
+benchmark,round,condition,metric,ours,ours_ci95,reference,reference_method,reference_regime,reference_source,note
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,macro-F1,0.7102,"[0.601, 0.815]",0.749,LLaVA-v1.5-13B,zero-shot,"Jin et al., MM-Soc, ACL Findings 2024, Table 2",
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,accuracy,0.8039,"[0.716, 0.869]",0.827,LLaVA-v1.5-13B,zero-shot,"Jin et al., MM-Soc, ACL Findings 2024, Table 2",
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,AUC,0.7943,,0.721,LLaVA-v1.5-13B,zero-shot,"Jin et al., MM-Soc, ACL Findings 2024, Table 2",
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,macro-F1,0.7102,"[0.601, 0.815]",0.952,DeBERTa-v3-large,supervised,"Jin et al., MM-Soc, ACL Findings 2024, Table 2",
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,accuracy,0.8039,"[0.716, 0.869]",0.962,DeBERTa-v3-large,supervised,"Jin et al., MM-Soc, ACL Findings 2024, Table 2",
+"FakeNewsNet-PolitiFact (MM-Soc test, 102)",1,with web search,macro-F1,0.7102,"[0.601, 0.815]",0.471,random,none,"Jin et al., MM-Soc, ACL Findings 2024, Table 2",

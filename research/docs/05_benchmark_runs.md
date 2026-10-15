@@ -56,6 +56,13 @@ Conventions: an item that fails (provider error, timeout, network) is recorded a
 ### Local throughput, measured (2026-09-29, Low Power Mode off, charging, no other load)
 gemma4:12b generates 6–10 tokens/s. One FakeNewsNet-PolitiFact development item: 8.1 min (analyse 114 s, retrieval 47 s, verify 325 s), correct. One LIAR development item: 11.9 min, failed schema validation after three repairs (I-22). At ~8–10 min per item the 900-item compact plan needs ~5 days on one machine, so the reviewer benchmarks are run on Gemini 3.5 Flash-Lite (paid) instead. The sharding and merge path was verified end to end on 4 LIAR development items (two shards, merged; the merge completed and rejected nothing), although 3 of those items failed for I-22/I-23. Test files are in `runs/out_of_scope/`.
 
+### R10 — Round 1, FakeNewsNet-PolitiFact test (102), with web search — complete 2026-10-15 23:03 IST
+- **Engine** v3.1.4, Gemini 3.5 Flash-Lite, free tier (payment still processing), 4 workers.
+- **Errors:** 5 items refused by the free-tier per-minute quota on the first pass; re-run on attempt 2; final 0 errors.
+- **Result:** accuracy **0.804** [0.716, 0.869]; macro-F1 **0.710** [0.601, 0.815]; AUC **0.794**; FAKE recall 0.41, REAL recall 0.96.
+- **vs published zero-shot (LLaVA-1.5-13B, MM-Soc):** macro-F1 0.749, accuracy 0.827, AUC 0.721 — all **inconclusive** (the reference lies inside our intervals). Below the supervised DeBERTa-v3-large (0.952). Above random (0.471).
+- **Observation for the paper (not used for any change):** the engine is conservative — it rarely calls a real article fake (REAL recall 0.96) but misses most fakes (FAKE recall 0.41), because without contradicting evidence it defaults to REAL or UNCERTAIN. Its ranking is good (AUC 0.794). The pre-registered learned scorer (Round 2) sets the decision threshold from training items.
+
 ### Round 1 — started 2026-10-15 (engine v3.1.4, tree `9d9b840`, Gemini 3.5 Flash-Lite, pinned)
 - **Queue:** FakeNewsNet-PolitiFact test (102, with web search) → LIAR test300 → GossipCop test300 → PolitiFact test without web search; 4 items in parallel; fact-check sites excluded; runs labelled `__round1__`; spend cap ₹1,000 on the shared ledger (estimated at paid-tier prices, so an upper bound while calls are still free).
 - **Tier:** the account's ₹1,000 prepayment was still processing, so the run began on the **free tier**. Google's 429 message names the quota `generate_content_free_tier_requests`, limit 15 per minute, which also serves as the tracker: when those refusals stop and throughput exceeds 15 requests per minute, the paid tier is active. Refused calls are retried; items that exhaust retries are re-run by `--resume`, never scored.

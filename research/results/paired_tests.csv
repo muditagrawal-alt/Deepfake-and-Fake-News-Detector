@@ -8,6 +8,7 @@ images,tool: sdxl_onnx (Organika/sdxl-detector) [img_norm512],v3 (gemini gemini-
 images,tool: sdxl_onnx (Organika/sdxl-detector) [none],v3 (gemini gemini-3.5-flash-lite) [none; open],50,0.66,0.88,0.22,0.08,0.36,3,14,0.0127,True
 images,v3 (gemini gemini-3.5-flash-lite) [none; open],v3 (gemini gemini-3.5-flash-lite) [img_norm512; open],50,0.88,0.82,-0.06,-0.16,0.04,5,2,0.4531,False
 images,v1 [as published (LOO-CV)],v3 (gemini gemini-3.5-flash-lite) [none; open],50,0.86,0.88,0.02,-0.12,0.16,6,7,1.0,False
+mmsoc_politifact/test,tool: bert_news (jy46604790/Fake-News-Bert-Detect) [none],"v3 (gemini gemini-3.5-flash-lite) [none; open, fact-checks excluded]",102,0.402,0.8039,0.402,0.2549,0.5392,16,57,0.0,True
 videos,tool: face_dima806 (dima806/deepfake_vs_real_image_detection) [none],v3 (gemini gemini-3.5-flash-lite) [none; open],30,0.4,0.9333,0.5333,0.3667,0.7,0,16,0.0,True
 videos,tool: face_prithiv (prithivMLmods/Deep-Fake-Detector-v2-Model) [none],v3 (gemini gemini-3.5-flash-lite) [none; open],30,0.6667,0.9333,0.2667,0.0667,0.4667,2,10,0.0386,True
 videos,v3 (gemini gemini-3.5-flash-lite) [none; open],v3 (gemini gemini-3.5-flash-lite) [vid_strip; open],30,0.9333,0.9667,0.0333,0.0,0.1,0,1,1.0,False

@@ -5,6 +5,7 @@
 # External benchmarks are written bench=NAME/SPLIT; conditions come from the
 # environment (EXCLUDE_FACT_CHECKS, RESEARCH_MODE), e.g.
 #   EXCLUDE_FACT_CHECKS=true research/scripts/v3_runs.sh ollama "bench=mmsoc_politifact/test bench=liar/test"
+# Extra harness flags go in EXTRA_ARGS, e.g. EXTRA_ARGS="--round 1 --workers 4".
 # For Gemini, waits while the pinned model is unavailable instead of recording
 # outages as errors, and resumes each run until every item has completed.
 set -u
@@ -46,7 +47,8 @@ for pair in $PAIRS; do
   for attempt in 1 2 3 4 5 6 7 8; do
     until healthy; do echo "$(date '+%F %H:%M') $BACKEND unavailable; waiting 10 min" >> $LOG; sleep 600; done
     echo "$(date '+%F %H:%M') $label run$RUN attempt $attempt" >> $LOG
-    $PY research/scripts/run_eval.py "${args[@]}" --run "$RUN" --resume >> $LOG 2>&1
+    # EXTRA_ARGS, e.g. "--round 1 --workers 4", is passed through unquoted on purpose (word-split).
+    $PY research/scripts/run_eval.py "${args[@]}" --run "$RUN" --resume ${EXTRA_ARGS:-} >> $LOG 2>&1
     last=$(ls -t research/runs/$glob 2>/dev/null | head -1)
     if [ -n "$last" ] && grep -q '"valid": true' "$last" && grep -q '"errors": 0' "$last"; then
       echo "$(date '+%F %H:%M') $label complete: $last" >> $LOG; break

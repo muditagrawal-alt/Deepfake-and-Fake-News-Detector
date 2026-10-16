@@ -19,6 +19,16 @@ healthy() {
   if [ "$BACKEND" = ollama ]; then
     curl -sf http://127.0.0.1:11434/api/tags >/dev/null; return $?
   fi
+  if [ "$BACKEND" = openrouter ]; then
+    $PY - <<'PYC' 2>/dev/null
+import os, sys, httpx; sys.path.insert(0, "backend"); os.chdir("backend")
+from detector.config import get_settings
+k = get_settings().openrouter_api_key
+r = httpx.get("https://openrouter.ai/api/v1/credits", headers={"Authorization": f"Bearer {k}"}, timeout=30).json()["data"]
+sys.exit(0 if r["total_credits"] - r["total_usage"] > 0.05 else 1)
+PYC
+    return $?
+  fi
   $PY - <<'PYC' 2>/dev/null
 import os, sys; sys.path.insert(0, "backend"); os.chdir("backend")
 from google import genai

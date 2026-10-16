@@ -40,7 +40,10 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     # Which model judges the content: "gemini" (hosted) or "ollama" (local).
     # Chosen once per process; a benchmark run never switches models part-way.
-    llm_engine: str = "gemini"
+    llm_engine: str = "gemini"          # gemini | openrouter | ollama
+    # Same Gemini model reached through OpenRouter's paid gateway (pinned to Google as provider).
+    openrouter_gemini_model: str = "google/gemini-3.5-flash-lite"
+    openrouter_concurrency: int = 6
     # True: never fall over to gemini_secondary_model on 429/503 (research runs).
     pin_model: bool = False
     # "open": retrieve web evidence; "closed": no retrieval (contamination control).

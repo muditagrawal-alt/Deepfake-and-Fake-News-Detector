@@ -66,6 +66,9 @@ def item_cost_inr(calls: list[dict]) -> float:
     """Estimated cost of one item from its recorded token counts (thinking billed as output)."""
     total = 0.0
     for c in calls:
+        if c.get("cost_usd") is not None:          # OpenRouter reports the billed cost of each call
+            total += float(c["cost_usd"]) * (1 + PRICING.get("openrouter_fee", 0.0))
+            continue
         price = PRICING["models"].get(c.get("model") or "")
         if not price:
             continue                      # local model or unpriced: no API cost
@@ -118,7 +121,7 @@ def slug(s: str) -> str:
 
 def run_name(settings, args) -> str:
     backend = settings.llm_engine
-    model = settings.ollama_model if backend == "ollama" else settings.gemini_primary_model
+    model = {"ollama": settings.ollama_model, "openrouter": settings.openrouter_gemini_model}.get(backend, settings.gemini_primary_model)
     system = f"{backend}-{slug(model)}"
     if backend == "gemini" and args.set == "videos" and settings.video_strategy != "native":
         system += "-frames"
@@ -269,7 +272,8 @@ async def main():
         "set": set_name, "split": args.split, "n": len(rows), "transform": args.transform,
         "shard": args.shard or None, "workers": args.workers,
         "backend": settings.llm_engine,
-        "model": settings.ollama_model if settings.llm_engine == "ollama" else settings.gemini_primary_model,
+        "model": {"ollama": settings.ollama_model, "openrouter": settings.openrouter_gemini_model}.get(
+            settings.llm_engine, settings.gemini_primary_model),
         "pinned": True, "temperature": settings.gemini_temperature,
         "ollama": {"num_ctx": settings.ollama_num_ctx, "think": settings.ollama_think, "seed": settings.ollama_seed}
                   if settings.llm_engine == "ollama" else None,
@@ -351,7 +355,7 @@ async def main():
 
     async def one(row, ident, key, tmp):
         async with sem:
-            if settings.llm_engine == "gemini" and ledger_total_inr() >= args.cap_inr:
+            if settings.llm_engine in ("gemini", "openrouter") and ledger_total_inr() >= args.cap_inr:
                 stopped["cap"] = True         # leave the item unrun; --resume after a top-up continues
                 return
             gt = row["label"].strip().upper()  # REAL | FAKE

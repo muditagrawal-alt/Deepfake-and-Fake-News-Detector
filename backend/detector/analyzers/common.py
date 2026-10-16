@@ -99,7 +99,8 @@ def build_result(*, modality: str, stage: StageResult, facts: dict, extraction: 
     stages = ("analyse", "verify")
     calls = [{"stage": stages[i] if i < 2 else f"call{i}", "backend": m.backend, "model": m.model,
               "seconds": round(m.seconds, 2), "prompt_tokens": m.prompt_tokens, "output_tokens": m.output_tokens,
-              "thinking_tokens": (m.extra or {}).get("thinking_tokens"), "repairs": (m.extra or {}).get("repairs")}
+              "thinking_tokens": (m.extra or {}).get("thinking_tokens"), "repairs": (m.extra or {}).get("repairs"),
+              "cost_usd": (m.extra or {}).get("cost_usd"), "provider": (m.extra or {}).get("provider")}
              for i, m in enumerate(stage.calls)]
 
     return AnalysisResult(

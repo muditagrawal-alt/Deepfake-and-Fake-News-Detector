@@ -218,10 +218,98 @@ class OllamaBackend:
         raise BackendError(f"Ollama ({self.model}) failed: {last}")
 
 
+# ---------------------------------------------------------------------------
+# OpenRouter (the same Gemini model through a paid gateway)
+# ---------------------------------------------------------------------------
+class OpenRouterBackend:
+    """
+    Calls the Gemini model through OpenRouter, pinned to Google as the provider (no fallback to
+    other providers or models) and with provider-side data collection refused. Prompts, schemas
+    and sampling are identical to GeminiBackend; video is sent as frames (no native video).
+    """
+    supports_native_video = False
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.name = "openrouter"
+        self.model = settings.openrouter_gemini_model
+        self.key = settings.openrouter_api_key
+        self.enabled = bool(self.key)
+        self._sem = asyncio.Semaphore(max(1, settings.openrouter_concurrency))
+
+    async def release(self, paths: set[str] | None = None) -> None:
+        return None
+
+    async def generate_json(self, *, system: str, parts: list[Part], schema: type[T],
+                            temperature: float | None = None) -> tuple[T, CallMeta]:
+        content = []
+        for p in parts:
+            if isinstance(p, TextPart):
+                content.append({"type": "text", "text": p.text})
+            elif isinstance(p, ImagePart):
+                if p.label:
+                    content.append({"type": "text", "text": f"[{p.label}]"})
+                content.append({"type": "image_url",
+                                "image_url": {"url": f"data:{p.mime};base64,{base64.b64encode(p.data).decode()}"}})
+            elif isinstance(p, VideoPart):
+                raise BackendError("OpenRouterBackend sends video as frames; use VIDEO_STRATEGY=frames")
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
+        body = {
+            "model": self.model,
+            "temperature": self.settings.gemini_temperature if temperature is None else temperature,
+            "seed": self.settings.ollama_seed,
+            "response_format": {"type": "json_schema",
+                                "json_schema": {"name": schema.__name__, "strict": False, "schema": _ollama_schema(schema)}},
+            "provider": {"only": ["google-ai-studio", "google-vertex"], "allow_fallbacks": False,
+                         "data_collection": "deny"},
+            "usage": {"include": True},
+        }
+        headers = {"Authorization": f"Bearer {self.key}", "X-Title": "veritas-research"}
+        last = None
+        async with self._sem:
+            for attempt in range(4):
+                body["messages"] = messages
+                t0 = time.perf_counter()
+                text = None
+                try:
+                    async with httpx.AsyncClient(timeout=self.settings.gemini_timeout_seconds) as c:
+                        r = await c.post("https://openrouter.ai/api/v1/chat/completions", json=body, headers=headers)
+                    if r.status_code in (429, 500, 502, 503, 504):
+                        last = f"HTTP {r.status_code}: {r.text[:200]}"
+                        await asyncio.sleep(3 * (attempt + 1) ** 2)
+                        continue
+                    if r.status_code != 200:
+                        raise BackendError(f"OpenRouter HTTP {r.status_code}: {r.text[:300]}")
+                    data = r.json()
+                    if data.get("error"):
+                        raise BackendError(f"OpenRouter error: {str(data['error'])[:300]}")
+                    text = data["choices"][0]["message"].get("content") or ""
+                    obj = _parse_json(text, schema)
+                    u = data.get("usage") or {}
+                    return obj, CallMeta(backend=self.name, model=data.get("model") or self.model,
+                                         seconds=time.perf_counter() - t0, prompt_tokens=u.get("prompt_tokens"),
+                                         output_tokens=u.get("completion_tokens"),
+                                         extra={"thinking_tokens": (u.get("completion_tokens_details") or {}).get("reasoning_tokens"),
+                                                "cost_usd": u.get("cost"), "provider": data.get("provider"),
+                                                "repairs": attempt})
+                except (ValidationError, json.JSONDecodeError) as exc:
+                    last = exc
+                    messages = messages[:2] + [
+                        {"role": "assistant", "content": (text or "")[:8000]},
+                        {"role": "user", "content": "That JSON does not satisfy the required schema:\n"
+                                                    f"{str(exc)[:1500]}\nReturn the corrected JSON object only."}]
+                except httpx.HTTPError as exc:
+                    last = exc
+                    await asyncio.sleep(3 * (attempt + 1))
+        raise BackendError(f"OpenRouter ({self.model}) failed: {last}")
+
+
 def make_backend(settings: Settings, gemini_provider=None):
     engine = settings.llm_engine.lower()
     if engine == "gemini":
         return GeminiBackend(settings, gemini_provider)
     if engine == "ollama":
         return OllamaBackend(settings)
-    raise ValueError(f"unknown llm_engine {settings.llm_engine!r} (expected 'gemini' or 'ollama')")
+    if engine == "openrouter":
+        return OpenRouterBackend(settings)
+    raise ValueError(f"unknown llm_engine {settings.llm_engine!r} (expected 'gemini', 'openrouter' or 'ollama')")

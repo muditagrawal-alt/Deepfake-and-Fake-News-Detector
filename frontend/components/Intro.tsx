@@ -23,10 +23,20 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { Fragment, useCallback, useEffect, useRef } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Analyzer from "@/components/Analyzer";
 import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
+
+const Topography = dynamic(() => import("@/components/Topography"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] bg-[#060608] flex items-center justify-center font-mono text-xs text-white/30">
+      INITIALIZING TOPOGRAPHIC MANIFOLD...
+    </div>
+  ),
+});
 
 const INPUT_TYPES = [
   { label: "News links", Icon: Newspaper },
@@ -389,6 +399,132 @@ function ScrollyPipelineSection({
             </ScrollReveal>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Signal Geometry // Topographic Latent Manifold Component                 */
+/* -------------------------------------------------------------------------- */
+
+function TopographySection({
+  reduceMotion,
+}: {
+  reduceMotion: boolean;
+}) {
+  const [color, setColor] = useState("#4f7cff");
+
+  return (
+    <section
+      id="signal-geometry"
+      className="landing-section relative px-4 py-24 sm:px-8 sm:py-32 lg:px-12 border-t border-white/5 overflow-hidden"
+    >
+      <ScanGrid className="absolute inset-0 opacity-20" />
+
+      <div className="mx-auto max-w-[1280px]">
+        <ScrollReveal reduceMotion={reduceMotion}>
+          <div className="text-center max-w-[70ch] mx-auto mb-12">
+            <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
+              Signal Geometry // Latent Space Mapping
+            </span>
+            <h2 className="mt-3 text-[clamp(2.1rem,4vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
+              Multi-modal signals mapped onto topological surfaces.
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
+              High-dimensional forensic features — vocoder harmonics, PRNU noise print residuals, and claim embeddings — projected into a continuous 22-contour elevation manifold. Hover to deform the field; click to propagate an evidentiary pulse wave.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal reduceMotion={reduceMotion} delay={0.1}>
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#060608] shadow-2xl">
+            {/* Top Telemetry Header Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-black/60 px-4 py-3 font-mono text-xs text-white/60 backdrop-blur-md">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="size-2 rounded-full animate-pulse"
+                  style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
+                />
+                <span className="font-semibold text-white">
+                  TOPOGRAPHY :: 22-CONTOUR SIGNAL ELEVATION MESH
+                </span>
+              </div>
+
+              {/* Color & Pulse Controls */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-white/40 hidden sm:inline">PALETTE:</span>
+                <button
+                  type="button"
+                  onClick={() => setColor("#4f7cff")}
+                  className={`px-2.5 py-1 rounded text-[10px] transition-colors ${
+                    color === "#4f7cff"
+                      ? "bg-[#4f7cff]/20 text-[#4f7cff] border border-[#4f7cff]/40"
+                      : "text-white/40 border border-white/10 hover:text-white"
+                  }`}
+                >
+                  Sapphire #4f7cff
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColor("#d4d4d8")}
+                  className={`px-2.5 py-1 rounded text-[10px] transition-colors ${
+                    color === "#d4d4d8"
+                      ? "bg-white/20 text-white border border-white/40"
+                      : "text-white/40 border border-white/10 hover:text-white"
+                  }`}
+                >
+                  Monochrome
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColor("#34d399")}
+                  className={`px-2.5 py-1 rounded text-[10px] transition-colors ${
+                    color === "#34d399"
+                      ? "bg-[#34d399]/20 text-[#34d399] border border-[#34d399]/40"
+                      : "text-white/40 border border-white/10 hover:text-white"
+                  }`}
+                >
+                  Emerald
+                </button>
+              </div>
+            </div>
+
+            {/* The Topography Canvas Container with user props */}
+            <div style={{ width: "100%", height: "600px", position: "relative" }}>
+              <Topography
+                color={color}
+                lineCount={22}
+                lineWidth={1.2}
+                elevation={1}
+                foreground={0.2}
+                tilt={32}
+                speed={0.25}
+                direction="forward"
+                glow={0.6}
+                depthOfField={0.4}
+                fog={0.35}
+                hoverEffect="lift"
+                clickEffect="pulse"
+              />
+            </div>
+
+            {/* Bottom Telemetry Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/60 px-4 py-2.5 font-mono text-[10px] text-white/40 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <span>INTERACTIVE CONTROLS:</span>
+                <span className="text-white/70">HOVER TO LIFT FIELD</span>
+                <span>·</span>
+                <span className="text-white/70">CLICK TO DISPATCH PROBE PULSE</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span>TILT: 32°</span>
+                <span>SPEED: 0.25</span>
+                <span>LINES: 22</span>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );
@@ -765,6 +901,11 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       {/*  TRANSITION 2: SCROLLYTELLING FORENSIC PIPELINE                    */}
       {/* ------------------------------------------------------------------ */}
       <ScrollyPipelineSection reduceMotion={shouldReduceMotion} />
+
+      {/* ------------------------------------------------------------------ */}
+      {/*  SIGNAL GEOMETRY // TOPOGRAPHIC LATENT MANIFOLD                    */}
+      {/* ------------------------------------------------------------------ */}
+      <TopographySection reduceMotion={shouldReduceMotion} />
 
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 3: MULTI-LAYER PARALLAX FORENSIC DOSSIER               */}

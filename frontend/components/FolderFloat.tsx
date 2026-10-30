@@ -495,6 +495,14 @@ export default function FolderFloat({
             }
           : undefined
       }
+      onMouseEnter={hover ? () => set(true) : undefined}
+      onMouseLeave={
+        hover
+          ? () => {
+              if (!world.current.drag) set(false);
+            }
+          : undefined
+      }
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) {
           e.stopPropagation();

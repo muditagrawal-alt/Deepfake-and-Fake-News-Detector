@@ -6,13 +6,14 @@ import { analyzeImage, analyzeNews, analyzeVideo, ApiError, type AnalysisResult 
 import ResultCard from "@/components/ResultCard";
 import ResultSkeleton from "@/components/ResultSkeleton";
 
-type Mode = "news" | "image" | "video";
+export type AnalyzerMode = "news" | "image" | "video";
+type Mode = AnalyzerMode;
 const LIMIT_MB: Record<Exclude<Mode, "news">, number> = { image: 10, video: 50 };
 
 const TABS: { id: Mode; label: string; Icon: typeof Newspaper; help: string }[] = [
   { id: "news", label: "News link", Icon: Newspaper, help: "The article is extracted, its claims pulled out and checked against independent sources." },
-  { id: "image", label: "Image", Icon: ImageIcon, help: "JPG, PNG or WebP, up to 10 MB. Metadata, a pixel detector, and a visual check for artifacts and context." },
-  { id: "video", label: "Video", Icon: FilmStrip, help: "MP4, MOV or WebM, up to 50 MB and 90 seconds. Frames, audio and container metadata are analyzed." },
+  { id: "image", label: "Image", Icon: ImageIcon, help: "JPG, PNG or WebP, up to 10 MB and 40 megapixels. File metadata and visual content are analyzed; a pixel detector is an optional extra signal." },
+  { id: "video", label: "Video", Icon: FilmStrip, help: "MP4, MOV or WebM, up to 50 MB and 90 seconds. The video, available audio and container metadata are analyzed; some modes use sampled frames and a transcript." },
 ];
 
 const SAMPLES = [
@@ -20,9 +21,21 @@ const SAMPLES = [
   { host: "theonion.com", url: "https://www.theonion.com/report-nation-somehow-more-divided-than-ever-before-1849972712" },
 ];
 
-export default function Analyzer() {
-  const [mode, setMode] = useState<Mode>("news");
+export default function Analyzer({
+  selectedMode,
+  onModeChange,
+  onAnalysisComplete,
+  onByokRequired,
+}: {
+  selectedMode?: Mode;
+  onModeChange?: (mode: Mode) => void;
+  onAnalysisComplete?: (result: AnalysisResult) => void;
+  onByokRequired?: () => void;
+}) {
+  const [internalMode, setInternalMode] = useState<Mode>(selectedMode ?? "news");
+  const mode = onModeChange && selectedMode ? selectedMode : internalMode;
   const [url, setUrl] = useState("");
+  const [caption, setCaption] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState<string | null>(null);
@@ -34,14 +47,21 @@ export default function Analyzer() {
   const ready = mode === "news" ? /^https?:\/\/\S+$/i.test(url.trim()) : !!file;
 
   function pick(m: Mode) {
-    setMode(m); setFile(null); setError(null); setResult(null); setStage(null);
+    if (!onModeChange || !selectedMode) setInternalMode(m);
+    onModeChange?.(m);
+    setFile(null); setError(null); setResult(null); setStage(null);
+    if (fileInput.current) fileInput.current.value = "";
   }
 
   function onFile(f: File | null) {
     setError(null);
     if (!f || mode === "news") return setFile(null);
     const limit = LIMIT_MB[mode];
-    if (f.size > limit * 1024 * 1024) return setError(`That file is ${(f.size / 1048576).toFixed(1)} MB. The limit is ${limit} MB.`);
+    if (f.size > limit * 1024 * 1024) {
+      setFile(null);
+      if (fileInput.current) fileInput.current.value = "";
+      return setError(`That file is ${(f.size / 1048576).toFixed(1)} MB. The limit is ${limit} MB.`);
+    }
     setFile(f);
   }
 
@@ -56,17 +76,20 @@ export default function Analyzer() {
         r = await analyzeNews(url.trim());
       } else if (mode === "image") {
         setStage("Reading metadata and analyzing the image");
-        r = await analyzeImage(file!);
+        r = await analyzeImage(file!, caption);
       } else {
         setStage("Uploading");
         r = await analyzeVideo(file!, (s) => setStage(s.charAt(0).toUpperCase() + s.slice(1)));
       }
       setResult(r);
+      onAnalysisComplete?.(r);
     } catch (err) {
       const offline = "Could not reach the backend. It may be waking up; try again in about 20 seconds.";
+      if (err instanceof ApiError && err.code === "byok_required") onByokRequired?.();
       setError(
         err instanceof ApiError
-          ? err.code === "quota_exhausted" ? "Today's free analysis quota is used up. It resets at 00:00 UTC."
+          ? err.code === "byok_required" ? "Your three free checks are used. Add an API key to keep going."
+            : err.code === "quota_exhausted" ? "Today's free analysis quota is used up. It resets at 00:00 UTC."
             : err.code === "busy" ? "The service is busy right now. Try again in a minute."
             : err.status === 0 || /fetch/i.test(err.message) ? offline
             : err.message
@@ -130,6 +153,15 @@ export default function Analyzer() {
                   </span>
                 )}
               </label>
+              {mode === "image" && (
+                <div className="space-y-1.5 pt-2">
+                  <label htmlFor="image-caption" className="block text-sm font-medium">Caption or context <span className="font-normal text-ink-3">(optional)</span></label>
+                  <textarea id="image-caption" value={caption} onChange={(e) => setCaption(e.target.value.slice(0, 2000))}
+                    rows={2} maxLength={2000} placeholder="Where was this image shared? What does the post claim?"
+                    className="w-full resize-y rounded-control border border-line-strong bg-bg px-3.5 py-2.5 text-sm placeholder:text-ink-3 focus:border-accent" />
+                  <p className="text-xs text-ink-3">Context gives the checker a claim to compare with the image and independent sources.</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -138,7 +170,7 @@ export default function Analyzer() {
               className="shrink-0 whitespace-nowrap rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-[opacity,transform] active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 hover:opacity-90">
               {busy ? "Checking" : "Run check"}
             </button>
-            <p className="text-xs text-ink-3">Takes 10 to 30 seconds. Nothing you submit is stored.</p>
+            <p className="text-xs text-ink-3">Usually takes 10–30 seconds. Your result and source links are saved to your account; uploaded files are deleted after processing.</p>
           </div>
 
           {error && <p role="alert" className="rounded-control border border-fake/30 bg-fake-soft px-3.5 py-2.5 text-sm text-fake">{error}</p>}

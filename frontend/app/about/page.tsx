@@ -14,7 +14,7 @@ export default function About() {
     <div className="mx-auto max-w-3xl px-4 pt-12 pb-20 sm:pt-16">
       <h1 className="text-4xl font-semibold tracking-tight">How it works</h1>
       <p className="mt-3 text-ink-2 text-[17px] leading-relaxed max-w-[60ch]">
-        Measured file facts, a model's reading of the content, and independent evidence from the web, with every source shown to you.
+        Measured file facts, a model&apos;s reading of the content, and independent evidence from the web, with every source shown to you.
       </p>
 
       <div className="mt-12 space-y-10">

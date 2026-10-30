@@ -76,7 +76,7 @@ class LLMVerdict(BaseModel):
     reasoning: str = Field(description="How the evidence was weighed; 3-6 sentences, no bullet lists")
     summary: str = Field(description="One or two plain-language sentences a non-expert can act on")
     verdict: Verdict
-    confidence: float = Field(ge=0.0, le=1.0, description="Probability that the verdict is correct")
+    confidence: float = Field(ge=0.0, le=1.0, description="Model-reported estimate of certainty; not empirically calibrated")
 
 
 # ----------------------------------------------------------------------

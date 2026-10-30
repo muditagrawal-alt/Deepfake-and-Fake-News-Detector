@@ -8,7 +8,9 @@ the new pipeline and write results + metrics next to the old ones.
   python -m eval.run_eval --modality image --limit 5      # quick check
 
 Runs sequentially (free-tier RPM). Results go to
-data/evaluation/<modality>/results_v2.csv and metrics_v2.txt.
+data/evaluation/<modality>/results_v2.csv and metrics_v2.txt. Failed items
+remain in the per-item CSV but are excluded from prediction metrics and
+reported separately as `n_errors`.
 """
 import argparse
 import asyncio
@@ -108,26 +110,39 @@ async def main():
             pred, conf, summary, err, ident = "UNCERTAIN", 0.0, "", f"{type(exc).__name__}: {exc}", row.get("url") or row.get("path") or row.get("filename")
             res = None
 
-        y_true.append(gt); y_pred.append(pred)
+        # A failed provider call or missing media is not a model abstention.
+        # Keep it in the per-item output, but exclude it from prediction metrics.
+        if not err:
+            y_true.append(gt)
+            y_pred.append(pred)
+        provenance = getattr(res, "provenance", None)
         out_rows.append({
             "id": row.get("id"), "input": ident, "ground_truth": gt, "predicted": pred, "correct": int(gt == pred),
-            "confidence": conf, "genre": getattr(res, "genre", None), "model": getattr(getattr(res, "provenance", None), "model", None),
-            "grounded": getattr(getattr(res, "provenance", None), "grounded", None), "summary": summary, "error": err,
+            "confidence": conf, "genre": getattr(res, "genre", None), "model": getattr(provenance, "model", None),
+            "research_provider": getattr(provenance, "research_provider", None),
+            "research_mode": getattr(provenance, "research_mode", None),
+            "sources_retrieved": len(res.evidence) if res is not None else None,
+            "summary": summary, "error": err,
             "seconds": round(time.time() - t0, 1),
         })
         print(f"[{i}/{len(rows)}] GT={gt:9s} PRED={pred:9s} conf={conf:.2f} {('ERR ' + err) if err else ''} ({out_rows[-1]['seconds']}s)")
         await asyncio.sleep(args.sleep)
 
     m = metrics(y_true, y_pred)
+    m["n_total"] = len(rows)
+    m["n_errors"] = len(rows) - len(y_true)
     results_path = EVAL_ROOT / folder / "results_v2.csv"
+    result_fields = ["id", "input", "ground_truth", "predicted", "correct", "confidence", "genre", "model",
+                     "research_provider", "research_mode", "sources_retrieved", "summary", "error", "seconds"]
     with open(results_path, "w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(out_rows[0].keys()))
+        w = csv.DictWriter(fh, fieldnames=result_fields)
         w.writeheader(); w.writerows(out_rows)
     metrics_path = EVAL_ROOT / folder / "metrics_v2.txt"
     with open(metrics_path, "w", encoding="utf-8") as fh:
         fh.write(f"{args.modality.upper()} EVALUATION RESULTS (v2 pipeline)\n")
         fh.write("=" * 40 + "\n")
-        for k in ("n", "accuracy", "precision_fake", "recall_fake", "f1_fake", "coverage"):
+        fh.write("Prediction metrics exclude failed or missing items; see n_errors.\n")
+        for k in ("n_total", "n", "n_errors", "accuracy", "precision_fake", "recall_fake", "f1_fake", "coverage"):
             v = m[k]; fh.write(f"{k:15s}: {v:.4f}\n" if isinstance(v, float) else f"{k:15s}: {v}\n")
         fh.write("Confusion (rows=truth, cols=pred) [FAKE, REAL, UNCERTAIN]:\n")
         for t in ("FAKE", "REAL", "UNCERTAIN"):

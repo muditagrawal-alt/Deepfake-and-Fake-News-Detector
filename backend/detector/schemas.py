@@ -43,32 +43,56 @@ class Signal(BaseModel):
     note: str = Field(description="Why it matters, one sentence")
 
 
+ObservationKind = Literal[
+    "visual", "motion_physics", "audio", "on_screen_text", "text_content", "provenance", "context", "other",
+]
+
+
+class Observation(BaseModel):
+    what: str = Field(description="A concrete, checkable observation stated as fact")
+    where: str = Field(description="Location: image region, frame/time, or text span")
+    kind: ObservationKind
+    anomaly: bool = Field(description="True only if this detail is inconsistent with the physical world, with how "
+                                      "cameras and microphones record it, or with the rest of the content")
+
+
+class Analysis(BaseModel):
+    """Stage 1 output: what the content says and shows. Deliberately contains no verdict."""
+    description: str = Field(description="What the content is and what it depicts or reports, including any visible text")
+    language: Optional[str] = Field(description="ISO-639-1 language code, or null if there is no language content")
+    genre: Optional[Genre] = Field(description="Genre of the content, or null for media with no textual genre")
+    claims: list[str] = Field(description="0-4 atomic factual claims that can be checked against independent sources; empty if none")
+    observations: list[Observation] = Field(description="3-8 concrete observations about the media or text itself")
+    search_queries: list[str] = Field(description="0-3 web search queries that would find independent evidence about the claims or the depicted event; empty if nothing is checkable")
+    transcript_summary: Optional[str] = Field(description="Video: what is said, briefly; null otherwise")
+
+
 class LLMVerdict(BaseModel):
-    verdict: Verdict
-    confidence: float = Field(ge=0.0, le=1.0, description="Calibrated probability that the verdict is correct")
-    summary: str = Field(description="One or two plain-language sentences a non-expert can act on")
+    """Stage 3 output."""
+    claims: list[ClaimCheck] = Field(description="One entry per claim from the first-pass analysis; empty if there were none")
+    signals: list[Signal] = Field(description="The evidence items that decided the verdict")
+    caveats: list[str] = Field(description="Limits of this analysis the user should know")
+    genre: Optional[Genre] = Field(description="Content genre as judged after seeing the evidence; null for media with no textual genre")
     reasoning: str = Field(description="How the evidence was weighed; 3-6 sentences, no bullet lists")
-    genre: Optional[Genre] = Field(default=None, description="Content genre; for news, satire counts as not-factual")
-    language: Optional[str] = Field(default=None, description="ISO-639-1 language of the content")
-    description: Optional[str] = Field(default=None, description="Image/video: what is depicted, including any on-screen text (OCR)")
-    search_query: Optional[str] = Field(default=None, description="Image/video: a web search query to verify the depicted public figure, event or spoken claim. Null for personal/private content with nothing checkable.")
-    transcript_summary: Optional[str] = Field(default=None, description="Video: what is said in the audio, briefly")
-    claims: list[ClaimCheck] = Field(default_factory=list)
-    signals: list[Signal] = Field(default_factory=list)
-    caveats: list[str] = Field(default_factory=list, description="Limits of this analysis the user should know")
+    summary: str = Field(description="One or two plain-language sentences a non-expert can act on")
+    verdict: Verdict
+    confidence: float = Field(ge=0.0, le=1.0, description="Probability that the verdict is correct")
 
 
 # ----------------------------------------------------------------------
 # API response
 # ----------------------------------------------------------------------
 class Provenance(BaseModel):
-    provider: str
-    model: str
-    grounded: bool = False                 # Gemini's own Google Search grounding
-    research_provider: Optional[str] = None  # external search used instead (groq_browser_search / tavily)
-    fallback_used: Optional[str] = None
+    engine_version: str = ""               # detector.__version__
+    provider: str                          # backend: gemini | ollama
+    model: str                             # model that produced the verdict
+    grounded: bool = False                 # kept for API compatibility; retrieval is a separate stage
+    research_provider: Optional[str] = None  # search tool used for retrieval (tavily / duckduckgo)
+    research_mode: str = "open"            # open | closed (no retrieval)
+    fallback_used: Optional[str] = None    # e.g. video sent as frames + transcript
     search_queries: list[str] = Field(default_factory=list)
-    two_step: bool = False
+    two_step: bool = True                  # analyse -> retrieve -> verify
+    calls: list[dict] = Field(default_factory=list, description="Per model call: stage, backend, model, seconds, tokens")
 
 
 class Extraction(BaseModel):
@@ -101,12 +125,14 @@ class AnalysisResult(BaseModel):
     caveats: list[str] = Field(default_factory=list)
     evidence: list[Source] = Field(default_factory=list, description="De-duplicated sources from grounding + claims")
     extraction: Extraction = Field(default_factory=Extraction)
-    forensics: dict = Field(default_factory=dict, description="Raw local signals (EXIF, ffprobe, detector probabilities)")
+    forensics: dict = Field(default_factory=dict, description="Measured facts (EXIF/XMP/C2PA, ffprobe, detector score, retrieval log)")
+    analysis: Optional[Analysis] = Field(default=None, description="Stage-1 output: claims, observations, queries")
+    evidence_features: dict = Field(default_factory=dict, description="Structured evidence summary for the learned scorer")
     provenance: Provenance
     timings_ms: dict[str, int] = Field(default_factory=dict)
     disclaimer: str = (
-        "Automated estimate combining local forensics and an LLM fact-check. "
-        "Treat it as a set of signals, not proof. Free-tier model providers may use inputs to improve their services."
+        "Automated estimate from a model's analysis of the content, measured file facts and retrieved evidence. "
+        "Treat it as a set of signals, not proof. Hosted model providers may use inputs to improve their services."
     )
 
 

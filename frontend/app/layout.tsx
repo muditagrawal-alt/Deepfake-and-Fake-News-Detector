@@ -9,7 +9,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: "Veritas: is it real?",
-  description: "Check a news link, image or short video. Local forensics plus an LLM fact-check, with the sources shown.",
+  description: "Check a news link, image or short video. File provenance, a model's analysis and independent evidence, with the sources shown.",
 };
 
 const REPO = "https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector";

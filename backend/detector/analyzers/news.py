@@ -1,70 +1,73 @@
 """
-News pipeline: extract article -> Gemini (grounded) claim verification.
+News: extract the article, then analyse -> retrieve -> verify.
 """
-import logging
-import re
 from urllib.parse import urlparse
 
-from detector.analyzers.common import Timer, build_result, signals_block
-from detector.analyzers.prompts import NEWS_SYSTEM
+from detector.analyzers.common import Timer, build_result
+from detector.analyzers.prompts import ANALYSE, VERIFY
+from detector.engine.parts import ImagePart, TextPart
+from detector.engine.pipeline import run_stages
 from detector.forensics.article import extract_article, slug_from_url
-from detector.schemas import AnalysisResult, LLMVerdict
+from detector.schemas import AnalysisResult
 from detector.services import Services
 
-log = logging.getLogger(__name__)
 
-
-def _search_query(title: str) -> str:
-    """Headline minus the ' | Publisher' / ' - Site' suffix and clutter."""
-    t = re.split(r"\s+[|\-–—]\s+", title)[0] if len(title) > 40 else title
-    t = re.sub(r"[\"“”‘’']", "", t)
-    return t.strip()[:150]
-
-
-async def analyze_news(url: str, services: Services) -> AnalysisResult:
+async def analyze_news(url: str, services: Services, *, progress=None) -> AnalysisResult:
     timer = Timer()
     with timer.track("extract"):
         extraction, text = await extract_article(url)
 
-    local = {
-        "extraction_status": extraction.status,
-        "site": extraction.site,
-        "title": extraction.title,
-        "author": extraction.author,
-        "published": extraction.published,
-        "text_chars": extraction.text_chars,
+    facts = {
+        "extraction": {
+            "status": extraction.status,
+            "site": extraction.site,
+            "author": extraction.author,
+            "published": extraction.published,
+            "text_chars": extraction.text_chars,
+        }
     }
-
     if text:
-        task = (
-            f"ARTICLE URL: {extraction.final_url or url}\n"
-            f"TITLE: {extraction.title or '(unknown)'}\n"
-            f"PUBLISHER: {extraction.site or '(unknown)'}\n"
-            f"PUBLISHED: {extraction.published or '(unknown)'}\n\n"
-            f"ARTICLE TEXT:\n{text}"
-        )
+        body = (f"ARTICLE URL: {extraction.final_url or url}\n"
+                f"TITLE: {extraction.title or '(unknown)'}\n"
+                f"PUBLISHER: {extraction.site or '(unknown)'}\n"
+                f"PUBLISHED: {extraction.published or '(unknown)'}\n\n"
+                f"ARTICLE TEXT:\n{text}")
     else:
-        task = (
-            f"ARTICLE URL: {url}\n"
-            "The article body could not be extracted (paywall, bot-block or unsupported page). "
-            f"Use the URL, its domain and the slug '{slug_from_url(url)}' to identify the story via Google Search, "
-            "then verify it. Lower your confidence accordingly and say extraction failed in caveats."
-        )
-    task += signals_block("LOCAL SIGNALS", local)
+        body = (f"ARTICLE URL: {url}\n"
+                f"URL SLUG: {slug_from_url(url)}\n"
+                "The article body could not be extracted (paywall, bot block or unsupported page); "
+                "only the URL is available.")
 
-    research_query = _search_query(extraction.title) if extraction.title else slug_from_url(url)
-    publisher_domain = urlparse(extraction.final_url or url).netloc
-    with timer.track("llm"):
-        verdict, grounding = await services.gemini.generate_json(
-            contents=[task], schema=LLMVerdict, system=NEWS_SYSTEM, grounded=True,
-            research_query=research_query, exclude_domain=publisher_domain,
-        )
-
-    return build_result(
-        modality="news",
-        verdict=verdict,
-        grounding=grounding,
-        forensics={"extraction": local},
-        extraction=extraction,
-        timings=timer.t,
+    stage = await run_stages(
+        services, modality="news", parts=[TextPart(body)], facts=facts,
+        system_analyse=ANALYSE["news"], system_verify=VERIFY["news"], timer=timer,
+        publisher_domain=urlparse(extraction.final_url or url).netloc, item_text=text or "", progress=progress,
     )
+    return build_result(modality="news", stage=stage, facts=facts, extraction=extraction, timings=timer.t)
+
+
+async def analyze_news_text(text: str, services: Services, *, title: str | None = None, publisher: str | None = None,
+                            published: str | None = None, image: bytes | None = None, speaker: str | None = None,
+                            context: str | None = None, progress=None) -> AnalysisResult:
+    """
+    News given as text, optionally with its image (benchmarks such as FakeNewsNet,
+    MM-Soc or LIAR ship content, not live URLs). With publisher=None the model sees
+    no source identity: the publisher-masked condition.
+    """
+    timer = Timer()
+    facts = {"extraction": {"status": "PROVIDED_TEXT", "text_chars": len(text), "image": image is not None}}
+    body = ((f"TITLE: {title}\n" if title else "")
+            + (f"PUBLISHER: {publisher}\n" if publisher else "")
+            + (f"PUBLISHED: {published}\n" if published else "")
+            + (f"SPEAKER: {speaker}\n" if speaker else "")
+            + (f"CONTEXT: {context}\n" if context else "")
+            + f"\nTEXT:\n{text}")
+    parts = [TextPart(body)]
+    if image is not None:
+        parts.append(ImagePart(image, label="image published with the article"))
+    stage = await run_stages(
+        services, modality="news", parts=parts, facts=facts,
+        system_analyse=ANALYSE["news"], system_verify=VERIFY["news"], timer=timer,
+        publisher_domain=publisher, item_text=text, progress=progress,
+    )
+    return build_result(modality="news", stage=stage, facts=facts, timings=timer.t)

@@ -79,7 +79,8 @@ def init_store(settings: Settings | None = None) -> None:
             image TEXT NOT NULL,
             created_at TEXT NOT NULL,
             free_used INTEGER NOT NULL DEFAULT 0,
-            welcome_seen INTEGER NOT NULL DEFAULT 0
+            welcome_seen INTEGER NOT NULL DEFAULT 0,
+            history_enabled INTEGER NOT NULL DEFAULT 0
         )""",
         """CREATE TABLE IF NOT EXISTS user_keys (
             user_id TEXT NOT NULL,
@@ -114,6 +115,11 @@ def init_store(settings: Settings | None = None) -> None:
         columns = {column["name"] for column in inspect(connection).get_columns("users")}
         if "welcome_seen" not in columns:
             connection.execute(text("ALTER TABLE users ADD COLUMN welcome_seen INTEGER NOT NULL DEFAULT 0"))
+        if "history_enabled" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN history_enabled INTEGER NOT NULL DEFAULT 0"))
+            # Old deployments saved results without an explicit opt-in. Clear
+            # those rows as the new default is intentionally private/off.
+            connection.execute(text("DELETE FROM detections"))
         if connection.dialect.name == "postgresql":
             deleted_columns = inspect(connection).get_columns("deleted_accounts")
             deleted_at_type = next(column["type"] for column in deleted_columns if column["name"] == "deleted_at")
@@ -179,7 +185,7 @@ def account_status(user: dict, settings: Settings | None = None) -> dict:
     init_store(settings)
     with _get_engine(settings).begin() as connection:
         _ensure_user(connection, user)
-        row = connection.execute(text("SELECT free_used FROM users WHERE user_id=:uid"), {"uid": user["sub"]}).one()
+        row = connection.execute(text("SELECT free_used, history_enabled FROM users WHERE user_id=:uid"), {"uid": user["sub"]}).one()
         first_workspace_visit = connection.execute(text("""
             UPDATE users SET welcome_seen=1 WHERE user_id=:uid AND welcome_seen=0
         """), {"uid": user["sub"]}).rowcount == 1
@@ -197,6 +203,7 @@ def account_status(user: dict, settings: Settings | None = None) -> dict:
         "keys": providers,
         "byok_ready": encryption_ready,
         "history_limit": HISTORY_LIMIT,
+        "history_enabled": bool(row.history_enabled),
         "is_new_user": first_workspace_visit,
     }
 
@@ -276,11 +283,18 @@ def delete_api_key(user_id: str, provider: str, settings: Settings | None = None
 def save_detection(user: dict, result: dict, input_label: str, settings: Settings | None = None) -> None:
     settings = settings or get_settings()
     init_store(settings)
+    engine = _get_engine(settings)
     created = result.get("created_at") or _now()
     entry_id = result["id"]
-    payload = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
-    with _get_engine(settings).begin() as connection:
+    with engine.begin() as connection:
         _ensure_user(connection, user)
+        lock_suffix = " FOR UPDATE" if connection.dialect.name == "postgresql" else ""
+        enabled = connection.execute(text(
+            "SELECT history_enabled FROM users WHERE user_id=:uid" + lock_suffix
+        ), {"uid": user["sub"]}).scalar_one()
+        if not enabled:
+            return
+        payload = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
         connection.execute(text("""
             INSERT INTO detections(id, user_id, modality, verdict, summary, confidence,
                                    created_at, input_label, payload_json)
@@ -302,11 +316,32 @@ def get_history(user_id: str, settings: Settings | None = None) -> list[dict]:
     with _get_engine(settings).begin() as connection:
         rows = connection.execute(text("""
             SELECT id, modality, verdict, summary, confidence, created_at, input_label, payload_json
-            FROM detections WHERE user_id=:uid ORDER BY created_at DESC LIMIT :keep
+            FROM detections WHERE user_id=:uid
+              AND EXISTS (SELECT 1 FROM users WHERE user_id=:uid AND history_enabled=1)
+            ORDER BY created_at DESC LIMIT :keep
         """), {"uid": user_id, "keep": HISTORY_LIMIT}).mappings().all()
     return [{"id": row["id"], "modality": row["modality"], "verdict": row["verdict"],
              "summary": row["summary"], "confidence": row["confidence"], "created_at": row["created_at"],
              "input_label": row["input_label"], "result": json.loads(row["payload_json"])} for row in rows]
+
+
+def set_history_enabled(user: dict, enabled: bool, settings: Settings | None = None) -> int:
+    """Set the account's history opt-in; disabling it also deletes saved results."""
+    settings = settings or get_settings()
+    init_store(settings)
+    engine = _get_engine(settings)
+    with engine.begin() as connection:
+        _ensure_user(connection, user)
+        lock_suffix = " FOR UPDATE" if connection.dialect.name == "postgresql" else ""
+        connection.execute(text("SELECT user_id FROM users WHERE user_id=:uid" + lock_suffix),
+                           {"uid": user["sub"]}).scalar_one()
+        connection.execute(text("UPDATE users SET history_enabled=:enabled WHERE user_id=:uid"),
+                           {"uid": user["sub"], "enabled": int(enabled)})
+        if not enabled:
+            result = connection.execute(text("DELETE FROM detections WHERE user_id=:uid"),
+                                        {"uid": user["sub"]})
+            return result.rowcount
+    return 0
 
 
 def clear_history(user_id: str, settings: Settings | None = None) -> int:

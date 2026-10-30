@@ -36,6 +36,7 @@ import {
   getHealth,
   getHistory,
   saveApiKey,
+  setHistoryEnabled,
   type AccountStatus,
   type AnalysisResult,
   type HistoryEntry,
@@ -98,7 +99,7 @@ function AuthScreen({ providers }: { providers: AuthProvider[] }) {
           <ShieldCheck size={16} aria-hidden /> Private workspace
         </div>
         <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Sign in or create your account</h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink-2">Save your recent checks, manage your API keys and use your three free detections across news, images and video.</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">Manage your API keys and optionally save results. Your three free detections work across news, images and video.</p>
 
         <div className="mt-7 space-y-3">
           {allProviders.map((provider) => {
@@ -123,7 +124,7 @@ function AuthScreen({ providers }: { providers: AuthProvider[] }) {
           </p>
         )}
         <p className="mt-6 border-t border-line pt-5 text-xs leading-relaxed text-ink-3">
-          By continuing, you agree to send submitted content to the configured analysis providers. Your uploaded file is removed after processing; result history is saved to your account.
+          By continuing, you agree to send submitted content to the configured analysis providers. Uploaded files are removed after processing; results are saved only when you turn on Save detection history.
         </p>
       </motion.section>
     </section>
@@ -297,7 +298,7 @@ function GuidedTour({ onClose }: { onClose: () => void }) {
     {
       eyebrow: "04 · Your workspace",
       title: "Keep results, control your keys",
-      body: "Your first three checks are shared across all formats. Results are saved in History, while uploaded media is not. After the free checks, add a Gemini or OpenRouter key from API keys.",
+      body: "Your first three checks are shared across all formats. Turn on Save detection history in the sidebar if you want results saved; uploaded media is never saved. After the free checks, add a Gemini or OpenRouter key from API keys.",
     },
   ];
   const current = steps[step];
@@ -357,6 +358,7 @@ function Workspace({ user }: { user: User }) {
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
+  const [historyPreferenceBusy, setHistoryPreferenceBusy] = useState(false);
   const greetingTimer = useRef<number | null>(null);
   const initialWorkspaceLoad = useRef<Promise<{ account: AccountStatus; history: HistoryEntry[] } | null> | null>(null);
   const reduceMotion = useReducedMotion();
@@ -434,6 +436,26 @@ function Workspace({ user }: { user: User }) {
       setError(reason instanceof Error ? reason.message : "Could not clear history.");
     } finally {
       setHistoryBusy(false);
+    }
+  }
+
+  async function changeHistoryPreference(enabled: boolean) {
+    if (!account || historyPreferenceBusy) return;
+    setHistoryPreferenceBusy(true);
+    try {
+      const preference = await setHistoryEnabled(enabled);
+      setAccount((current) => current ? { ...current, history_enabled: preference.history_enabled } : current);
+      if (enabled) {
+        setHistory(await getHistory());
+      } else {
+        setHistory([]);
+        setSelected(null);
+      }
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not update the history setting.");
+    } finally {
+      setHistoryPreferenceBusy(false);
     }
   }
 
@@ -563,6 +585,26 @@ function Workspace({ user }: { user: User }) {
                 <ShieldCheck size={18} aria-hidden /><span className="md:sr-only">{account ? `${account.free_used}/${account.free_limit}` : "…"}</span>
               </button>}
 
+            {sidebarExpanded ? <div className="mt-3 rounded-panel border border-line bg-elev p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium">Save detection history</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-ink-3">Results only. Media is never stored.</p>
+                  </div>
+                  <button type="button" role="switch" aria-label="Save detection history" aria-checked={!!account?.history_enabled}
+                    disabled={!account || historyPreferenceBusy} onClick={() => void changeHistoryPreference(!account?.history_enabled)}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-wait disabled:opacity-60 ${account?.history_enabled ? "bg-accent" : "bg-line-strong"}`}>
+                    <span className={`absolute top-1 size-4 rounded-full bg-white shadow-sm transition-transform ${account?.history_enabled ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </div>
+                {account?.history_enabled && <p className="mt-2 text-[10px] text-ink-3">Turning this off deletes saved results.</p>}
+              </div> : <button type="button" role="switch" aria-label="Save detection history" aria-checked={!!account?.history_enabled}
+                title={`Save detection history ${account?.history_enabled ? "on" : "off"}${account?.history_enabled ? "; turning off deletes saved results" : ""}`}
+                disabled={!account || historyPreferenceBusy} onClick={() => void changeHistoryPreference(!account?.history_enabled)}
+                className={`mt-3 flex w-full items-center justify-center rounded-control border p-2 transition-colors disabled:opacity-60 ${account?.history_enabled ? "border-accent bg-accent-soft text-accent" : "border-line text-ink-2 hover:bg-elev"}`}>
+                <ClockCounterClockwise size={18} aria-hidden />
+              </button>}
+
             <div className="relative mt-auto border-t border-line pt-3">
               <AnimatePresence>
                 {profileMenuOpen && <motion.div key="profile-menu" initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: reduceMotion ? 0 : 0.16 }}
@@ -620,7 +662,7 @@ function Workspace({ user }: { user: User }) {
                 </div>
                 <section className="mt-12 border-t border-line pt-7">
                   <div className="flex items-center justify-between gap-3">
-                    <div><h2 className="text-lg font-semibold tracking-tight">Recent checks</h2><p className="mt-1 text-sm text-ink-2">Your latest account activity.</p></div>
+                    <div><h2 className="text-lg font-semibold tracking-tight">Recent checks</h2><p className="mt-1 text-sm text-ink-2">{account?.history_enabled ? "Your latest saved results." : "History saving is off; turn it on in the sidebar to keep results."}</p></div>
                     <button type="button" onClick={() => navigate("history")} className="text-sm text-accent hover:underline">View history</button>
                   </div>
                   {loading ? <p className="mt-4 text-sm text-ink-3">Loading account…</p> : history.length ? (
@@ -632,7 +674,7 @@ function Workspace({ user }: { user: User }) {
                         </button>;
                       })}
                     </div>
-                  ) : <p className="mt-4 rounded-control border border-dashed border-line-strong px-4 py-5 text-sm text-ink-3">Your completed checks will appear here.</p>}
+                  ) : <p className="mt-4 rounded-control border border-dashed border-line-strong px-4 py-5 text-sm text-ink-3">{account?.history_enabled ? "Your completed checks will appear here." : "History is off. Turn on Save detection history in the sidebar to keep future results; uploaded media is never saved."}</p>}
                 </section>
               </motion.section>
             )}
@@ -645,7 +687,7 @@ function Workspace({ user }: { user: User }) {
                   <ResultCard r={selected.result} />
                 </> : <>
                   <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Your account</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Detection history</h1><p className="mt-2 text-sm text-ink-2">Up to {account?.history_limit ?? 20} recent results. Uploaded media itself is not saved.</p></div>
+                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Your account</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Detection history</h1><p className="mt-2 text-sm text-ink-2">{account?.history_enabled ? `Up to ${account.history_limit} recent results. Uploaded media itself is not saved.` : "History saving is off. Use the sidebar switch to save future results; uploaded media is never stored."}</p></div>
                     {!!history.length && <div className="flex flex-wrap gap-2">
                       <button type="button" onClick={exportHistory} className="rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:bg-bg">Export JSON</button>
                       <button type="button" disabled={historyBusy} onClick={() => void deleteAllHistory()} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:border-fake hover:text-fake disabled:opacity-50"><Trash size={15} /> {historyBusy ? "Deleting…" : "Clear history"}</button>
@@ -662,7 +704,7 @@ function Workspace({ user }: { user: User }) {
                         </button>;
                       })}
                     </div>
-                  ) : <p className="mt-7 rounded-panel border border-dashed border-line-strong p-6 text-sm text-ink-3">No detections saved yet. Your next completed check will appear here.</p>}
+                  ) : <p className="mt-7 rounded-panel border border-dashed border-line-strong p-6 text-sm text-ink-3">{account?.history_enabled ? "No detections saved yet. Your next completed check will appear here." : "History saving is off. Turn it on with the sidebar switch to keep future results."}</p>}
                 </>}
               </motion.section>
             )}

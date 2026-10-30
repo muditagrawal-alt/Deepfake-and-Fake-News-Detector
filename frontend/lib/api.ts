@@ -54,6 +54,7 @@ export type AccountStatus = {
   keys: string[];
   byok_ready: boolean;
   history_limit: number;
+  history_enabled: boolean;
   is_new_user: boolean;
 };
 
@@ -171,6 +172,16 @@ export async function getHistory(): Promise<HistoryEntry[]> {
 export async function clearHistory(): Promise<void> {
   const res = await authorizedFetch("/account/history", { method: "DELETE" });
   if (!res.ok) return parseError(res);
+}
+
+export async function setHistoryEnabled(enabled: boolean): Promise<{ history_enabled: boolean; deleted: number }> {
+  const res = await authorizedFetch("/account/preferences/history", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) return parseError(res);
+  return res.json();
 }
 
 export async function deleteAccount(): Promise<void> {

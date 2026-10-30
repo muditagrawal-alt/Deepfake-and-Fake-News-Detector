@@ -195,9 +195,9 @@ For production, use the same paths on your frontend host (for example, `https://
 
 Google and GitHub accounts with the same verified email share quota and history. Microsoft Entra uses its provider identity because its email claim is not a reliable account-linking key; linking a Microsoft login to an existing Google/GitHub account is not implemented yet.
 
-Users receive **three free detections total** across news, images and videos. Afterward, they need a Gemini or OpenRouter key; optional Groq and Tavily keys enable transcription and search. Keys are encrypted using `BYOK_ENCRYPTION_KEY`. Local SQLite is suitable for development. For a deployed service, set `DATABASE_URL` to a durable PostgreSQL database: the included free Render service has an ephemeral filesystem, so its SQLite file would not preserve accounts, keys or history across restarts/deploys.
+Users receive **three free detections total** across news, images and videos. Afterward, they need a Gemini or OpenRouter key; optional Groq and Tavily keys enable transcription and search. Keys are encrypted using `BYOK_ENCRYPTION_KEY`. Detection history is off by default. If a user enables **Save detection history** in the sidebar, Veritas stores up to 20 result records; it never stores uploaded media, and turning the setting off deletes saved results. Local SQLite is suitable for development. For a deployed service, set `DATABASE_URL` to a durable PostgreSQL database: the included free Render service has an ephemeral filesystem, so its SQLite file would not preserve accounts, keys or history across restarts/deploys. Supabase Free is one PostgreSQL option (500 MB per project); free projects may pause after a week of low activity. For Render, use Supabase's shared **Session pooler** connection string (IPv4, port 5432); see Supabase's [connection-mode guidance](https://supabase.com/docs/guides/database/connecting-to-postgres) and [current limits](https://supabase.com/pricing).
 
-The workspace includes a first-visit walkthrough, a deployment capabilities page, collapsible navigation, profile actions, recent detection history, and JSON history export. The profile menu can sign out or permanently delete the account, keys, and saved results.
+The workspace includes a first-visit walkthrough, a deployment capabilities page, collapsible navigation, profile actions, opt-in recent detection history, and JSON history export. The profile menu can sign out or permanently delete the account, keys, and saved results.
 
 OAuth setup follows the official [Auth.js Next.js integration](https://authjs.dev/getting-started/installation?framework=Next.js) and provider guides for [Google](https://authjs.dev/getting-started/providers/google), [GitHub](https://authjs.dev/getting-started/providers/github), and [Microsoft Entra ID](https://authjs.dev/getting-started/providers/microsoft-entra-id).
 
@@ -235,6 +235,7 @@ deployment). All responses are JSON.
 | `GET` | `/jobs/{job_id}` | Bearer token | `{status, stage, result}` (owner only) |
 | `GET` | `/account` | Bearer token | Free quota and saved key-provider names |
 | `GET` / `DELETE` | `/account/history` | Bearer token | Recent results / clear history |
+| `PATCH` | `/account/preferences/history` | Bearer token + `{"enabled": true}` | Enable/disable history; disabling clears it |
 | `POST` | `/account/keys` | Bearer token + `{"provider": "gemini", "key": "..."}` | Save an encrypted key |
 | `DELETE` | `/account/keys/{provider}` | Bearer token | Remove a saved key |
 

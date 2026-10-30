@@ -76,7 +76,7 @@ app.add_middleware(
     allow_origins=settings.origins,
     allow_origin_regex=settings.allowed_origin_regex or None,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -108,7 +108,8 @@ async def root():
         "docs": "/docs",
         "health": "/health",
         "endpoints": ["POST /analyze/news", "POST /analyze/image", "POST /analyze/video",
-                      "GET /jobs/{job_id}", "GET /account", "GET /account/history", "POST /account/keys"],
+                      "GET /jobs/{job_id}", "GET /account", "GET /account/history",
+                      "PATCH /account/preferences/history", "POST /account/keys"],
         "source": "https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector",
     }
 
@@ -213,6 +214,10 @@ class ApiKeyInput(BaseModel):
     key: str = Field(min_length=20, max_length=1024)
 
 
+class HistoryPreferenceInput(BaseModel):
+    enabled: bool
+
+
 def _byok_required() -> HTTPException:
     return HTTPException(status_code=402, detail={
         "error": "byok_required",
@@ -286,6 +291,12 @@ async def delete_user_account(user: dict = Depends(require_user)):
 @app.get("/account/history")
 async def get_account_history(user: dict = Depends(require_user)):
     return accounts.get_history(user["sub"], settings)
+
+
+@app.patch("/account/preferences/history")
+async def update_history_preference(body: HistoryPreferenceInput, user: dict = Depends(require_user)):
+    deleted = accounts.set_history_enabled(user, body.enabled, settings)
+    return {"history_enabled": body.enabled, "deleted": deleted}
 
 
 @app.delete("/account/history")

@@ -53,6 +53,7 @@ python -m eval.run_eval --modality video
 | POST | `/analyze/video` | bearer token + multipart `file` | `202 {"job_id"}` → owner polls `/jobs/{id}` |
 | GET | `/account` | bearer token | free uses and saved key-provider names |
 | GET/DELETE | `/account/history` | bearer token | recent results / clear saved history |
+| PATCH | `/account/preferences/history` | bearer token + `{"enabled": true}` | opt in/out; turning off clears saved results |
 | POST | `/account/keys` | bearer token + provider/key JSON | save encrypted key |
 | DELETE | `/account/keys/{provider}` | bearer token | delete saved key |
 
@@ -67,8 +68,11 @@ python -m eval.run_eval --modality video
    `./scripts/deploy_space.sh <user>/<space>` from the repository root.
 3. Space **Settings → Secrets**: `GEMINI_API_KEY`, `BACKEND_TOKEN_SECRET`,
    `BYOK_ENCRYPTION_KEY`, and optional `GROQ_API_KEY` / `TAVILY_API_KEY`.
-   Set `DATABASE_URL` to a durable PostgreSQL service for accounts, quota, saved
-   keys and history. The local SQLite fallback is not persistent on ephemeral hosts.
+   Set `DATABASE_URL` to a PostgreSQL service for accounts, quota, saved keys and
+   opt-in history. For Supabase Free on Render, use the shared Session pooler
+   connection string (IPv4, port 5432); the Free database is 500 MB and projects
+   may pause after a week of low activity. The local SQLite fallback is not
+   persistent on ephemeral hosts.
    **Variables**: `ALLOWED_ORIGINS=https://<your-frontend>.vercel.app`, and optionally
    `FRONTEND_URL` so the service card links back to it.
 

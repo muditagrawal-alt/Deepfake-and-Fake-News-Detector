@@ -144,21 +144,6 @@ body:has([data-app-stage="landing"]) {
   background: #08090b;
 }
 
-.landing-hero-grain {
-  z-index: 0;
-  background: radial-gradient(ellipse at 74% 42%, rgb(201 244 91 / 7%), transparent 38%);
-}
-
-.landing-hero-grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.22;
-  background-image: radial-gradient(rgb(231 237 229 / 68%) 0.75px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(ellipse at 74% 43%, #000 0%, rgb(0 0 0 / 72%) 28%, transparent 68%);
-}
-
 .landing-hero-copy {
   position: relative;
   min-height: max(760px, min(920px, calc(100svh - 68px)));
@@ -188,83 +173,16 @@ body:has([data-app-stage="landing"]) {
 .landing-title-mask > span { display: block; width: max-content; transform-origin: left center; }
 .landing-title-outline { color: transparent; -webkit-text-stroke: 1.15px rgb(243 244 241 / 92%); }
 .landing-title-period { color: #c9f45b; -webkit-text-stroke: 0; }
-.landing-live-dot { box-shadow: 0 0 14px rgb(201 244 91 / 58%); }
 .landing-format-rail { border-color: #252a31; }
 .landing-rail-mark { display: inline-block; width: 12px; height: 1px; background: #c9f45b; opacity: 0.72; }
-.landing-hero-index { right: auto; }
-.landing-scroll-mark { position: relative; width: 1px; height: 20px; overflow: hidden; background: rgb(255 255 255 / 18%); }
-.landing-scroll-mark::after { position: absolute; inset: 0; content: ""; background: #c9f45b; transform: translateY(-100%); animation: scroll-mark 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
-
-.landing-signal-globe {
-  z-index: 0;
-  top: -11%;
-  right: 0;
-  width: min(65vw, 880px);
-  aspect-ratio: 1;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-.landing-globe-halo,
-.landing-globe-dots,
-.landing-globe-shade,
-.landing-globe-ring { position: absolute; border-radius: 50%; }
-.landing-globe-halo {
-  inset: 3%;
-  background: radial-gradient(circle at 48% 48%, rgb(201 244 91 / 13%), rgb(158 177 110 / 6%) 34%, transparent 69%);
-  filter: blur(18px);
-  animation: globe-breathe 8s ease-in-out infinite alternate;
-}
-.landing-globe-dots {
-  inset: 7%;
-  background-image: radial-gradient(circle, rgb(230 235 222 / 83%) 1.15px, transparent 1.8px);
-  background-size: 8px 8px;
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0 58%, transparent 69%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 0 58%, transparent 69%);
-  opacity: 0.8;
-  animation: globe-dither 48s linear infinite;
-}
-.landing-globe-shade {
-  inset: 7%;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at 36% 30%, rgb(201 244 91 / 10%), transparent 18%),
-    radial-gradient(ellipse at 72% 70%, rgb(3 4 5 / 87%), transparent 45%),
-    radial-gradient(circle at 50% 50%, transparent 49%, rgb(6 8 9 / 65%) 69%, transparent 72%);
-  box-shadow: inset -42px -18px 95px rgb(0 0 0 / 54%), inset 22px 18px 72px rgb(201 244 91 / 5%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0 59%, transparent 70%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 0 59%, transparent 70%);
-}
-.landing-globe-shade::after {
-  position: absolute;
-  top: 47%;
-  left: 8%;
-  width: 84%;
-  height: 1px;
-  content: "";
-  background: linear-gradient(90deg, transparent, rgb(201 244 91 / 36%), rgb(238 241 231 / 25%), transparent);
-  box-shadow: 0 0 18px rgb(201 244 91 / 35%);
-  animation: globe-scan 7.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-.landing-globe-ring { pointer-events: none; border: 1px solid rgb(211 221 196 / 16%); }
-.landing-globe-ring-a { inset: 1%; transform: rotate(-34deg) scaleY(0.34); border-right-color: rgb(201 244 91 / 55%); border-left-color: transparent; animation: globe-orbit 46s linear infinite; }
-.landing-globe-ring-b { inset: 11%; transform: rotate(27deg) scaleY(0.58); border-top-color: transparent; border-bottom-color: rgb(201 244 91 / 30%); animation: globe-orbit-reverse 64s linear infinite; }
-.landing-globe-reticle { position: absolute; z-index: 1; width: 17px; height: 17px; border: 1px solid rgb(201 244 91 / 60%); opacity: 0.75; }
-.landing-globe-reticle::before,
-.landing-globe-reticle::after { position: absolute; background: #c9f45b; content: ""; }
-.landing-globe-reticle::before { top: 7px; left: -6px; width: 27px; height: 1px; }
-.landing-globe-reticle::after { top: -6px; left: 7px; width: 1px; height: 27px; }
-.landing-globe-reticle-top { top: 27%; right: 18%; }
-.landing-globe-reticle-bottom { bottom: 21%; left: 25%; width: 9px; height: 9px; border-radius: 50%; background: rgb(201 244 91 / 55%); box-shadow: 0 0 20px rgb(201 244 91 / 60%); }
-.landing-globe-reticle-bottom::before,
-.landing-globe-reticle-bottom::after { display: none; }
 
 .landing-primary-button {
   border-radius: 2px;
   background: #c9f45b;
   color: #10130a;
-  transition: background-color 180ms ease, box-shadow 180ms ease;
+  transition: background-color 180ms ease;
 }
-.landing-primary-button:hover { background: #d8ff7d; box-shadow: 0 16px 38px -18px rgb(201 244 91 / 55%); }
+.landing-primary-button:hover { background: #d8ff7d; }
 .landing-hero-check {
   position: absolute;
   z-index: 3;
@@ -278,10 +196,6 @@ body:has([data-app-stage="landing"]) {
 .landing-hero-check form > div:last-child { padding: 16px; }
 .landing-hero-check form > div:last-child > p:first-child { line-height: 1.55; }
 .landing-hero-check form > div:last-child > div:last-child > p { line-height: 1.45; }
-.landing-marquee { background: linear-gradient(90deg, rgb(8 9 11 / 94%), rgb(8 9 11 / 84%) 50%, rgb(8 9 11 / 94%)); }
-.landing-marquee-track { animation: signal-marquee 48s linear infinite; }
-.landing-marquee-star { color: #c9f45b; font-size: 12px; opacity: 0.7; }
-.landing-marquee:hover .landing-marquee-track { animation-play-state: paused; }
 
 .landing-story {
   --bg: #0b0d10;
@@ -311,36 +225,15 @@ body:has([data-app-stage="landing"]) {
   background: linear-gradient(145deg, #13171d, #0d1014 74%);
   box-shadow: 0 34px 90px -48px rgb(0 0 0 / 90%), inset 0 1px rgb(255 255 255 / 3%);
 }
-.landing-card-orbit {
-  position: absolute;
-  z-index: -1;
-  top: -42%;
-  right: -12%;
-  width: 68%;
-  aspect-ratio: 1;
-  border: 1px solid rgb(201 244 91 / 13%);
-  border-radius: 50%;
-  box-shadow: 0 0 0 32px rgb(201 244 91 / 2%), 0 0 0 68px rgb(201 244 91 / 1%);
-  pointer-events: none;
-}
-.landing-tool-card > :not(.landing-card-orbit) { position: relative; z-index: 1; }
+.landing-tool-card > * { position: relative; z-index: 1; }
 .landing-tool-card form { border-color: transparent; border-radius: 0; background: transparent; box-shadow: none; }
 .landing-tool-card [role="tablist"] { border-color: #2c323a; }
 .landing-tool-card [role="tab"] { min-height: 48px; }
 .landing-tool-live { border: 1px solid rgb(201 244 91 / 16%); background: rgb(201 244 91 / 8%); color: #d0f77b; }
 
 .landing-close { background: #08090b; }
-.landing-close::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.34;
-  background: radial-gradient(ellipse at 82% 50%, rgb(201 244 91 / 12%), transparent 40%);
-}
-.landing-close-orbit { transform: rotate(-18deg); }
-.landing-close-button { border-radius: 2px; background: #c9f45b; color: #10130a; transition: background-color 180ms ease, box-shadow 180ms ease; }
-.landing-close-button:hover { background: #d8ff7d; box-shadow: 0 16px 38px -18px rgb(201 244 91 / 55%); }
+.landing-close-button { border-radius: 2px; background: #c9f45b; color: #10130a; transition: background-color 180ms ease; }
+.landing-close-button:hover { background: #d8ff7d; }
 
 @media (max-width: 1023px) {
   .landing-story { padding-top: 76px; padding-bottom: 84px; }
@@ -356,9 +249,6 @@ body:has([data-app-stage="landing"]) {
   .landing-hero-copy { min-height: 0; padding-top: 0; }
   .landing-hero-intro { position: relative; bottom: auto; left: auto; width: 100%; max-width: 760px; padding-bottom: 0; }
   .landing-hero-check { position: relative; right: auto; bottom: auto; width: min(100%, 580px); margin: 48px 0 0 auto; }
-  .landing-signal-globe { top: -78px; right: -150px; width: min(84vw, 760px); min-width: 540px; opacity: 0.73; }
-  .landing-marquee { position: relative; right: auto; bottom: auto; left: auto; margin-top: 52px; }
-  .landing-scroll-note { display: none; }
 }
 
 @media (max-width: 639px) {
@@ -369,16 +259,12 @@ body:has([data-app-stage="landing"]) {
   .landing-hero-check { width: 100%; margin-top: 42px; padding: 12px; }
   .landing-hero-check form > div:last-child { padding: 14px 12px; }
   .landing-hero-check [role="tab"] { gap: 5px; padding-inline: 4px; font-size: 12px; }
-  .landing-signal-globe { top: -105px; right: -220px; width: 520px; min-width: 520px; opacity: 0.63; }
   .landing-format-rail { margin-top: 32px; }
-  .landing-marquee { margin-inline: -16px; }
-  .landing-marquee-track { animation-duration: 56s; }
   .landing-story h2 { max-width: 11ch; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .landing-hero-check { transform: none !important; }
-  .landing-signal-globe { transform: none !important; }
   .landing-close > div > div:first-child { opacity: 1 !important; transform: none !important; }
   .landing-close-button { transform: none !important; }
   .landing-story { min-height: auto !important; padding-block: 5rem !important; }
@@ -409,40 +295,6 @@ body:has([data-app-stage="landing"]) {
 @keyframes tour-focus {
   from { outline-offset: 12px; box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); }
   to { outline-offset: 5px; box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 12%, transparent); }
-}
-
-@keyframes signal-marquee {
-  to { transform: translateX(-50%); }
-}
-
-@keyframes scroll-mark {
-  0% { transform: translateY(-100%); }
-  65%, 100% { transform: translateY(100%); }
-}
-
-@keyframes globe-breathe {
-  from { opacity: 0.62; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1.04); }
-}
-
-@keyframes globe-dither {
-  from { transform: rotate(-5deg) scale(1); }
-  to { transform: rotate(5deg) scale(1.015); }
-}
-
-@keyframes globe-orbit {
-  from { transform: rotate(-34deg) scaleY(0.34); }
-  to { transform: rotate(326deg) scaleY(0.34); }
-}
-
-@keyframes globe-orbit-reverse {
-  from { transform: rotate(27deg) scaleY(0.58); }
-  to { transform: rotate(-333deg) scaleY(0.58); }
-}
-
-@keyframes globe-scan {
-  0%, 100% { opacity: 0.18; transform: translateY(-34px); }
-  50% { opacity: 0.8; transform: translateY(46px); }
 }
 
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

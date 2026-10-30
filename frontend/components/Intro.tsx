@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ArrowDownRight, ArrowUpRight } from "@phosphor-icons/react";
-import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import Analyzer from "@/components/Analyzer";
 
@@ -42,12 +42,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const { scrollYProgress: storyProgress } = useScroll({ target: storyRef, offset: ["start start", "end end"] });
   const heroPanelY = useTransform(heroProgress, [0, 1], [0, 22]);
-  const globeScrollY = useTransform(heroProgress, [0, 1], [0, -62]);
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const globeX = useSpring(pointerX, { stiffness: 48, damping: 22, mass: 0.9 });
-  const globePointerY = useSpring(pointerY, { stiffness: 48, damping: 22, mass: 0.9 });
-  const globeY = useTransform([globePointerY, globeScrollY], ([pointer, scroll]) => Number(pointer) + Number(scroll));
   const stepOneOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [1, 1, 0, 0, 0, 0]);
   const stepTwoOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [0, 0, 1, 1, 0, 0]);
   const stepThreeOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [0, 0, 0, 0, 1, 1]);
@@ -66,18 +60,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
     document.getElementById("how-it-works")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   }, []);
 
-  function moveGlobe(event: React.PointerEvent<HTMLElement>) {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || event.pointerType === "touch") return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    pointerX.set(((event.clientX - bounds.left) / bounds.width - 0.5) * 24);
-    pointerY.set(((event.clientY - bounds.top) / bounds.height - 0.5) * 18);
-  }
-
-  function resetGlobe() {
-    pointerX.set(0);
-    pointerY.set(0);
-  }
-
   useEffect(() => {
     window.addEventListener("veritas:how-it-works", followSignal);
     return () => window.removeEventListener("veritas:how-it-works", followSignal);
@@ -85,38 +67,9 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
 
   return (
     <div data-app-stage="landing" className="landing-shell">
-      <section ref={heroRef} onPointerMove={moveGlobe} onPointerLeave={resetGlobe} className="landing-hero relative isolate min-h-[min(900px,calc(100svh-68px))] overflow-hidden px-4 py-16 sm:px-8 lg:px-12">
-        <div className="landing-hero-grain pointer-events-none absolute inset-0" aria-hidden="true" />
-
-        <motion.div
-          aria-hidden="true"
-          className="landing-signal-globe pointer-events-none absolute"
-          style={{ x: globeX, y: globeY }}
-        >
-          <div className="landing-globe-halo" />
-          <div className="landing-globe-dots" />
-          <div className="landing-globe-shade" />
-          <div className="landing-globe-ring landing-globe-ring-a" />
-          <div className="landing-globe-ring landing-globe-ring-b" />
-          <span className="landing-globe-reticle landing-globe-reticle-top" />
-          <span className="landing-globe-reticle landing-globe-reticle-bottom" />
-        </motion.div>
-
-        <div className="landing-hero-index pointer-events-none absolute left-4 top-8 z-10 font-mono text-[9px] uppercase tracking-[0.17em] text-white/45 sm:left-8 lg:left-12">
-          <span>Field note</span><span className="mx-3 text-lime-300/70">/</span><span>Veritas signal 001</span>
-        </div>
-
+      <section ref={heroRef} className="landing-hero relative isolate min-h-[min(900px,calc(100svh-68px))] overflow-hidden px-4 py-16 sm:px-8 lg:px-12">
         <div className="landing-hero-copy relative z-10 mx-auto w-full max-w-[1440px]">
           <div className="landing-hero-intro max-w-[730px]">
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.12, ease: [0.2, 0.8, 0.2, 1] }}
-              className="mb-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/65 sm:mb-7 sm:text-xs"
-            >
-              <span className="landing-live-dot size-2 rounded-full bg-lime-300" /> Independent media checks
-            </motion.p>
-
             <h1 className="landing-display text-white">
               <span className="landing-title-mask"><motion.span initial={{ y: "112%", scaleX: 0.82 }} animate={{ y: 0, scaleX: 0.82 }} transition={{ duration: 0.85, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}>Look beyond</motion.span></span>
               <span className="landing-title-mask landing-title-outline"><motion.span initial={{ y: "112%", scaleX: 0.82 }} animate={{ y: 0, scaleX: 0.82 }} transition={{ duration: 0.9, delay: 0.17, ease: [0.16, 1, 0.3, 1] }}>the moment<span className="landing-title-period">.</span></motion.span></span>
@@ -151,7 +104,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 onClick={followSignal}
                 className="group inline-flex min-h-12 items-center gap-3 text-sm font-medium text-white/80 transition-colors hover:text-white"
               >
-                Follow the signal <ArrowDownRight size={17} className="transition-transform group-hover:translate-x-1 group-hover:translate-y-1" aria-hidden />
+                See how it works <ArrowDownRight size={17} className="transition-transform group-hover:translate-x-1 group-hover:translate-y-1" aria-hidden />
               </button>
             </motion.div>
 
@@ -170,7 +123,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
             style={{ y: heroPanelY }}
           >
-            <div className="landing-card-orbit" aria-hidden="true" />
             <div className="mb-4 flex items-center justify-between gap-4 px-1">
               <div>
                 <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--ink-3)]">Veritas / Check</span>
@@ -183,19 +135,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
           </motion.div>
         </div>
 
-        <div className="landing-hero-index landing-scroll-note pointer-events-none absolute bottom-[68px] left-4 z-10 hidden items-center gap-3 font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 sm:flex sm:left-8 lg:left-12">
-          <span className="landing-scroll-mark" aria-hidden="true" /> Scroll to follow the signal
-        </div>
-
-        <div className="landing-marquee absolute bottom-0 left-0 right-0 z-10 overflow-hidden border-t border-white/10" aria-hidden="true">
-          <div className="landing-marquee-track flex w-max items-center py-4 font-mono text-[9px] uppercase tracking-[0.24em] text-white/50 sm:py-[18px]">
-            {Array.from({ length: 2 }, (_, copy) => (
-              <span key={copy} aria-hidden={copy > 0} className="flex shrink-0 items-center">
-                {(["Trace", "Compare", "Context", "Evidence", "Caveats"] as const).map((word) => <span key={word} className="mx-5 inline-flex items-center gap-5 sm:mx-8 sm:gap-8">{word}<span className="landing-marquee-star" aria-hidden="true">✳</span></span>)}
-              </span>
-            ))}
-          </div>
-        </div>
       </section>
 
       <section ref={storyRef} id="how-it-works" className="landing-story scroll-mt-[68px] px-4 py-16 sm:px-8 sm:py-20 lg:min-h-[270vh] lg:px-12 lg:py-0">
@@ -282,7 +221,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       </section>
 
       <section className="landing-close relative isolate overflow-hidden px-4 py-24 sm:px-8 sm:py-32 lg:px-12 lg:py-40">
-        <div className="landing-close-orbit absolute -right-36 -top-40 -z-10 size-[min(80vw,850px)] rounded-full border border-white/10" aria-hidden="true" />
         <div className="mx-auto grid max-w-[1440px] items-end gap-10 lg:grid-cols-[1fr_auto]">
           <motion.div
             initial={{ opacity: 0, y: 22 }}

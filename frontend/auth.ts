@@ -3,7 +3,6 @@ import NextAuth from "next-auth";
 import type { Provider } from "next-auth/providers";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
-import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
 const configuredProviders: Provider[] = [];
 
@@ -40,18 +39,9 @@ if (process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET) {
     },
   }));
 }
-if (process.env.AUTH_MICROSOFT_ENTRA_ID_ID && process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET) {
-  configuredProviders.push(MicrosoftEntraID({
-    issuer: process.env.AUTH_MICROSOFT_ENTRA_ID_ISSUER || "https://login.microsoftonline.com/common/v2.0/",
-  }));
-}
-
 export const enabledAuthProviders = [
-  ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? [{ id: "google", name: "Google" }] : []),
   ...(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET ? [{ id: "github", name: "GitHub" }] : []),
-  ...(process.env.AUTH_MICROSOFT_ENTRA_ID_ID && process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET
-    ? [{ id: "microsoft-entra-id", name: "Microsoft" }]
-    : []),
+  ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? [{ id: "google", name: "Google" }] : []),
 ];
 
 function accountId(identity: string): string {
@@ -68,11 +58,10 @@ export const { handlers, auth } = NextAuth({
     },
     jwt({ token, account, user }) {
       if (account?.provider && account.providerAccountId) {
-        // Google and GitHub only enter this path with verified email addresses.
-        // Microsoft email claims can be mutable/unverified, so keep its account ID provider-scoped.
-        const identity = account.provider === "microsoft-entra-id" || !user?.email
-          ? `${account.provider}:${account.providerAccountId}`
-          : `verified-email:${user.email.trim().toLowerCase()}`;
+        // Both configured providers only enter this path with a verified email address.
+        const identity = user?.email
+          ? `verified-email:${user.email.trim().toLowerCase()}`
+          : `${account.provider}:${account.providerAccountId}`;
         token.sub = accountId(identity);
         token.veritasAuthTime = Date.now();
       }

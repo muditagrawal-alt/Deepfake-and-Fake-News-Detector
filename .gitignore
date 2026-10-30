@@ -37,8 +37,9 @@ cache/
 *.jpg
 *.png
 
-# ...except documentation assets
+# ...except documentation and frontend assets
 !docs/assets/**
+!frontend/public/**
 
 # Datasets: media stays local, benchmark definitions and results are tracked.
 # (Use data/* not data/ so git still descends into the directory.)

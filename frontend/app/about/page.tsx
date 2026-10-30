@@ -11,24 +11,36 @@ const METHOD: [string, string][] = [
 
 export default function About() {
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-12 pb-20 sm:pt-16">
-      <h1 className="text-4xl font-semibold tracking-tight">How it works</h1>
-      <p className="mt-3 text-ink-2 text-[17px] leading-relaxed max-w-[60ch]">
-        Measured file facts, a model&apos;s reading of the content, and independent evidence from the web, with every source shown to you.
-      </p>
+    <article className="about-page mx-auto max-w-[1120px] px-4 pb-20 pt-10 sm:px-8 sm:pt-14 lg:px-12">
+      <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-ink-2 transition-colors hover:text-accent">
+        <span aria-hidden>←</span> Veritas
+      </Link>
+      <header className="mt-10 max-w-[760px]">
+        <p className="about-eyebrow">Technical method</p>
+        <h1 className="mt-4 text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[1.05] tracking-[-0.055em]">How each review is built.</h1>
+        <p className="mt-5 max-w-[64ch] text-base leading-7 text-ink-2 sm:text-lg">
+          Veritas combines measured file details, a model&apos;s reading of the material and independent evidence from the web. Sources and limitations stay visible alongside the assessment.
+        </p>
+      </header>
 
-      <div className="mt-12 space-y-10">
-        {METHOD.map(([title, body]) => (
-          <section key={title} className="grid gap-2 sm:grid-cols-[9rem_1fr] sm:gap-6">
-            <h2 className="text-base font-semibold">{title}</h2>
-            <p className="text-sm text-ink-2 leading-relaxed">{body}</p>
+      <div className="about-method-list mt-12 border-t border-line">
+        {METHOD.map(([title, body], index) => (
+          <section key={title} className="about-method-row grid gap-3 border-b border-line py-6 sm:grid-cols-[56px_180px_1fr] sm:gap-6 sm:py-8">
+            <span className="font-mono text-xs tabular-nums text-ink-3">{String(index + 1).padStart(2, "0")}</span>
+            <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+            <p className="max-w-[72ch] text-sm leading-7 text-ink-2">{body}</p>
           </section>
         ))}
       </div>
 
-      <p className="mt-14 text-sm text-ink-2">
-        <Link href="/#check" className="underline decoration-line-strong underline-offset-2 hover:text-accent">Back to the checker</Link>
+      <aside className="about-limit mt-8 max-w-[850px] border-l-2 border-accent px-5 py-1">
+        <h2 className="text-sm font-semibold">What a result can and cannot tell you</h2>
+        <p className="mt-2 text-sm leading-6 text-ink-2">A model can miss manipulation, repeat false information or overstate confidence. A result is an estimate to review with its evidence—not proof that media is genuine or fabricated.</p>
+      </aside>
+
+      <p className="mt-10">
+        <Link href="/#check" className="inline-flex min-h-11 items-center gap-2 rounded-control bg-accent px-4 text-sm font-semibold text-accent-ink transition-colors hover:opacity-90">Open the review workspace <span aria-hidden>↗</span></Link>
       </p>
-    </div>
+    </article>
   );
 }

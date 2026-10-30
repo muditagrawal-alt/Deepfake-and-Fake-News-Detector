@@ -3,7 +3,7 @@
 # Veritas
 
 **Is it real?** A multimodal misinformation checker for news links, images and short videos.
-It returns a verdict, a calibrated confidence, the individual claims it checked, and the sources behind them.
+It returns a verdict, a model-reported confidence estimate, the individual claims it checked, and the sources behind them. Confidence has not been empirically calibrated.
 
 **[Try it live](https://veritas-check.vercel.app)** · [Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Results](#results)
 
@@ -48,15 +48,17 @@ vision-language model through [Ollama](https://ollama.com) (`LLM_ENGINE=ollama`,
 
 ```mermaid
 flowchart LR
-  U([User]) --> FE["Next.js frontend"]
-  FE -->|"JSON or multipart"| API["FastAPI backend"]
+  U([User]) --> FE["Next.js frontend + OAuth session"]
+  FE -->|"short-lived signed user token; JSON or multipart"| API["FastAPI backend"]
 
   subgraph API_INTERNALS ["Backend"]
     direction TB
     GATE["Rate limit + quota gate<br/>per-IP, RPM window, daily cap"]
+    ACCT["User quota + encrypted keys + history<br/>PostgreSQL or local SQLite"]
     FOR["Measured facts"]
     ANA["Engine<br/>analyse → retrieve → verify"]
     GATE --> ANA
+    ACCT --> GATE
     FOR --> ANA
   end
 
@@ -75,8 +77,10 @@ flowchart LR
   OUT --> FE
 ```
 
-**Why this split:** the frontend is fully static, uploads go straight to the API
-rather than through it, and the model keys never leave the backend.
+**Why this split:** the Next.js server handles OAuth and mints short-lived tokens
+for the separate API. Uploads go straight to the API. Shared provider keys stay on
+the backend; personal keys are encrypted in the account database and never returned
+to the browser after saving.
 
 ## Execution flow
 
@@ -89,8 +93,8 @@ sequenceDiagram
   participant G as Model (Gemini or local)
   participant W as Web research
 
-  U->>A: POST /analyze/{news|image|video}
-  A->>A: Validate size, type and duration, check quota
+  U->>A: POST /analyze/{news|image|video} + signed user token
+  A->>A: Validate user and upload; reserve a shared free use or select BYOK
   A->>L: Extract article / EXIF / ffprobe + frames + audio
   L-->>A: Forensic signals (JSON)
 
@@ -121,7 +125,7 @@ the live stage (`sampling frames`, `uploading`, `verifying claims on the web`).
 | Python 3.11+ | Backend |
 | Node.js 20+ | Frontend |
 | ffmpeg and ffprobe | `brew install ffmpeg` / `apt install ffmpeg`. Needed for video |
-| Gemini API key | Free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| Gemini API key | Free at [Google AI Studio](https://aistudio.google.com/app/apikey) |
 | Groq API key (optional) | Free at [console.groq.com/keys](https://console.groq.com/keys). Whisper transcript fallback |
 | Tavily API key (optional) | Free at [app.tavily.com](https://app.tavily.com). Faster, more reliable search than the default |
 
@@ -139,7 +143,19 @@ Open `.env` and fill in at least `GEMINI_API_KEY`. The file is git-ignored.
 GEMINI_API_KEY=your-key-here
 GROQ_API_KEY=
 TAVILY_API_KEY=
+BACKEND_TOKEN_SECRET=copy-the-same-random-value-to-frontend-too
+BYOK_ENCRYPTION_KEY=generate-a-url-safe-base64-32-byte-key
 ```
+
+Generate these values instead of reusing a human password:
+
+```bash
+openssl rand -hex 32
+python -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
+openssl rand -base64 32
+```
+
+Use the first output as `BACKEND_TOKEN_SECRET` in both apps. Use the second as `BYOK_ENCRYPTION_KEY` in the backend only, and the third as the frontend `AUTH_SECRET`. The encryption key must remain stable or saved provider keys cannot be decrypted.
 
 ### 2. Backend
 
@@ -150,7 +166,7 @@ pip install -r requirements.txt
 uvicorn detector.main:app --reload --port 7860
 ```
 
-First run downloads the 354 MB ONNX detector into `backend/models/`. Verify:
+The default setup does not download the optional 354 MB ONNX image detector. Set `ENABLE_ONNX_DETECTOR=true` to enable it; it needs substantially more memory and downloads into `backend/models/`. Verify:
 
 ```bash
 curl -s localhost:7860/health
@@ -161,10 +177,29 @@ curl -s localhost:7860/health
 ```bash
 cd frontend
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Open <http://localhost:3000>. `frontend/.env.local` points at `http://localhost:7860` by default.
+Copy `frontend/.env.example` to `frontend/.env.local`, set `AUTH_SECRET`, `NEXT_PUBLIC_API_URL`, and the same `BACKEND_TOKEN_SECRET` value used by the backend. Create OAuth apps for the providers you want and set their client IDs and secrets. At least one provider needs both values; sign-in buttons appear only for configured providers.
+
+Register these local callback URLs in each OAuth app:
+
+```text
+http://localhost:3000/api/auth/callback/google
+http://localhost:3000/api/auth/callback/github
+http://localhost:3000/api/auth/callback/microsoft-entra-id
+```
+
+For production, use the same paths on your frontend host (for example, `https://your-app.vercel.app/api/auth/callback/google`). In Microsoft Entra, the default `common` issuer allows personal and work/school accounts; use a tenant-specific issuer to restrict sign-in.
+
+Google and GitHub accounts with the same verified email share quota and history. Microsoft Entra uses its provider identity because its email claim is not a reliable account-linking key; linking a Microsoft login to an existing Google/GitHub account is not implemented yet.
+
+Users receive **three free detections total** across news, images and videos. Afterward, they need a Gemini or OpenRouter key; optional Groq and Tavily keys enable transcription and search. Keys are encrypted using `BYOK_ENCRYPTION_KEY`. Local SQLite is suitable for development. For a deployed service, set `DATABASE_URL` to a durable PostgreSQL database: the included free Render service has an ephemeral filesystem, so its SQLite file would not preserve accounts, keys or history across restarts/deploys.
+
+The workspace includes a first-visit walkthrough, a deployment capabilities page, collapsible navigation, profile actions, recent detection history, and JSON history export. The profile menu can sign out or permanently delete the account, keys, and saved results.
+
+OAuth setup follows the official [Auth.js Next.js integration](https://authjs.dev/getting-started/installation?framework=Next.js) and provider guides for [Google](https://authjs.dev/getting-started/providers/google), [GitHub](https://authjs.dev/getting-started/providers/github), and [Microsoft Entra ID](https://authjs.dev/getting-started/providers/microsoft-entra-id).
 
 ### Command line, without the UI
 
@@ -194,10 +229,14 @@ deployment). All responses are JSON.
 | Method | Endpoint | Body | Returns |
 |---|---|---|---|
 | `GET` | `/health` | | Provider status, model ids, remaining quota |
-| `POST` | `/analyze/news` | `{"url": "..."}` | `AnalysisResult` |
-| `POST` | `/analyze/image` | multipart `file` | `AnalysisResult` |
-| `POST` | `/analyze/video` | multipart `file` | `202 {"job_id"}` |
-| `GET` | `/jobs/{job_id}` | | `{status, stage, result}` |
+| `POST` | `/analyze/news` | Bearer token + `{"url": "..."}` | `AnalysisResult` |
+| `POST` | `/analyze/image` | Bearer token + multipart `file`, optional `caption` | `AnalysisResult` |
+| `POST` | `/analyze/video` | Bearer token + multipart `file` | `202 {"job_id"}` |
+| `GET` | `/jobs/{job_id}` | Bearer token | `{status, stage, result}` (owner only) |
+| `GET` | `/account` | Bearer token | Free quota and saved key-provider names |
+| `GET` / `DELETE` | `/account/history` | Bearer token | Recent results / clear history |
+| `POST` | `/account/keys` | Bearer token + `{"provider": "gemini", "key": "..."}` | Save an encrypted key |
+| `DELETE` | `/account/keys/{provider}` | Bearer token | Remove a saved key |
 
 <details>
 <summary><code>AnalysisResult</code> shape</summary>

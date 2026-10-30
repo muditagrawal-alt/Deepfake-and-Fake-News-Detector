@@ -22,7 +22,7 @@ Search grounding, structured JSON) and **Groq Whisper** for transcripts.
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example ../.env        # then fill in GEMINI_API_KEY and GROQ_API_KEY
+cp .env.example ../.env        # fill in GEMINI_API_KEY and BACKEND_TOKEN_SECRET
 uvicorn detector.main:app --reload --port 7860
 ```
 
@@ -48,9 +48,13 @@ python -m eval.run_eval --modality video
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/health` | – | provider status, quota left |
-| POST | `/analyze/news` | `{"url": "..."}` | `AnalysisResult` |
-| POST | `/analyze/image` | multipart `file` | `AnalysisResult` |
-| POST | `/analyze/video` | multipart `file` | `202 {"job_id"}` → poll `/jobs/{id}` |
+| POST | `/analyze/news` | bearer token + `{"url": "..."}` | `AnalysisResult` |
+| POST | `/analyze/image` | bearer token + multipart `file`, optional `caption` | `AnalysisResult` |
+| POST | `/analyze/video` | bearer token + multipart `file` | `202 {"job_id"}` → owner polls `/jobs/{id}` |
+| GET | `/account` | bearer token | free uses and saved key-provider names |
+| GET/DELETE | `/account/history` | bearer token | recent results / clear saved history |
+| POST | `/account/keys` | bearer token + provider/key JSON | save encrypted key |
+| DELETE | `/account/keys/{provider}` | bearer token | delete saved key |
 
 `AnalysisResult` = `verdict` (LIKELY_REAL / LIKELY_FAKE / UNCERTAIN), `confidence`,
 `summary`, `reasoning`, `claims[]` (each with status + sources), `signals[]`,
@@ -61,16 +65,19 @@ python -m eval.run_eval --modality video
 1. Create a Space → **Gradio** SDK, hardware **CPU basic**.
 2. Push this `backend/` folder as the Space repo root:
    `./scripts/deploy_space.sh <user>/<space>` from the repository root.
-3. Space **Settings → Secrets**: `GEMINI_API_KEY`, `GROQ_API_KEY` (+ optional ones).
-   **Variables**: `ALLOWED_ORIGINS=https://<your-frontend>.vercel.app`,
-   and optionally `FRONTEND_URL` so the demo page links back to it.
+3. Space **Settings → Secrets**: `GEMINI_API_KEY`, `BACKEND_TOKEN_SECRET`,
+   `BYOK_ENCRYPTION_KEY`, and optional `GROQ_API_KEY` / `TAVILY_API_KEY`.
+   Set `DATABASE_URL` to a durable PostgreSQL service for accounts, quota, saved
+   keys and history. The local SQLite fallback is not persistent on ephemeral hosts.
+   **Variables**: `ALLOWED_ORIGINS=https://<your-frontend>.vercel.app`, and optionally
+   `FRONTEND_URL` so the service card links back to it.
 
 The Space uses the **Gradio SDK as a runtime only**: it runs `python app.py` and
 proxies the port, and `app.py` starts this FastAPI app. No Gradio interface is
 served; the user interface is the separate Next.js deployment. ffmpeg is
 pre-installed in that image, and `packages.txt` makes the dependency explicit.
-The ONNX detector is fetched on first use and warmed in the background at startup,
-so the first boot after a rebuild takes an extra minute.
+The ONNX detector is off by default; it is fetched and warmed only if
+`ENABLE_ONNX_DETECTOR=true`. It requires more memory than the free Space provides.
 
 A `Dockerfile` is kept for hosts that support containers (Render, Railway, Fly, or a
 Docker Space if you have one). It pre-downloads the detector at build time.
@@ -80,6 +87,10 @@ Docker Space if you have one). It pre-downloads the detector at build time.
 Per-IP rate limit (`RATE_LIMIT_PER_IP`), a sliding-window RPM gate and a hard
 daily counter (`GEMINI_DAILY_QUOTA`) sit in front of every LLM call; the API
 answers 429/503 with a readable message instead of failing mid-analysis.
-Upload caps: `MAX_IMAGE_MB`, `MAX_VIDEO_MB`, `MAX_VIDEO_SECONDS`.
+Upload caps: `MAX_IMAGE_MB`, `MAX_IMAGE_PIXELS`, `MAX_VIDEO_MB`, `MAX_VIDEO_SECONDS`.
 
 The `Organika/sdxl-detector` model is CC-BY-NC-3.0 — non-commercial use only.
+The three free detections are shared across all input types. After the limit,
+Gemini or OpenRouter must be saved as a user key. All saved provider keys are
+encrypted with AES-GCM using `BYOK_ENCRYPTION_KEY`; changing that secret makes
+existing saved keys unreadable, so retain a secure backup when rotating secrets.

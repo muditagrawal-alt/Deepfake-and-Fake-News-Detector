@@ -21,6 +21,13 @@ services:
         value: "false"
       - key: ALLOWED_ORIGINS
         value: "http://localhost:3000"
+      # Configure a durable PostgreSQL database; Render's free filesystem is ephemeral.
+      - key: DATABASE_URL
+        sync: false
+      - key: BACKEND_TOKEN_SECRET
+        sync: false
+      - key: BYOK_ENCRYPTION_KEY
+        sync: false
       - key: GEMINI_API_KEY
         sync: false                 # set in the dashboard, never in git
       - key: GROQ_API_KEY

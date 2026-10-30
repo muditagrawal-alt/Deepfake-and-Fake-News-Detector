@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowRight, ArrowUpRight, FilmStrip, Image as ImageIcon, Newspaper } from "@phosphor-icons/react";
-import { motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect } from "react";
+import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { Fragment, useCallback, useEffect, useRef, type RefObject } from "react";
 import Analyzer from "@/components/Analyzer";
 
 const INPUT_TYPES = [
@@ -32,8 +32,50 @@ const REVIEW_STEPS = [
   },
 ] as const;
 
+function ScrollRevealWord({ word, index, count, progress, reduceMotion }: {
+  word: string;
+  index: number;
+  count: number;
+  progress: MotionValue<number>;
+  reduceMotion: boolean;
+}) {
+  const start = (index / Math.max(count - 1, 1)) * 0.8;
+  const end = Math.min(start + 0.32, 1);
+  const opacity = useTransform(progress, [start, end], [0.48, 1]);
+  const y = useTransform(progress, [start, end], [4, 0]);
+
+  return <motion.span style={reduceMotion ? { opacity: 1, y: 0 } : { opacity, y }} className="inline-block">{word}</motion.span>;
+}
+
+/** A restrained, Motion-powered adaptation of React Bits' word-by-word Scroll Reveal. */
+function ScrollRevealHeading({ text, progress, headingRef, reduceMotion }: {
+  text: string;
+  progress: MotionValue<number>;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  reduceMotion: boolean;
+}) {
+  const words = text.split(" ");
+
+  return (
+    <h2 ref={headingRef} className="mt-4 text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.045em] text-white">
+      {words.map((word, index) => (
+        <Fragment key={`${word}-${index}`}>
+          <ScrollRevealWord word={word} index={index} count={words.length} progress={progress} reduceMotion={reduceMotion} />
+          {index < words.length - 1 ? " " : null}
+        </Fragment>
+      ))}
+    </h2>
+  );
+}
+
 export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const reduceMotion = useReducedMotion();
+  const evidenceHeadingRef = useRef<HTMLHeadingElement>(null);
+  const { scrollYProgress: pageProgress } = useScroll();
+  const { scrollYProgress: evidenceProgress } = useScroll({
+    target: evidenceHeadingRef,
+    offset: ["start 0.92", "start 0.34"],
+  });
 
   const scrollToWorkflow = useCallback(() => {
     document.getElementById("how-it-works")?.scrollIntoView({
@@ -49,6 +91,11 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
 
   return (
     <div data-app-stage="landing" className="landing-shell">
+      <motion.div
+        aria-hidden="true"
+        className="landing-scroll-progress fixed inset-x-0 top-[68px] z-30 h-px origin-left"
+        style={{ scaleX: reduceMotion ? 0 : pageProgress }}
+      />
       <section id="platform" className="landing-hero px-4 sm:px-8 lg:px-12">
         <div className="landing-hero-grid mx-auto grid max-w-[1320px] items-center gap-12 py-16 sm:py-20 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16 lg:py-24">
           <div className="landing-hero-copy">
@@ -114,9 +161,12 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
           <div className="landing-section-heading grid gap-5 md:grid-cols-[0.9fr_1.1fr] md:items-end md:gap-12">
             <div>
               <p className="landing-kicker">How a review works</p>
-              <h2 className="mt-4 text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.045em] text-white">
-                Evidence stays close to the decision.
-              </h2>
+              <ScrollRevealHeading
+                headingRef={evidenceHeadingRef}
+                progress={evidenceProgress}
+                reduceMotion={!!reduceMotion}
+                text="Evidence stays close to the decision."
+              />
             </div>
             <p className="max-w-[58ch] text-sm leading-6 text-white/65 sm:text-base sm:leading-7">
               Each review follows a clear path from the original material to the sources and reasoning behind the assessment.

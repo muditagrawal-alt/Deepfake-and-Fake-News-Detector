@@ -6,45 +6,24 @@
   badges 6px. No pure black or white.
 */
 :root {
-  --bg: #f5f7fa;
-  --elev: #ffffff;
-  --ink: #182230;
-  --ink-2: #536174;
-  --ink-3: #748195;
-  --line: #dce3eb;
-  --line-strong: #b9c5d3;
-  --accent: #255db6;
-  --accent-ink: #ffffff;
-  --accent-soft: #e9f0fb;
-  --real: #217a47;
-  --real-soft: #e8f3ec;
-  --fake: #b42318;
-  --fake-soft: #fae9e7;
-  --warn: #925c08;
-  --warn-soft: #f6efdf;
-  --shadow: 31 45 66;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f141b;
-    --elev: #161e28;
-    --ink: #e8edf3;
-    --ink-2: #b4bfcc;
-    --ink-3: #8290a0;
-    --line: #293443;
-    --line-strong: #3e4e60;
-    --accent: #8fb4ea;
-    --accent-ink: #0e1b2c;
-    --accent-soft: #1a2a41;
-    --real: #72c994;
-    --real-soft: #172d20;
-    --fake: #f08d84;
-    --fake-soft: #351e1e;
-    --warn: #e3b567;
-    --warn-soft: #342a19;
-    --shadow: 0 0 0;
-  }
+  color-scheme: dark;
+  --bg: #0b0e12;
+  --elev: #131922;
+  --ink: #edf2f7;
+  --ink-2: #b5c0cd;
+  --ink-3: #8491a0;
+  --line: #26313d;
+  --line-strong: #3a4a5b;
+  --accent: #93b5e8;
+  --accent-ink: #101a29;
+  --accent-soft: #1b2c44;
+  --real: #72c994;
+  --real-soft: #172d20;
+  --fake: #f08d84;
+  --fake-soft: #351e1e;
+  --warn: #e3b567;
+  --warn-soft: #342a19;
+  --shadow: 0 0 0;
 }
 
 @theme inline {
@@ -113,30 +92,11 @@ button:not(:disabled):active {
   .soft-pulse { animation: soft-pulse 1.8s ease-in-out infinite; }
 }
 
-/* Shared enterprise workspace and dark Veritas marketing system. */
-body:has([data-app-stage="landing"]) {
-  --bg: #0d141d;
-  --elev: #151e29;
-  --ink: #eef3f8;
-  --ink-2: #b2becc;
-  --ink-3: #8492a3;
-  --line: #293747;
-  --line-strong: #415368;
-  --accent: #93b5e8;
-  --accent-ink: #101a29;
-  --accent-soft: #1b2c44;
-  --real: #72c994;
-  --real-soft: #172d20;
-  --fake: #f08d84;
-  --fake-soft: #351e1e;
-  --warn: #e3b567;
-  --warn-soft: #342a19;
-  --shadow: 0 0 0;
-  background: var(--bg);
-  color: var(--ink);
-}
-
+/* Product-wide header, landing, workspace and documentation surfaces. */
 .site-header { color: var(--ink); }
+.site-brand-mark {
+  clip-path: polygon(48% 4.5%, 89% 18.5%, 89% 46%, 93% 51%, 87% 58%, 83% 68%, 74% 78%, 48% 98%, 23% 78%, 15% 68%, 10% 58%, 4% 51%, 7% 46%, 7% 18.5%);
+}
 .site-nav-link {
   display: inline-flex;
   min-height: 40px;
@@ -165,7 +125,8 @@ body:has([data-app-stage="landing"]) {
 .landing-secondary-button:hover { border-color: rgb(255 255 255 / 38%); background: rgb(255 255 255 / 5%); color: #fff; }
 
 .landing-shell { overflow-x: clip; background: var(--bg); color: var(--ink); }
-.landing-hero { border-bottom: 1px solid rgb(255 255 255 / 10%); background: #0d141d; }
+.landing-scroll-progress { background: var(--accent); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 32%, transparent); }
+.landing-hero { border-bottom: 1px solid rgb(255 255 255 / 10%); background: var(--bg); }
 .landing-hero-grid { min-height: 600px; }
 .landing-eyebrow {
   border-left: 2px solid var(--accent);
@@ -189,7 +150,7 @@ body:has([data-app-stage="landing"]) {
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 14%);
   border-radius: var(--radius-panel);
-  background: #151e29;
+  background: var(--elev);
   box-shadow: 0 20px 48px -36px rgb(0 0 0 / 65%);
   padding: 20px;
 }
@@ -215,10 +176,10 @@ body:has([data-app-stage="landing"]) {
 .landing-tool-card [role="tablist"] { border-color: rgb(255 255 255 / 12%); }
 .landing-tool-card [role="tab"] { min-height: 46px; }
 .landing-preview-note { padding: 0 4px; color: rgb(255 255 255 / 48%); font-size: 11px; line-height: 1.6; }
-.landing-section { background: #0d141d; }
-.landing-kicker { color: #a9c3e8; font-size: 13px; font-weight: 600; }
+.landing-section { background: var(--bg); }
+.landing-kicker { color: var(--accent); font-size: 13px; font-weight: 600; }
 .landing-caveat { border-left: 2px solid var(--accent); padding-left: 14px; }
-.landing-control { border-top: 1px solid rgb(255 255 255 / 10%); background: #121a24; }
+.landing-control { border-top: 1px solid rgb(255 255 255 / 10%); background: var(--elev); }
 
 .workspace-shell { background: var(--bg); }
 .workspace-sidebar {

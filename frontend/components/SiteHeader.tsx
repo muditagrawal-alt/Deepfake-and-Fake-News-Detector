@@ -9,6 +9,12 @@ function stage() {
 }
 
 export default function SiteHeader() {
+  function handleHome(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (window.location.pathname !== "/") return;
+    event.preventDefault();
+    window.dispatchEvent(new Event("veritas:home"));
+  }
+
   function handleProduct(event: React.MouseEvent<HTMLAnchorElement>) {
     if (window.location.pathname !== "/") return;
     event.preventDefault();
@@ -36,8 +42,8 @@ export default function SiteHeader() {
   return (
     <header className="site-header sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
-        <Link href="/" aria-label="Veritas home" className="inline-flex shrink-0 items-center gap-3 rounded-control text-ink">
-          <Image src="/veritas-mark.png" alt="" aria-hidden width={36} height={36} priority className="size-9 shrink-0 rounded-full border border-line bg-white object-cover" />
+        <Link href="/" onClick={handleHome} aria-label="Veritas home" className="inline-flex shrink-0 items-center gap-3 rounded-control text-ink">
+          <Image src="/veritas-mark.png" alt="" aria-hidden width={38} height={39} priority className="site-brand-mark size-[37px] shrink-0 object-cover" />
           <span className="text-[15px] font-semibold tracking-[-0.035em]">Veritas</span>
         </Link>
 

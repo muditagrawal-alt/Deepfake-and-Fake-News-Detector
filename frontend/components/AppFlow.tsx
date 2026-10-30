@@ -677,8 +677,8 @@ function Workspace({ user }: { user: User }) {
           <div className={`flex h-full min-h-0 flex-col overflow-y-auto p-4 ${sidebarExpanded ? "" : "md:p-2"}`}>
             <div className="flex items-center justify-end gap-2 px-2 py-2 md:py-3">
               <button type="button" aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"} title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-                onClick={() => setSidebarExpanded((value) => !value)} className="hidden size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-white p-0 transition-[transform,box-shadow] duration-150 hover:scale-105 hover:shadow-md focus-visible:outline md:flex">
-                <Image src="/veritas-mark.png" width={36} height={36} alt="" aria-hidden className="size-full rounded-full object-cover" />
+                onClick={() => setSidebarExpanded((value) => !value)} className="hidden size-9 shrink-0 items-center justify-center bg-transparent p-0 transition-[transform,filter] duration-150 hover:scale-105 hover:drop-shadow-md focus-visible:outline md:flex">
+                <Image src="/veritas-mark.png" width={36} height={36} alt="" aria-hidden className="site-brand-mark size-full object-cover" />
               </button>
               <div className="flex items-center justify-end md:hidden">
                 <button type="button" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} className="rounded-control p-2 text-ink-2 hover:bg-elev"><X size={20} /></button>
@@ -784,7 +784,7 @@ function Workspace({ user }: { user: User }) {
 
         <section aria-label="Workspace content" className="workspace-content min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-8 sm:pt-7 lg:px-10">
           <div className="mb-6 flex items-center justify-between gap-3 md:hidden">
-            <button type="button" onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-sm"><Image src="/veritas-mark.png" width={20} height={20} alt="" aria-hidden className="size-5 rounded-full border border-line bg-white object-cover" /> Menu</button>
+            <button type="button" onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-sm"><Image src="/veritas-mark.png" width={20} height={20} alt="" aria-hidden className="site-brand-mark size-5 object-cover" /> Menu</button>
             <span className="truncate text-xs text-ink-3">{user.email}</span>
           </div>
           <div className="mx-auto max-w-[1120px]">
@@ -954,7 +954,8 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
   startInWorkspace?: boolean;
 }) {
   const [stage, setStage] = useState<Stage>(user ? "workspace" : "intro");
-  const visibleStage: Stage = user && startInWorkspace ? "workspace" : stage;
+  const [forceWorkspace, setForceWorkspace] = useState(startInWorkspace);
+  const visibleStage: Stage = user && forceWorkspace ? "workspace" : stage;
 
   useEffect(() => {
     function startReview() {
@@ -967,6 +968,16 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
     window.addEventListener("veritas:start", startReview);
     return () => window.removeEventListener("veritas:start", startReview);
   }, [user]);
+
+  useEffect(() => {
+    function returnHome() {
+      setForceWorkspace(false);
+      setStage("intro");
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener("veritas:home", returnHome);
+    return () => window.removeEventListener("veritas:home", returnHome);
+  }, []);
 
   function continueFromIntro() {
     setStage(user ? "workspace" : "auth");

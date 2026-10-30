@@ -953,6 +953,7 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
   providers: AuthProvider[];
   startInWorkspace?: boolean;
 }) {
+  const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState<Stage>(user ? "workspace" : "intro");
   const [forceWorkspace, setForceWorkspace] = useState(startInWorkspace);
   const visibleStage: Stage = user && forceWorkspace ? "workspace" : stage;
@@ -983,7 +984,26 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
     setStage(user ? "workspace" : "auth");
   }
 
-  if (visibleStage === "intro") return <Intro onContinue={continueFromIntro} />;
-  if (visibleStage === "auth" || !user) return <AuthScreen providers={providers} />;
-  return <Workspace user={user} />;
+  const stageTransition = {
+    duration: reduceMotion ? 0 : 0.48,
+    ease: [0.16, 1, 0.3, 1] as const,
+  };
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {visibleStage === "intro" ? (
+        <motion.div key="intro" className="w-full" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={stageTransition}>
+          <Intro onContinue={continueFromIntro} />
+        </motion.div>
+      ) : visibleStage === "auth" || !user ? (
+        <motion.div key="auth" className="w-full" initial={reduceMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={stageTransition}>
+          <AuthScreen providers={providers} />
+        </motion.div>
+      ) : (
+        <motion.div key="workspace" className="w-full" initial={reduceMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={stageTransition}>
+          <Workspace user={user} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

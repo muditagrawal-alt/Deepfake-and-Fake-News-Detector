@@ -19,7 +19,8 @@ export default function SiteHeader() {
     if (window.location.pathname !== "/") return;
     event.preventDefault();
     if (stage() === "landing") {
-      document.getElementById("product-check")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      document.getElementById("product-check")?.scrollIntoView({ behavior, block: "center" });
       return;
     }
     window.dispatchEvent(new Event("veritas:start"));
@@ -47,10 +48,10 @@ export default function SiteHeader() {
           <span className="text-[15px] font-semibold tracking-[-0.035em]">Veritas</span>
         </Link>
 
-        <nav aria-label="Main" className="flex min-w-0 items-center gap-0.5 sm:gap-1">
-          <Link href="/#product-check" onClick={handleProduct} className="site-nav-link">Product</Link>
+        <nav aria-label="Main" className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+          <Link href="/#product-check" onClick={handleProduct} className="site-nav-link site-nav-link--mobile-hidden">Product</Link>
           <Link href="/#how-it-works" onClick={handleHowItWorks} className="site-nav-link">How it works</Link>
-          <Link href="/about" className="site-nav-link hidden lg:inline-flex">Technical method</Link>
+          <Link href="/about" className="site-nav-link site-nav-link--desktop-only">Technical method</Link>
         </nav>
 
         <Link href="/" onClick={handleStart} className="site-header-cta inline-flex min-h-10 shrink-0 items-center gap-2 rounded-control px-3.5 text-xs font-semibold sm:px-4 sm:text-sm">

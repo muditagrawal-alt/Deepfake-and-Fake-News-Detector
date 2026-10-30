@@ -1,22 +1,21 @@
 @import "tailwindcss";
 
 /*
-  Tokens. One cool-neutral family, one restrained blue accent,
-  three semantic verdict colors. Radius scale: containers 12px, controls 8px,
-  badges 6px. No pure black or white.
+  Veritas product palette: true black surfaces, neutral graphite layers,
+  and semantic colors reserved for assessment states.
 */
 :root {
   color-scheme: dark;
-  --bg: #0b0e12;
-  --elev: #131922;
-  --ink: #edf2f7;
-  --ink-2: #b5c0cd;
-  --ink-3: #8491a0;
-  --line: #26313d;
-  --line-strong: #3a4a5b;
-  --accent: #93b5e8;
-  --accent-ink: #101a29;
-  --accent-soft: #1b2c44;
+  --bg: #050505;
+  --elev: #101010;
+  --ink: #f4f4f4;
+  --ink-2: #c2c2c2;
+  --ink-3: #898989;
+  --line: #272727;
+  --line-strong: #414141;
+  --accent: #eeeeee;
+  --accent-ink: #090909;
+  --accent-soft: #1d1d1d;
   --real: #72c994;
   --real-soft: #172d20;
   --fake: #f08d84;
@@ -99,6 +98,7 @@ button:not(:disabled):active {
 }
 .site-nav-link {
   display: inline-flex;
+  flex-shrink: 0;
   min-height: 40px;
   align-items: center;
   border-radius: var(--radius-control);
@@ -106,54 +106,72 @@ button:not(:disabled):active {
   color: var(--ink-2);
   font-size: 13px;
   font-weight: 500;
-  transition: background-color 160ms ease, color 160ms ease;
+  white-space: nowrap;
+  transition: background-color 220ms ease, color 220ms ease, transform 220ms ease;
 }
-.site-nav-link:hover { background: var(--elev); color: var(--ink); }
+.site-nav-link:hover { background: #161616; color: var(--ink); transform: translateY(-1px); }
+@media (max-width: 1023px) { .site-nav-link--desktop-only { display: none; } }
+@media (max-width: 639px) {
+  .site-nav-link--mobile-hidden { display: none; }
+  .site-nav-link { padding-inline: 8px; }
+}
 .site-header-cta,
 .landing-primary-button {
   background: var(--accent);
   color: var(--accent-ink);
-  transition: background-color 160ms ease, transform 160ms ease;
+  transition: background-color 220ms ease, color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
 }
 .site-header-cta:hover,
-.landing-primary-button:hover { background: color-mix(in srgb, var(--accent) 90%, white); }
+.landing-primary-button:hover {
+  background: #fff;
+  box-shadow: 0 8px 28px rgb(255 255 255 / 10%);
+  transform: translateY(-2px);
+}
 .landing-secondary-button {
   border: 1px solid rgb(255 255 255 / 20%);
   color: rgb(255 255 255 / 86%);
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition: border-color 240ms ease, background-color 240ms ease, color 240ms ease, transform 240ms ease;
 }
-.landing-secondary-button:hover { border-color: rgb(255 255 255 / 38%); background: rgb(255 255 255 / 5%); color: #fff; }
+.landing-secondary-button:hover { border-color: rgb(255 255 255 / 55%); background: rgb(255 255 255 / 7%); color: #fff; transform: translateY(-2px); }
 
 .landing-shell { overflow-x: clip; background: var(--bg); color: var(--ink); }
-.landing-scroll-progress { background: var(--accent); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 32%, transparent); }
-.landing-hero { border-bottom: 1px solid rgb(255 255 255 / 10%); background: var(--bg); }
+.landing-scroll-progress { background: linear-gradient(90deg, #fff, #858585); box-shadow: 0 0 16px rgb(255 255 255 / 24%); }
+.landing-hero {
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  background:
+    radial-gradient(ellipse 55% 60% at 88% 34%, rgb(255 255 255 / 5%), transparent 74%),
+    #050505;
+}
 .landing-hero-grid { min-height: 600px; }
 .landing-eyebrow {
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid #a7a7a7;
   padding-left: 12px;
-  color: rgb(255 255 255 / 72%);
+  color: rgb(255 255 255 / 66%);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 .landing-display {
-  max-width: 12ch;
+  max-width: 11ch;
   margin: 0;
-  font-size: clamp(2.9rem, 5.1vw, 4.65rem);
-  font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.062em;
+  font-size: clamp(3.2rem, 6vw, 5.35rem);
+  font-weight: 550;
+  line-height: 0.99;
+  letter-spacing: -0.073em;
   text-wrap: balance;
 }
 .landing-input-list > div + div { border-left: 1px solid rgb(255 255 255 / 15%); padding-left: 12px; }
 .landing-tool-card {
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid #292929;
   border-radius: var(--radius-panel);
-  background: var(--elev);
-  box-shadow: 0 20px 48px -36px rgb(0 0 0 / 65%);
+  background: #0d0d0d;
+  box-shadow: 0 28px 100px -58px rgb(255 255 255 / 16%);
   padding: 20px;
+  transition: border-color 360ms ease, box-shadow 360ms ease;
 }
+.landing-tool-card:hover { border-color: #454545; box-shadow: 0 32px 100px -54px rgb(255 255 255 / 22%); }
 .landing-preview-heading {
   display: flex;
   align-items: center;
@@ -176,15 +194,23 @@ button:not(:disabled):active {
 .landing-tool-card [role="tablist"] { border-color: rgb(255 255 255 / 12%); }
 .landing-tool-card [role="tab"] { min-height: 46px; }
 .landing-preview-note { padding: 0 4px; color: rgb(255 255 255 / 48%); font-size: 11px; line-height: 1.6; }
-.landing-section { background: var(--bg); }
-.landing-kicker { color: var(--accent); font-size: 13px; font-weight: 600; }
-.landing-caveat { border-left: 2px solid var(--accent); padding-left: 14px; }
-.landing-control { border-top: 1px solid rgb(255 255 255 / 10%); background: var(--elev); }
+.landing-section { background: #050505; }
+.landing-kicker { color: #b5b5b5; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.landing-caveat { border-left: 2px solid #747474; padding-left: 14px; }
+.landing-control { border-top: 1px solid rgb(255 255 255 / 10%); background: #0b0b0b; }
+.landing-workflow-row { transition: border-color 300ms ease; }
+.landing-workflow-row h3,
+.landing-control-list h3 { transition: transform 280ms ease; }
+.landing-workflow-row:hover { border-color: rgb(255 255 255 / 38%); }
+.landing-workflow-row:hover h3,
+.landing-control-list > div:hover h3 { transform: translateX(4px); }
+.landing-control-list > div { transition: background-color 280ms ease; }
+.landing-control-list > div:hover { background: rgb(255 255 255 / 2.5%); }
 
 .workspace-shell { background: var(--bg); }
 .workspace-sidebar {
   background: var(--elev);
-  box-shadow: 1px 0 0 rgb(18 36 58 / 3%);
+  box-shadow: 1px 0 0 rgb(255 255 255 / 3%);
 }
 .workspace-sidebar nav button[aria-current="page"] { box-shadow: inset 2px 0 var(--accent); }
 .workspace-sidebar nav button { min-height: 42px; }
@@ -195,7 +221,7 @@ body:has([data-app-stage="workspace"]) .site-header { background: color-mix(in s
 .site-footer { background: var(--bg); }
 .about-page { color: var(--ink); }
 .about-eyebrow { color: var(--accent); font-size: 13px; font-weight: 600; }
-.about-limit { background: color-mix(in srgb, var(--accent-soft) 48%, transparent); }
+.about-limit { background: color-mix(in srgb, var(--accent-soft) 72%, transparent); }
 
 [data-tour-active="true"] {
   position: relative;

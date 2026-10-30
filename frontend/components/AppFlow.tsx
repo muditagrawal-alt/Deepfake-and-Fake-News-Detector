@@ -8,8 +8,6 @@ import {
   CaretLeft,
   ClockCounterClockwise,
   FilmStrip,
-  GithubLogo,
-  GoogleLogo,
   Image as ImageIcon,
   Info,
   Key,
@@ -21,10 +19,11 @@ import {
   Trash,
   X,
 } from "@phosphor-icons/react";
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Intro from "@/components/Intro";
+import Authentication1 from "@/components/Authentication1";
 import Analyzer, { type AnalyzerMode } from "@/components/Analyzer";
 import ResultCard from "@/components/ResultCard";
 import {
@@ -61,67 +60,14 @@ const API_PROVIDERS = [
   { id: "tavily", name: "Tavily", kind: "Optional · web research", mark: "T", detail: "Adds a dedicated search API for finding independent sources." },
 ] as const;
 
-function ProviderLogo({ id }: { id: string }) {
-  if (id === "google") return <GoogleLogo size={21} weight="bold" aria-hidden />;
-  return <GithubLogo size={21} weight="fill" aria-hidden />;
-}
-
 function AuthScreen({ providers }: { providers: AuthProvider[] }) {
-  const [pending, setPending] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const configured = new Set(providers.map((provider) => provider.id));
-  const allProviders = [
-    { id: "github", name: "GitHub" },
-    { id: "google", name: "Google" },
-  ];
-
-  async function continueWith(provider: AuthProvider) {
-    setPending(provider.id);
-    setError("");
-    try {
-      await signIn(provider.id, { redirectTo: "/?signedIn=1" });
-    } catch {
-      setError("Sign-in could not start. Check the OAuth app settings and try again.");
-      setPending(null);
-    }
-  }
-
   return (
-    <section data-app-stage="auth" aria-label="Sign in" className="min-h-[calc(100dvh-4.25rem)] px-4 py-14 sm:py-20 flex items-center justify-center">
-      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}
-        className="w-full max-w-lg rounded-panel border border-line bg-elev p-7 shadow-panel sm:p-9">
-        <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-ink-3">
-          <ShieldCheck size={16} aria-hidden /> Private workspace
-        </div>
-        <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Sign in or create your account</h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink-2">Manage your API keys and optionally save results. Your three free detections work across news, images and video.</p>
-
-        <div className="mt-7 space-y-3">
-          {allProviders.map((provider) => {
-            const enabled = configured.has(provider.id);
-            return (
-              <button key={provider.id} type="button" disabled={!enabled || !!pending}
-                onClick={() => void continueWith(provider)}
-                className="flex w-full items-center gap-3 rounded-control border border-line-strong bg-bg px-4 py-3 text-left text-sm font-medium transition-colors hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-55">
-                <ProviderLogo id={provider.id} />
-                <span className="flex-1">Continue with {provider.name}</span>
-                {pending === provider.id ? <span className="size-4 animate-spin rounded-full border-2 border-accent border-r-transparent" />
-                  : !enabled ? <span className="text-xs font-normal text-ink-3">Not configured</span> : null}
-              </button>
-            );
-          })}
-        </div>
-
-        {error && <p role="alert" className="mt-4 rounded-control bg-fake-soft px-3 py-2 text-sm text-fake">{error}</p>}
-        {!providers.length && (
-          <p className="mt-5 rounded-control border border-warn/30 bg-warn-soft p-3 text-sm leading-relaxed text-ink-2">
-            Sign-in providers need OAuth app credentials in the frontend environment. See the setup steps in the project README.
-          </p>
-        )}
-        <p className="mt-6 border-t border-line pt-5 text-xs leading-relaxed text-ink-3">
-          By continuing, you agree to send submitted content to the configured analysis providers. Uploaded files are removed after processing; results are saved only when you turn on Save detection history.
-        </p>
-      </motion.section>
+    <section
+      data-app-stage="auth"
+      aria-label="Sign in"
+      className="min-h-[calc(100dvh-4.25rem)] px-4 py-12 sm:py-20 flex items-center justify-center relative"
+    >
+      <Authentication1 providers={providers} />
     </section>
   );
 }
@@ -954,16 +900,71 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
   startInWorkspace?: boolean;
 }) {
   const reduceMotion = useReducedMotion();
-  const [stage, setStage] = useState<Stage>(user ? "workspace" : "intro");
-  const [forceWorkspace, setForceWorkspace] = useState(startInWorkspace);
-  const visibleStage: Stage = user && forceWorkspace ? "workspace" : stage;
+
+  // Determine initial stage:
+  // 1. If startInWorkspace is true (e.g. ?signedIn=1 from OAuth redirect), go to workspace if user is logged in
+  // 2. Otherwise, check browser URL query ?stage=... or sessionStorage
+  // 3. If no explicit workspace request, default to "intro" (landing page)
+  const [stage, setStage] = useState<Stage>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlStage = params.get("stage");
+      const signedInParam = params.get("signedIn");
+      const storedStage = sessionStorage.getItem("veritas_stage");
+
+      if ((startInWorkspace || signedInParam === "1" || urlStage === "workspace" || storedStage === "workspace") && user) {
+        return "workspace";
+      }
+      if (urlStage === "auth" || storedStage === "auth") {
+        return user ? "workspace" : "auth";
+      }
+    }
+    return startInWorkspace && user ? "workspace" : "intro";
+  });
+
+  // Synchronize stage changes to sessionStorage and URL
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    sessionStorage.setItem("veritas_stage", stage);
+    const url = new URL(window.location.href);
+
+    if (stage === "workspace") {
+      url.searchParams.set("stage", "workspace");
+      url.searchParams.delete("signedIn");
+      window.history.replaceState(null, "", url.toString());
+    } else if (stage === "auth") {
+      url.searchParams.set("stage", "auth");
+      url.searchParams.delete("signedIn");
+      window.history.replaceState(null, "", url.toString());
+    } else {
+      if (url.searchParams.has("stage") || url.searchParams.has("signedIn")) {
+        url.searchParams.delete("stage");
+        url.searchParams.delete("signedIn");
+        window.history.replaceState(null, "", url.pathname + (url.hash || ""));
+      }
+      window.scrollTo(0, 0);
+    }
+  }, [stage]);
 
   useEffect(() => {
     function startReview() {
       if (user) {
+        setStage("workspace");
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("veritas_stage", "workspace");
+          const url = new URL(window.location.href);
+          url.searchParams.set("stage", "workspace");
+          window.history.replaceState(null, "", url.toString());
+        }
         window.dispatchEvent(new Event("veritas:new-check"));
       } else {
         setStage("auth");
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("veritas_stage", "auth");
+          const url = new URL(window.location.href);
+          url.searchParams.set("stage", "auth");
+          window.history.replaceState(null, "", url.toString());
+        }
       }
     }
     window.addEventListener("veritas:start", startReview);
@@ -972,16 +973,38 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
 
   useEffect(() => {
     function returnHome() {
-      setForceWorkspace(false);
       setStage("intro");
-      window.scrollTo(0, 0);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("veritas_stage", "intro");
+        const url = new URL(window.location.href);
+        url.searchParams.delete("stage");
+        url.searchParams.delete("signedIn");
+        window.history.replaceState(null, "", url.pathname + (url.hash || ""));
+        window.scrollTo(0, 0);
+      }
     }
     window.addEventListener("veritas:home", returnHome);
     return () => window.removeEventListener("veritas:home", returnHome);
   }, []);
 
   function continueFromIntro() {
-    setStage(user ? "workspace" : "auth");
+    if (user) {
+      setStage("workspace");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("veritas_stage", "workspace");
+        const url = new URL(window.location.href);
+        url.searchParams.set("stage", "workspace");
+        window.history.replaceState(null, "", url.toString());
+      }
+    } else {
+      setStage("auth");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("veritas_stage", "auth");
+        const url = new URL(window.location.href);
+        url.searchParams.set("stage", "auth");
+        window.history.replaceState(null, "", url.toString());
+      }
+    }
   }
 
   const stageTransition = {
@@ -991,11 +1014,11 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      {visibleStage === "intro" ? (
+      {stage === "intro" ? (
         <motion.div key="intro" className="w-full" initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={stageTransition}>
           <Intro onContinue={continueFromIntro} />
         </motion.div>
-      ) : visibleStage === "auth" || !user ? (
+      ) : stage === "auth" || !user ? (
         <motion.div key="auth" className="w-full" initial={reduceMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={stageTransition}>
           <AuthScreen providers={providers} />
         </motion.div>

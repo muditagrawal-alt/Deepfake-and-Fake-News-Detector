@@ -1,244 +1,193 @@
 "use client";
 
-import Image from "next/image";
-import { ArrowDownRight, ArrowUpRight } from "@phosphor-icons/react";
-import { motion, useScroll, useTransform } from "motion/react";
-import { useCallback, useEffect, useRef } from "react";
+import { ArrowRight, ArrowUpRight, FilmStrip, Image as ImageIcon, Newspaper } from "@phosphor-icons/react";
+import { motion, useReducedMotion } from "motion/react";
+import { useCallback, useEffect } from "react";
 import Analyzer from "@/components/Analyzer";
 
-const STORY_STEPS = [
+const INPUT_TYPES = [
+  { label: "News links", Icon: Newspaper },
+  { label: "Images", Icon: ImageIcon },
+  { label: "Short video", Icon: FilmStrip },
+] as const;
+
+const REVIEW_STEPS = [
   {
     number: "01",
-    label: "Source",
-    title: "Start with what arrived.",
-    description: "Inspect the link or file itself: its format, available metadata and the claim attached to it.",
-    image: "/images/landing/newspaper.jpg",
-    imageAlt: "Close view of a printed newspaper",
-    note: "FILE · ORIGIN · CLAIM",
+    title: "Inspect the source",
+    description: "Read the article or file details and identify the claims or observations that need context.",
+    detail: "Source and file facts",
   },
   {
     number: "02",
-    label: "Context",
-    title: "Follow the claim outward.",
-    description: "Look for related reporting and independent pages. A post rarely carries the whole story on its own.",
-    image: "/images/landing/phone.jpg",
-    imageAlt: "A person reviews media on a phone",
-    note: "CLAIM · CONTEXT · SOURCES",
+    title: "Find related evidence",
+    description: "Search for independent pages related to the claim, with returned sources kept visible in the review.",
+    detail: "Independent sources",
   },
   {
     number: "03",
-    label: "Evidence",
-    title: "Keep the caveats in view.",
-    description: "Read the model’s assessment beside the evidence and its limits. A confidence score is an estimate, not proof.",
-    image: "/images/landing/reporting.jpg",
-    imageAlt: "A camera operator records an interview",
-    note: "SIGNALS · EVIDENCE · LIMITS",
+    title: "Review the assessment",
+    description: "See how the evidence and available signals informed the result, including its limits and uncertainty.",
+    detail: "Reasoning and caveats",
   },
 ] as const;
 
 export default function Intro({ onContinue }: { onContinue?: () => void }) {
-  const heroRef = useRef<HTMLElement>(null);
-  const storyRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const { scrollYProgress: storyProgress } = useScroll({ target: storyRef, offset: ["start start", "end end"] });
-  const heroPanelY = useTransform(heroProgress, [0, 1], [0, 22]);
-  const stepOneOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [1, 1, 0, 0, 0, 0]);
-  const stepTwoOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [0, 0, 1, 1, 0, 0]);
-  const stepThreeOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [0, 0, 0, 0, 1, 1]);
-  const stepOneY = useTransform(storyProgress, [0, 0.28, 0.37], [0, 0, -18]);
-  const stepTwoY = useTransform(storyProgress, [0.28, 0.37, 0.68, 0.76], [18, 0, 0, -18]);
-  const stepThreeY = useTransform(storyProgress, [0.68, 0.76, 1], [18, 0, 0]);
-  const imageOpacities = [stepOneOpacity, stepTwoOpacity, stepThreeOpacity];
-  const copyY = [stepOneY, stepTwoY, stepThreeY];
-  const stepOneProgress = useTransform(storyProgress, [0, 0.34], [0, 1]);
-  const stepTwoProgress = useTransform(storyProgress, [0.34, 0.68], [0, 1]);
-  const stepThreeProgress = useTransform(storyProgress, [0.68, 1], [0, 1]);
-  const progressBars = [stepOneProgress, stepTwoProgress, stepThreeProgress];
+  const reduceMotion = useReducedMotion();
 
-  const followSignal = useCallback(() => {
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById("how-it-works")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-  }, []);
+  const scrollToWorkflow = useCallback(() => {
+    document.getElementById("how-it-works")?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [reduceMotion]);
 
   useEffect(() => {
-    window.addEventListener("veritas:how-it-works", followSignal);
-    return () => window.removeEventListener("veritas:how-it-works", followSignal);
-  }, [followSignal]);
+    window.addEventListener("veritas:how-it-works", scrollToWorkflow);
+    return () => window.removeEventListener("veritas:how-it-works", scrollToWorkflow);
+  }, [scrollToWorkflow]);
 
   return (
     <div data-app-stage="landing" className="landing-shell">
-      <section ref={heroRef} className="landing-hero relative isolate min-h-[min(900px,calc(100svh-68px))] overflow-hidden px-4 py-16 sm:px-8 lg:px-12">
-        <div className="landing-hero-copy relative z-10 mx-auto w-full max-w-[1440px]">
-          <div className="landing-hero-intro max-w-[730px]">
-            <h1 className="landing-display text-white">
-              <span className="landing-title-mask"><motion.span initial={{ y: "112%", scaleX: 0.82 }} animate={{ y: 0, scaleX: 0.82 }} transition={{ duration: 0.85, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}>Look beyond</motion.span></span>
-              <span className="landing-title-mask landing-title-outline"><motion.span initial={{ y: "112%", scaleX: 0.82 }} animate={{ y: 0, scaleX: 0.82 }} transition={{ duration: 0.9, delay: 0.17, ease: [0.16, 1, 0.3, 1] }}>the moment<span className="landing-title-period">.</span></motion.span></span>
+      <section id="platform" className="landing-hero px-4 sm:px-8 lg:px-12">
+        <div className="landing-hero-grid mx-auto grid max-w-[1320px] items-center gap-12 py-16 sm:py-20 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16 lg:py-24">
+          <div className="landing-hero-copy">
+            <p className="landing-eyebrow">Media review workspace</p>
+            <h1 className="landing-display mt-5 text-white">
+              Make every media review easier to explain.
             </h1>
+            <p className="mt-6 max-w-[58ch] text-[15px] leading-7 text-white/70 sm:text-base">
+              Veritas brings source details, independent reporting and model analysis into one review—so teams can inspect the evidence and its uncertainty.
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.27 }}
-              className="mt-6 max-w-[46ch] text-[14px] leading-[1.75] text-white/72 sm:mt-8 sm:text-base"
-            >
-              Check a news link, image or video against its context, file signals and independent sources. Read the reasoning, keep the uncertainty.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.36 }}
-              className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-3 sm:mt-8"
-            >
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <motion.button
                 type="button"
                 onClick={onContinue}
-                whileHover={{ y: -3, boxShadow: "0 16px 38px -18px rgb(201 239 89 / 0.55)" }}
-                whileTap={{ scale: 0.97 }}
-                className="landing-primary-button group inline-flex min-h-14 items-center gap-5 rounded-full px-6 text-sm font-semibold"
+                whileHover={reduceMotion ? undefined : { y: -1 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+                className="landing-primary-button inline-flex min-h-12 items-center gap-3 rounded-control px-5 text-sm font-semibold"
               >
-                Start a check <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
+                Start a review <ArrowUpRight size={17} aria-hidden />
               </motion.button>
               <button
                 type="button"
-                onClick={followSignal}
-                className="group inline-flex min-h-12 items-center gap-3 text-sm font-medium text-white/80 transition-colors hover:text-white"
+                onClick={scrollToWorkflow}
+                className="landing-secondary-button inline-flex min-h-12 items-center gap-2 rounded-control px-4 text-sm font-medium"
               >
-                See how it works <ArrowDownRight size={17} className="transition-transform group-hover:translate-x-1 group-hover:translate-y-1" aria-hidden />
+                How it works <ArrowRight size={16} aria-hidden />
               </button>
-            </motion.div>
+            </div>
 
-            <div className="landing-format-rail mt-9 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/15 pt-4 font-mono text-[9px] uppercase tracking-[0.18em] text-white/55 sm:mt-12 sm:gap-x-6 sm:pt-5">
-              <span>Inputs</span><span className="landing-rail-mark" aria-hidden="true" />
-              <span>News</span><span className="landing-rail-mark" aria-hidden="true" />
-              <span>Image</span><span className="landing-rail-mark" aria-hidden="true" />
-              <span>Video</span>
+            <div className="landing-input-list mt-9 grid grid-cols-3 border-t border-white/15 pt-4" aria-label="Supported media types">
+              {INPUT_TYPES.map(({ label, Icon }) => (
+                <div key={label} className="flex items-center gap-2.5 text-xs font-medium text-white/70 sm:text-sm">
+                  <Icon size={17} aria-hidden /> {label}
+                </div>
+              ))}
             </div>
           </div>
 
-          <motion.div
-            className="landing-tool-card landing-hero-check relative p-3 sm:p-5 lg:p-6"
-            initial={{ opacity: 0, y: 20, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            style={{ y: heroPanelY }}
+          <motion.section
+            id="product-check"
+            aria-labelledby="preview-title"
+            className="landing-tool-card"
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.2, 0.75, 0.25, 1] }}
           >
-            <div className="mb-4 flex items-center justify-between gap-4 px-1">
+            <div className="landing-preview-heading">
               <div>
-                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--ink-3)]">Veritas / Check</span>
-                <span className="mt-1 block text-sm font-medium">Choose a starting point</span>
+                <p className="text-xs font-medium text-[var(--ink-3)]">Veritas workspace</p>
+                <h2 id="preview-title" className="mt-1 text-lg font-semibold tracking-tight">Start a new review</h2>
               </div>
-              <span className="landing-tool-live inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em]"><span className="size-1.5 rounded-full bg-current" /> Preview</span>
+              <span className="landing-preview-label">Interactive preview</span>
             </div>
             <Analyzer preview />
-            <p className="px-1 pt-4 text-[10px] leading-relaxed text-[var(--ink-3)]">Choose an input type here. Open the checker to submit a source and review its evidence.</p>
-          </motion.div>
-        </div>
-
-      </section>
-
-      <section ref={storyRef} id="how-it-works" className="landing-story scroll-mt-[68px] px-4 py-16 sm:px-8 sm:py-20 lg:min-h-[270vh] lg:px-12 lg:py-0">
-        <div className="mx-auto max-w-[1440px] lg:sticky lg:top-[68px] lg:flex lg:h-[calc(100svh-68px)] lg:items-center lg:py-12">
-          <div className="landing-story-desktop hidden w-full grid-cols-[1fr_0.88fr] items-center gap-12 lg:grid xl:gap-24">
-            <div className="landing-story-visual relative h-[min(72vh,760px)] min-h-[500px] overflow-hidden bg-[#c9c8bc]">
-              {STORY_STEPS.map((step, index) => (
-                <motion.div
-                  key={step.number}
-                  aria-hidden="true"
-                  className="absolute inset-0"
-                  style={{ opacity: imageOpacities[index] }}
-                >
-                  <Image src={step.image} alt="" fill sizes="(min-width: 1280px) 52vw, 50vw" className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
-                  <span className="absolute bottom-6 left-6 font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">{step.note}</span>
-                </motion.div>
-              ))}
-              <div className="landing-image-stamp absolute left-6 top-6 grid size-16 place-items-center rounded-full border border-white/60 font-mono text-[10px] uppercase tracking-wider text-white sm:size-[76px]">
-                <span>Look<br />closer</span>
-              </div>
-            </div>
-
-            <div className="flex min-h-[min(72vh,760px)] flex-col justify-between py-2">
-              <div>
-                <p className="landing-kicker font-mono text-[10px] uppercase tracking-[0.19em]">How a check unfolds</p>
-                <h2 className="mt-7 max-w-[10ch] text-[clamp(3rem,5.4vw,6.1rem)] font-medium leading-[0.92] tracking-[-0.075em]">A better read takes a little more.</h2>
-              </div>
-
-              <div className="relative min-h-[190px]">
-                {STORY_STEPS.map((step, index) => (
-                  <motion.article
-                    key={step.number}
-                    className="absolute inset-0 flex flex-col justify-end"
-                    style={{ opacity: imageOpacities[index], y: copyY[index] }}
-                  >
-                    <p className="landing-kicker font-mono text-[11px] uppercase tracking-[0.18em]">{step.number} <span className="mx-2 opacity-40">/</span> {step.label}</p>
-                    <h3 className="mt-3 text-3xl font-medium tracking-[-0.055em] sm:text-4xl">{step.title}</h3>
-                    <p className="mt-3 max-w-[48ch] text-[15px] leading-[1.75] text-[var(--ink-2)]">{step.description}</p>
-                  </motion.article>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 pt-8" role="group" aria-label="Progress through the verification story">
-                {STORY_STEPS.map((step, index) => {
-                  return (
-                    <div key={step.number} className="space-y-2">
-                      <div className="h-[2px] overflow-hidden bg-white/10"><motion.div className="h-full origin-left bg-[var(--accent)]" style={{ scaleX: progressBars[index] }} /></div>
-                      <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--ink-3)]">{step.number} {step.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="landing-story-mobile lg:hidden">
-            <p className="landing-kicker font-mono text-[10px] uppercase tracking-[0.19em]">How a check unfolds</p>
-            <h2 className="mt-6 max-w-[10ch] text-[clamp(3.3rem,13vw,5.8rem)] font-medium leading-[0.9] tracking-[-0.075em]">A better read takes a little more.</h2>
-            <div className="mt-10 space-y-12">
-              {STORY_STEPS.map((step, index) => (
-                <motion.article
-                  key={step.number}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.55, delay: index * 0.04 }}
-                >
-                  <div className="relative aspect-[1.14/1] overflow-hidden bg-[#c9c8bc]">
-                    <Image src={step.image} alt={step.imageAlt} fill sizes="100vw" className="object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
-                    <span className="absolute bottom-4 left-4 font-mono text-[9px] uppercase tracking-[0.16em] text-white/80">{step.note}</span>
-                  </div>
-                  <div className="mt-5 flex items-baseline gap-3">
-                    <p className="landing-kicker font-mono text-[10px] uppercase tracking-[0.18em]">{step.number}</p>
-                    <h3 className="text-2xl font-medium tracking-[-0.05em]">{step.title}</h3>
-                  </div>
-                  <p className="mt-3 max-w-[48ch] text-sm leading-[1.75] text-[var(--ink-2)]">{step.description}</p>
-                </motion.article>
-              ))}
-            </div>
-          </div>
+            <p className="landing-preview-note">Choose an input type to see the review form. Preview content is not submitted.</p>
+          </motion.section>
         </div>
       </section>
 
-      <section className="landing-close relative isolate overflow-hidden px-4 py-24 sm:px-8 sm:py-32 lg:px-12 lg:py-40">
-        <div className="mx-auto grid max-w-[1440px] items-end gap-10 lg:grid-cols-[1fr_auto]">
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ duration: 0.62 }}
-          >
-            <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">A little more context changes everything</p>
-            <h2 className="max-w-[11ch] text-[clamp(3.6rem,8vw,8.8rem)] font-medium leading-[0.88] tracking-[-0.08em] text-white">Take a closer look.</h2>
-          </motion.div>
+      <section id="how-it-works" className="landing-section scroll-mt-[68px] px-4 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        <div className="mx-auto max-w-[1120px]">
+          <div className="landing-section-heading grid gap-5 md:grid-cols-[0.9fr_1.1fr] md:items-end md:gap-12">
+            <div>
+              <p className="landing-kicker">How a review works</p>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.045em] text-white">
+                Evidence stays close to the decision.
+              </h2>
+            </div>
+            <p className="max-w-[58ch] text-sm leading-6 text-white/65 sm:text-base sm:leading-7">
+              Each review follows a clear path from the original material to the sources and reasoning behind the assessment.
+            </p>
+          </div>
+
+          <div className="landing-workflow mt-10 border-t border-white/15">
+            {REVIEW_STEPS.map((step, index) => (
+              <motion.article
+                key={step.number}
+                className="landing-workflow-row grid gap-3 border-b border-white/15 py-6 md:grid-cols-[72px_0.75fr_1.5fr_190px] md:items-start md:gap-6 md:py-7"
+                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: reduceMotion ? 0 : 0.35, delay: reduceMotion ? 0 : index * 0.04 }}
+              >
+                <span className="font-mono text-xs tabular-nums text-white/40">{step.number}</span>
+                <h3 className="text-base font-semibold tracking-[-0.02em] text-white">{step.title}</h3>
+                <p className="max-w-[62ch] text-sm leading-6 text-white/65">{step.description}</p>
+                <span className="text-xs font-medium text-white/45 md:text-right">{step.detail}</span>
+              </motion.article>
+            ))}
+          </div>
+
+          <p className="landing-caveat mt-8 max-w-[75ch] text-sm leading-6 text-white/65">
+            A confidence score is a model-reported estimate, not proof. Veritas keeps sources and caveats available so people can make their own judgment.
+          </p>
+        </div>
+      </section>
+
+      <section className="landing-control px-4 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        <div className="mx-auto grid max-w-[1120px] gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+          <div>
+            <p className="landing-kicker">Designed for careful review</p>
+            <h2 className="mt-4 max-w-[14ch] text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.045em] text-white">
+              A result you can examine, not just accept.
+            </h2>
+            <p className="mt-5 max-w-[54ch] text-sm leading-6 text-white/65 sm:text-base sm:leading-7">
+              Review the pages returned, the available file facts and the model’s reasoning in one place. The final call stays with you.
+            </p>
+          </div>
+
+          <div className="landing-control-list divide-y divide-white/15 border-y border-white/15">
+            <div className="grid gap-2 py-5 sm:grid-cols-[180px_1fr] sm:gap-6">
+              <h3 className="text-sm font-semibold text-white">Sources remain visible</h3>
+              <p className="text-sm leading-6 text-white/65">See which independent pages were returned and how they relate to the claims under review.</p>
+            </div>
+            <div className="grid gap-2 py-5 sm:grid-cols-[180px_1fr] sm:gap-6">
+              <h3 className="text-sm font-semibold text-white">History is optional</h3>
+              <p className="text-sm leading-6 text-white/65">History starts off. Turn it on only when you want to keep review results.</p>
+            </div>
+            <div className="grid gap-2 py-5 sm:grid-cols-[180px_1fr] sm:gap-6">
+              <h3 className="text-sm font-semibold text-white">Uploads are temporary</h3>
+              <p className="text-sm leading-6 text-white/65">Uploaded media is removed after processing. Provider data handling depends on the analysis route.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 flex max-w-[1120px] flex-wrap items-center justify-between gap-5 border-t border-white/15 pt-7">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">Start with the source you have.</h2>
+            <p className="mt-2 text-sm text-white/60">Review a news link, image or short video in Veritas.</p>
+          </div>
           <motion.button
             type="button"
             onClick={onContinue}
-            whileHover={{ y: -3 }}
-            whileTap={{ scale: 0.97 }}
-            className="landing-close-button group inline-flex min-h-14 items-center gap-5 justify-self-start rounded-full px-6 text-sm font-semibold lg:justify-self-end"
+            whileHover={reduceMotion ? undefined : { y: -1 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+            className="landing-primary-button inline-flex min-h-12 items-center gap-3 rounded-control px-5 text-sm font-semibold"
           >
-            Open Veritas <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
+            Start a review <ArrowUpRight size={17} aria-hidden />
           </motion.button>
         </div>
       </section>

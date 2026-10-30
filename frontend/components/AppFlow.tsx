@@ -473,6 +473,24 @@ function Workspace({ user }: { user: User }) {
   }, [openWalkthrough]);
 
   useEffect(() => {
+    function startNewCheck() {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.hash = "";
+      if (nextUrl.href !== window.location.href) {
+        window.history.pushState({ ...window.history.state, workspaceSection: "check" }, "", nextUrl);
+      }
+      setActive("check");
+      setDetectionMode("news");
+      setSelected(null);
+      setMobileMenuOpen(false);
+      setProfileMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    }
+    window.addEventListener("veritas:new-check", startNewCheck);
+    return () => window.removeEventListener("veritas:new-check", startNewCheck);
+  }, [reduceMotion]);
+
+  useEffect(() => {
     let cancelled = false;
     if (!initialWorkspaceLoad.current) initialWorkspaceLoad.current = refreshWorkspace(false);
     void initialWorkspaceLoad.current.then((initial) => {
@@ -654,9 +672,9 @@ function Workspace({ user }: { user: User }) {
   ] : [];
 
   return (
-    <div data-app-stage="workspace" className="min-h-[calc(100dvh-4.25rem)]">
+    <div data-app-stage="workspace" className="workspace-shell min-h-[calc(100dvh-4.25rem)]">
       <div className="mx-auto flex max-w-[1440px]">
-        <aside className={`${mobileMenuOpen ? "fixed inset-x-0 bottom-0 top-[68px] z-40 block" : "hidden"} h-[calc(100dvh-68px)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-[68px] md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
+        <aside className={`workspace-sidebar ${mobileMenuOpen ? "fixed inset-x-0 bottom-0 top-[68px] z-40 block" : "hidden"} h-[calc(100dvh-68px)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-[68px] md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
           <div className={`flex h-full min-h-0 flex-col overflow-y-auto p-4 ${sidebarExpanded ? "" : "md:p-2"}`}>
             <div className="flex items-center justify-end gap-2 px-2 py-2 md:py-3">
               <button type="button" aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"} title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
@@ -668,13 +686,13 @@ function Workspace({ user }: { user: User }) {
               </div>
             </div>
             <nav aria-label="Workspace" className="space-y-1">
-              <button type="button" title={!sidebarExpanded ? "New detection" : undefined} aria-current={active === "check" ? "page" : undefined} onClick={() => navigate("check")}
+              <button type="button" title={!sidebarExpanded ? "New review" : undefined} aria-current={active === "check" ? "page" : undefined} onClick={() => navigate("check")}
                 className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "check" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                <Plus size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>New detection</span>
+                <Plus size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>New review</span>
               </button>
-              <button type="button" title={!sidebarExpanded ? "History" : undefined} aria-current={active === "history" ? "page" : undefined} onClick={() => navigate("history")}
+              <button type="button" title={!sidebarExpanded ? "Review history" : undefined} aria-current={active === "history" ? "page" : undefined} onClick={() => navigate("history")}
                 className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "history" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                <ClockCounterClockwise size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>History</span>
+                <ClockCounterClockwise size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>Review history</span>
               </button>
               <button type="button" data-tour="api-keys" title={!sidebarExpanded ? "API keys" : undefined} aria-current={active === "keys" ? "page" : undefined} onClick={() => navigate("keys")}
                 className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "keys" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
@@ -765,20 +783,20 @@ function Workspace({ user }: { user: User }) {
           </div>
         </aside>
 
-        <section aria-label="Workspace content" className="min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-8 sm:pt-7 lg:px-12">
+        <section aria-label="Workspace content" className="workspace-content min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-8 sm:pt-7 lg:px-10">
           <div className="mb-6 flex items-center justify-between gap-3 md:hidden">
             <button type="button" onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-sm"><List size={17} /> Menu</button>
             <span className="truncate text-xs text-ink-3">{user.email}</span>
           </div>
-          <div className="mx-auto max-w-4xl">
+          <div className="mx-auto max-w-[1120px]">
             <AnimatePresence mode="wait" initial={false}>
               {workspaceReady ? <motion.div key="workspace" initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }} transition={{ duration: reduceMotion ? 0 : 0.32 }}>
             {error && <p role="alert" className="mb-5 rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-ink-2">{error}</p>}
             {active === "check" && (
               <motion.section key="check" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45 }}>
                 <div className="flex flex-wrap items-end justify-between gap-4">
-                  <div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">What would you like to check?</h1>
-                    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-ink-2">Review the signals, sources and limits behind each result.</p></div>
+                  <div><p className="workspace-eyebrow">New review</p><h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Review a source</h1>
+                    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-ink-2">Choose a news link, image or video. Each result keeps its evidence and limitations in view.</p></div>
                   {account && <p className="text-xs text-ink-3">{account.free_remaining} free {account.free_remaining === 1 ? "check" : "checks"} left</p>}
                 </div>
                 <div className="mt-7">
@@ -938,6 +956,18 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
 }) {
   const [stage, setStage] = useState<Stage>(user ? "workspace" : "intro");
   const visibleStage: Stage = user && startInWorkspace ? "workspace" : stage;
+
+  useEffect(() => {
+    function startReview() {
+      if (user) {
+        window.dispatchEvent(new Event("veritas:new-check"));
+      } else {
+        setStage("auth");
+      }
+    }
+    window.addEventListener("veritas:start", startReview);
+    return () => window.removeEventListener("veritas:start", startReview);
+  }, [user]);
 
   function continueFromIntro() {
     setStage(user ? "workspace" : "auth");

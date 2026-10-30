@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
+import { ArrowDownRight, ArrowUpRight } from "@phosphor-icons/react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
 import Analyzer from "@/components/Analyzer";
@@ -42,8 +42,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const storyRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const { scrollYProgress: storyProgress } = useScroll({ target: storyRef, offset: ["start start", "end end"] });
-  const heroImageY = useTransform(heroProgress, [0, 1], [0, 72]);
-  const heroImageScale = useTransform(heroProgress, [0, 1], [1.04, 1.12]);
+  const heroPanelY = useTransform(heroProgress, [0, 1], [0, 28]);
   const stepOneOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [1, 1, 0, 0, 0, 0]);
   const stepTwoOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [0, 0, 1, 1, 0, 0]);
   const stepThreeOpacity = useTransform(storyProgress, [0, 0.28, 0.37, 0.68, 0.76, 1], [0, 0, 0, 0, 1, 1]);
@@ -67,32 +66,18 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
 
   return (
     <div data-app-stage="landing" className="landing-shell">
-      <section ref={heroRef} className="landing-hero relative isolate flex min-h-[min(850px,calc(100svh-68px))] items-center px-4 py-16 sm:px-8 lg:px-12">
-        <motion.div
-          aria-hidden="true"
-          className="landing-hero-photo absolute inset-y-0 right-0 w-full overflow-hidden sm:w-[78%] lg:w-[72%]"
-          style={reduceMotion ? undefined : { y: heroImageY, scale: heroImageScale }}
-        >
-          <Image
-            src="/images/landing/reporting.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(min-width: 1024px) 72vw, 100vw"
-            className="object-cover object-[44%_50%]"
-          />
-        </motion.div>
+      <section ref={heroRef} className="landing-hero relative isolate flex min-h-[min(900px,calc(100svh-68px))] items-center px-4 py-16 sm:px-8 lg:px-12">
         <div className="landing-hero-grain pointer-events-none absolute inset-0" aria-hidden="true" />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1440px]">
-          <div className="max-w-[900px]">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1440px] items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] xl:gap-20">
+          <div className="max-w-[660px]">
             <motion.p
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.55, ease: [0.2, 0.8, 0.2, 1] }}
-              className="mb-7 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70 sm:text-xs"
+              className="mb-7 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/65 sm:text-xs"
             >
-              <span className="size-2 rounded-full bg-lime-300" /> Independent media checks, with the evidence in view
+              <span className="size-2 rounded-full bg-lime-300" /> Source-aware media checks
             </motion.p>
 
             <motion.h1
@@ -111,7 +96,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
               transition={{ duration: reduceMotion ? 0 : 0.6, delay: reduceMotion ? 0 : 0.18 }}
               className="mt-8 max-w-[48ch] text-[15px] leading-[1.75] text-white/75 sm:text-lg"
             >
-              Trace a claim from a link, image or video to its context, file signals and independent sources.
+              Check a news link, image or video against its context, file signals and independent sources. See the reasoning, keep the uncertainty.
             </motion.p>
 
             <motion.div
@@ -125,27 +110,46 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 onClick={onContinue}
                 whileHover={reduceMotion ? undefined : { y: -3, boxShadow: "0 16px 38px -18px rgb(201 239 89 / 0.55)" }}
                 whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-                className="group inline-flex min-h-14 items-center gap-5 rounded-full bg-[#d4f36a] px-6 text-sm font-semibold text-[#12160e] transition-colors hover:bg-[#e2ff8c]"
+                className="landing-primary-button group inline-flex min-h-14 items-center gap-5 rounded-full px-6 text-sm font-semibold"
               >
-                Open the checker <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
+                Start a check <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
               </motion.button>
               <button
                 type="button"
                 onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" })}
                 className="group inline-flex min-h-12 items-center gap-3 text-sm font-medium text-white/80 transition-colors hover:text-white"
               >
-                Follow the evidence <ArrowDownRight size={17} className="transition-transform group-hover:translate-x-1 group-hover:translate-y-1" aria-hidden />
+                See how it works <ArrowDownRight size={17} className="transition-transform group-hover:translate-x-1 group-hover:translate-y-1" aria-hidden />
               </button>
             </motion.div>
+
+            <div className="landing-format-rail mt-12 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/15 pt-5 font-mono text-[9px] uppercase tracking-[0.18em] text-white/55 sm:gap-x-6">
+              <span>01 News</span><span className="landing-rail-mark" aria-hidden="true" />
+              <span>02 Image</span><span className="landing-rail-mark" aria-hidden="true" />
+              <span>03 Video</span>
+            </div>
           </div>
 
-          <div className="landing-hero-index absolute bottom-[-7.2rem] right-0 hidden items-end gap-5 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 sm:flex lg:bottom-[-5.4rem]">
-            <span>01 / 03</span><span className="h-px w-16 bg-white/40" /><span>Source · context · evidence</span>
-          </div>
+          <motion.div
+            className="landing-tool-card landing-hero-check relative p-3 sm:p-5 lg:p-6"
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.985 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: reduceMotion ? 0 : 0.76, delay: reduceMotion ? 0 : 0.16, ease: [0.16, 1, 0.3, 1] }}
+            style={reduceMotion ? undefined : { y: heroPanelY }}
+          >
+            <div className="landing-card-orbit" aria-hidden="true" />
+            <div className="mb-4 flex items-center justify-between gap-4 px-1">
+              <div>
+                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--ink-3)]">Veritas / Check</span>
+                <span className="mt-1 block text-sm font-medium">Choose a starting point</span>
+              </div>
+              <span className="landing-tool-live inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em]"><span className="size-1.5 rounded-full bg-current" /> Preview</span>
+            </div>
+            <Analyzer preview />
+            <p className="px-1 pt-4 text-[10px] leading-relaxed text-[var(--ink-3)]">Choose an input type here. Open the checker to submit a source and review its evidence.</p>
+          </motion.div>
         </div>
-        <div className="landing-photo-label absolute bottom-6 left-4 z-10 font-mono text-[9px] uppercase tracking-[0.18em] text-white/60 sm:left-8 lg:left-12">
-          Read past the frame <span className="ml-2 text-white/35">—</span> Veritas
-        </div>
+        <div className="landing-hero-index pointer-events-none absolute bottom-4 right-4 hidden font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 sm:block lg:right-12">Veritas / 001 — Follow the evidence</div>
       </section>
 
       <section ref={storyRef} id="how-it-works" className={`landing-story scroll-mt-[68px] px-4 py-16 sm:px-8 sm:py-20 lg:px-12 ${reduceMotion ? "" : "lg:min-h-[270vh] lg:py-0"}`}>
@@ -193,7 +197,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 {STORY_STEPS.map((step, index) => {
                   return (
                     <div key={step.number} className="space-y-2">
-                      <div className="h-[2px] overflow-hidden bg-black/10"><motion.div className="h-full origin-left bg-[var(--accent)]" style={reduceMotion ? { scaleX: index === 0 ? 1 : 0 } : { scaleX: progressBars[index] }} /></div>
+                      <div className="h-[2px] overflow-hidden bg-white/10"><motion.div className="h-full origin-left bg-[var(--accent)]" style={reduceMotion ? { scaleX: index === 0 ? 1 : 0 } : { scaleX: progressBars[index] }} /></div>
                       <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--ink-3)]">{step.number} {step.label}</span>
                     </div>
                   );
@@ -227,37 +231,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 </motion.article>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-tool px-4 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-32">
-        <div className="mx-auto grid max-w-[1440px] items-start gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
-          <div className="lg:sticky lg:top-28">
-            <p className="landing-tool-kicker font-mono text-[10px] uppercase tracking-[0.19em]">Bring the piece you want to check</p>
-            <h2 className="mt-6 max-w-[9ch] text-[clamp(3.3rem,7vw,7.5rem)] font-medium leading-[0.88] tracking-[-0.08em]">Start with a link, image or clip.</h2>
-            <p className="mt-6 max-w-[46ch] text-[15px] leading-[1.8] text-[var(--ink-2)]">Choose what you have. Veritas brings the available signals and source context together for a more informed read.</p>
-            <motion.button
-              type="button"
-              onClick={onContinue}
-              whileHover={reduceMotion ? undefined : { x: 4 }}
-              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-              className="landing-tool-button group mt-8 inline-flex min-h-12 items-center gap-3 rounded-full px-5 text-sm font-semibold"
-            >
-              Go to the workspace <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden />
-            </motion.button>
-          </div>
-
-          <div className="landing-tool-card p-3 sm:p-5 lg:p-6">
-            <div className="mb-4 flex items-center justify-between gap-4 px-1">
-              <div>
-                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--ink-3)]">Veritas / Check</span>
-                <span className="mt-1 block text-sm font-medium">Choose a starting point</span>
-              </div>
-              <span className="landing-tool-live inline-flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em]"><span className="size-1.5 rounded-full bg-current" /> Live interface</span>
-            </div>
-            <Analyzer preview />
-            <p className="px-1 pt-4 text-[10px] leading-relaxed text-[var(--ink-3)]">Switch between input types here. Open the workspace to submit a check and review its evidence.</p>
           </div>
         </div>
       </section>

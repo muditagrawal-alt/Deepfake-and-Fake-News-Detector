@@ -38,6 +38,13 @@ const Topography = dynamic(() => import("@/components/Topography"), {
   ),
 });
 
+const FolderFloat = dynamic(() => import("@/components/FolderFloat"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[200px] h-[148px] rounded-xl border border-white/10 bg-zinc-800/40 animate-pulse" />
+  ),
+});
+
 const INPUT_TYPES = [
   { label: "News links", Icon: Newspaper },
   { label: "Images", Icon: ImageIcon },
@@ -679,6 +686,158 @@ function ParallaxDossierSection({
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Zero-Gravity Case Notes // Matter.js Physics Folders Component            */
+/* -------------------------------------------------------------------------- */
+
+function FolderFloatSection({
+  reduceMotion,
+}: {
+  reduceMotion: boolean;
+}) {
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
+
+  return (
+    <section
+      id="case-notes"
+      className="landing-section relative px-4 py-24 sm:px-8 sm:py-32 lg:px-12 border-t border-white/5 overflow-hidden"
+    >
+      <ScanGrid className="absolute inset-0 opacity-15" />
+
+      <div className="mx-auto max-w-[1280px]">
+        <ScrollReveal reduceMotion={reduceMotion}>
+          <div className="text-center max-w-[70ch] mx-auto mb-14">
+            <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
+              Zero-Gravity Case Folders // Interactive Physics
+            </span>
+            <h2 className="mt-3 text-[clamp(2.1rem,4vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
+              Tactile evidentiary notes that float and collide.
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
+              Hover over either folder to release zero-gravity pills. Driven by Matter.js rigid-body physics:
+              the pills drift on gentle currents, collide elastically, and can be dragged or tossed across the canvas.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal reduceMotion={reduceMotion} delay={0.1}>
+          <div className="mx-auto max-w-4xl rounded-2xl border border-white/10 bg-[#060608] p-8 sm:p-14 shadow-2xl relative">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 mb-14 font-mono text-xs text-white/50">
+              <div className="flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-white/60" />
+                <span>DOSSIER DRAWER :: MATTER-JS ZERO-GRAVITY WORLD</span>
+              </div>
+              <div className="text-[10px] text-white/40">
+                TRIGGER: HOVER · PHYSICS: ZERO-G · DRIFT: 0.50
+              </div>
+            </div>
+
+            {/* Folders Display Container */}
+            <div className="flex flex-wrap items-center justify-center gap-12 sm:gap-24 py-8 min-h-[340px]">
+              {/* Folder 1: Exact User Requested Folder */}
+              <div className="flex flex-col items-center">
+                <FolderFloat
+                  items={[
+                    "Try a warmer palette",
+                    "Tighten the spacing",
+                    "Logo feels small",
+                    "Love the new hero",
+                  ]}
+                  label="Design feedback"
+                  sublabel="4 notes"
+                  trigger="hover"
+                  closeOnSelect
+                  physics
+                  drift={0.5}
+                  onSelect={(value) => setSelectedNote(`Design: "${value}"`)}
+                  folderColor="#3f3f46"
+                  frontColor="#52525b"
+                  paperColor="#f5f5f5"
+                  itemColor="#f5f5f5"
+                  itemTextColor="#18181b"
+                  labelColor="#f5f5f5"
+                  width={200}
+                  height={148}
+                  radius={14}
+                  spread={180}
+                  lift={26}
+                  tilt={8}
+                  flapAngle={34}
+                  restAngle={16}
+                  openDuration={520}
+                  stagger={45}
+                  bounce={0.3}
+                />
+                <span className="mt-6 font-mono text-[11px] text-white/40">
+                  HOVER TO RELEASE NOTES
+                </span>
+              </div>
+
+              {/* Folder 2: Forensic Findings Folder */}
+              <div className="flex flex-col items-center">
+                <FolderFloat
+                  items={[
+                    "C2PA JUMBF valid",
+                    "Vocoder harmonic shift",
+                    "Reuters wire match",
+                    "96.8% Bayesian genuine",
+                  ]}
+                  label="Forensic findings"
+                  sublabel="4 findings"
+                  trigger="hover"
+                  closeOnSelect
+                  physics
+                  drift={0.5}
+                  onSelect={(value) => setSelectedNote(`Forensic: "${value}"`)}
+                  folderColor="#27272a"
+                  frontColor="#3f3f46"
+                  paperColor="#e4e4e7"
+                  itemColor="#e4e4e7"
+                  itemTextColor="#09090b"
+                  labelColor="#fafafa"
+                  width={200}
+                  height={148}
+                  radius={14}
+                  spread={180}
+                  lift={26}
+                  tilt={8}
+                  flapAngle={34}
+                  restAngle={16}
+                  openDuration={520}
+                  stagger={45}
+                  bounce={0.3}
+                />
+                <span className="mt-6 font-mono text-[11px] text-white/40">
+                  HOVER TO INSPECT FINDINGS
+                </span>
+              </div>
+            </div>
+
+            {/* Selected Note Telemetry Banner */}
+            <div className="mt-12 pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-white/50">
+              <div className="flex items-center gap-2">
+                <span className="text-white/30">SELECTED NOTE:</span>
+                <span className="text-white font-medium">
+                  {selectedNote ?? "Hover over a folder to float notes; drag, throw, or click a pill"}
+                </span>
+              </div>
+              {selectedNote && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedNote(null)}
+                  className="text-[10px] text-white/40 hover:text-white underline cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Main landing page                                                         */
 /* -------------------------------------------------------------------------- */
 
@@ -911,6 +1070,11 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       {/*  TRANSITION 3: MULTI-LAYER PARALLAX FORENSIC DOSSIER               */}
       {/* ------------------------------------------------------------------ */}
       <ParallaxDossierSection reduceMotion={shouldReduceMotion} />
+
+      {/* ------------------------------------------------------------------ */}
+      {/*  ZERO-GRAVITY CASE FOLDERS // MATTER-JS PHYSICS                    */}
+      {/* ------------------------------------------------------------------ */}
+      <FolderFloatSection reduceMotion={shouldReduceMotion} />
 
       {/* ------------------------------------------------------------------ */}
       {/*  INTERACTIVE FORENSIC DEMO (Live Multimodal Case Explorer)         */}

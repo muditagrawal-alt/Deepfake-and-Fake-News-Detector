@@ -62,19 +62,9 @@ const API_PROVIDERS = [
   { id: "tavily", name: "Tavily", kind: "Optional · web research", mark: "T", detail: "Adds a dedicated search API for finding independent sources." },
 ] as const;
 
-function MicrosoftMark() {
-  return (
-    <span aria-hidden className="grid size-5 grid-cols-2 grid-rows-2 gap-[2px]">
-      <i className="bg-[#f25022]" /><i className="bg-[#7fba00]" />
-      <i className="bg-[#00a4ef]" /><i className="bg-[#ffb900]" />
-    </span>
-  );
-}
-
 function ProviderLogo({ id }: { id: string }) {
   if (id === "google") return <GoogleLogo size={21} weight="bold" aria-hidden />;
-  if (id === "github") return <GithubLogo size={21} weight="fill" aria-hidden />;
-  return <MicrosoftMark />;
+  return <GithubLogo size={21} weight="fill" aria-hidden />;
 }
 
 function AuthScreen({ providers }: { providers: AuthProvider[] }) {
@@ -82,9 +72,8 @@ function AuthScreen({ providers }: { providers: AuthProvider[] }) {
   const [error, setError] = useState("");
   const configured = new Set(providers.map((provider) => provider.id));
   const allProviders = [
-    { id: "google", name: "Google" },
     { id: "github", name: "GitHub" },
-    { id: "microsoft-entra-id", name: "Microsoft" },
+    { id: "google", name: "Google" },
   ];
 
   async function continueWith(provider: AuthProvider) {

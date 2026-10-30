@@ -70,19 +70,16 @@ export default function Authentication1({
           className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent"
         />
 
-        {/* Brand Shield Logo Medallion */}
+        {/* Brand Shield Logo */}
         <div className="flex flex-col items-center text-center">
-          <div className="relative flex size-14 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] p-2.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-            <Image
-              src="/veritas-mark.png"
-              alt="Veritas Shield Mark"
-              width={38}
-              height={38}
-              priority
-              className="size-9 object-contain drop-shadow-[0_4px_12px_rgba(255,255,255,0.12)]"
-            />
-          </div>
+          <Image
+            src="/veritas-mark.png"
+            alt="Veritas Shield Mark"
+            width={44}
+            height={46}
+            priority
+            className="size-11 object-contain drop-shadow-[0_4px_16px_rgba(255,255,255,0.15)]"
+          />
 
           {/* Heading */}
           <h1 className="mt-5 text-2xl font-semibold tracking-[-0.035em] text-white">

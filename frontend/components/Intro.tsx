@@ -28,6 +28,7 @@ import dynamic from "next/dynamic";
 import Analyzer from "@/components/Analyzer";
 import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
+import BlurText from "@/components/BlurText";
 
 const Topography = dynamic(() => import("@/components/Topography"), {
   ssr: false,
@@ -553,7 +554,13 @@ function ScrollyPipelineSection({
               Forensic Inspection Pipeline
             </span>
             <h2 className="mt-3 text-[clamp(2.1rem,4vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-              From raw bytes to auditable chain-of-custody.
+              <BlurText
+                text="From raw bytes to auditable chain-of-custody."
+                delay={50}
+                animateBy="words"
+                direction="top"
+                className="justify-center text-center"
+              />
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
               Veritas executes an uncompromising multi-stage pipeline. Every signal is
@@ -621,7 +628,13 @@ function ParallaxDossierSection({
               Verifiable Evidence Chain
             </span>
             <h2 className="mt-3 text-[clamp(2.1rem,4vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-              Every assessment yields an immutable dossier.
+              <BlurText
+                text="Every assessment yields an immutable dossier."
+                delay={50}
+                animateBy="words"
+                direction="top"
+                className="justify-center text-center"
+              />
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
               Veritas produces an auditable chain-of-custody. We provide timestamped
@@ -780,7 +793,13 @@ function FolderFloatSection({
               Zero-Gravity Forensic Dossiers // Matter.js Physics
             </span>
             <h2 className="mt-3 text-[clamp(2.1rem,4vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-              Tactile evidentiary notes that float, collide, and verify.
+              <BlurText
+                text="Tactile evidentiary notes that float, collide, and verify."
+                delay={50}
+                animateBy="words"
+                direction="top"
+                className="justify-center text-center"
+              />
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
               Hover over any case folder to release zero-gravity forensic signals. Driven by Matter.js rigid-body physics:
@@ -1063,13 +1082,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
 
   return (
     <div data-app-stage="landing" className="landing-shell">
-      {/* Scroll progress bar */}
-      <motion.div
-        aria-hidden="true"
-        className="landing-scroll-progress fixed inset-x-0 top-[68px] z-30 h-[2px] origin-left"
-        style={{ scaleX: shouldReduceMotion ? 0 : smoothPageProgress }}
-      />
-
       {/* ------------------------------------------------------------------ */}
       {/*  HERO (TOPOGRAPHY BACKGROUND WITH CENTERED HEADLINE & TOOL)        */}
       {/* ------------------------------------------------------------------ */}
@@ -1082,22 +1094,21 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
           <Topography
             color="#4f7cff"
-            lineCount={22}
-            lineWidth={1.2}
-            elevation={1}
-            foreground={0.2}
-            tilt={32}
-            speed={0.25}
+            lineCount={52}
+            lineWidth={1.35}
+            elevation={1.4}
+            foreground={0.88}
+            tilt={34}
+            speed={0.2}
             direction="forward"
-            glow={0.6}
-            depthOfField={0.4}
-            fog={0.35}
+            glow={0.75}
+            depthOfField={0.12}
+            fog={0.12}
             hoverEffect="lift"
             clickEffect="pulse"
           />
-          {/* Subtle gradient vignettes for pristine text legibility & smooth edge transitions */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#030303]/85 via-transparent to-[#030303] pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(3,3,3,0.35)_0%,rgba(3,3,3,0.85)_100%)] pointer-events-none" />
+          {/* Subtle bottom fade to blend into subsequent sections seamlessly */}
+          <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#030303] via-[#030303]/40 to-transparent pointer-events-none" />
         </div>
 
         {/* Hero Content with Scroll-driven Parallax Recession */}
@@ -1119,16 +1130,22 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             initial={shouldReduceMotion ? false : "hidden"}
             animate="visible"
           >
-            {/* Tagline — Perfectly Centered */}
+            {/* Tagline — Perfectly Centered with React Bits BlurText */}
             <motion.h1
               variants={heroChildVariants}
               transition={{
                 duration: shouldReduceMotion ? 0 : 0.78,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="landing-display text-white text-center mx-auto max-w-[18ch]"
+              className="landing-display text-white text-center mx-auto max-w-[18ch] drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)]"
             >
-              See the evidence behind the media.
+              <BlurText
+                text="See the evidence behind the media."
+                delay={70}
+                animateBy="words"
+                direction="top"
+                className="justify-center text-center"
+              />
             </motion.h1>
 
             {/* Supporting Copy — Centered */}
@@ -1138,7 +1155,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 duration: shouldReduceMotion ? 0 : 0.72,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="mt-6 max-w-[58ch] text-[15px] leading-7 text-white/60 sm:text-base text-center mx-auto"
+              className="mt-6 max-w-[58ch] text-[15px] leading-7 text-white/70 sm:text-base text-center mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
             >
               Veritas extracts source facts, queries independent press records, and audits
               forensic sensor signals into one transparent review — so analysts and newsrooms
@@ -1263,7 +1280,13 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 Auditable Case Walkthrough
               </span>
               <h2 className="mt-3 text-[clamp(2rem,3.8vw,3.2rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-                Inspect authentic multimodal breakdowns.
+                <BlurText
+                  text="Inspect authentic multimodal breakdowns."
+                  delay={50}
+                  animateBy="words"
+                  direction="top"
+                  className="justify-center text-center"
+                />
               </h2>
               <p className="mt-4 text-sm text-white/55 sm:text-base leading-relaxed">
                 Click across real case studies to observe how claim triangulation, acoustic voice clone signals, and C2PA manifests are reported with explicit evidentiary citations.
@@ -1293,7 +1316,13 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 Empirical Evaluation // Controlled Runs
               </span>
               <h2 className="mt-3 text-[clamp(2rem,3.8vw,3.2rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-                Tested against academic benchmark datasets.
+                <BlurText
+                  text="Tested against academic benchmark datasets."
+                  delay={50}
+                  animateBy="words"
+                  direction="top"
+                  className="justify-center text-center"
+                />
               </h2>
               <p className="mt-4 text-sm text-white/55 sm:text-base leading-relaxed">
                 Single-turn AI checkers hallucinate consensus or overfit to compression noise. Veritas measures balanced accuracy with 95% confidence intervals and open provenance.
@@ -1384,7 +1413,12 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 Ready for Verification
               </span>
               <h2 className="text-[clamp(2rem,3.8vw,3.2rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-                Start with the source you have.
+                <BlurText
+                  text="Start with the source you have."
+                  delay={50}
+                  animateBy="words"
+                  direction="top"
+                />
               </h2>
               <p className="max-w-[48ch] text-sm text-white/55 sm:text-base leading-relaxed">
                 Examine a public news URL, an image, or a short video. Transparent citations and file signals in one review.

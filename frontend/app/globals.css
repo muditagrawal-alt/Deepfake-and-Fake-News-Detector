@@ -214,51 +214,46 @@ button:not(:disabled):active {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 50% 50% at 85% 30%, rgba(255, 255, 255, 0.03), transparent 70%),
-    radial-gradient(ellipse 40% 60% at 20% 80%, rgba(114, 201, 148, 0.015), transparent 70%);
+    radial-gradient(ellipse 60% 50% at 50% 15%, rgba(255, 255, 255, 0.04), transparent 70%),
+    radial-gradient(ellipse 50% 60% at 50% 85%, rgba(255, 255, 255, 0.02), transparent 70%);
   pointer-events: none;
 }
 
 .landing-hero-grid { min-height: 640px; }
 
-/* Hero status badge — replaces the eyebrow */
+/* Hero status badge — crisp monochrome control-room pill */
 .hero-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 100px;
-  font-size: 12px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-family: var(--font-mono);
   font-weight: 500;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.02);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: border-color 200ms ease, background-color 200ms ease, color 200ms ease;
 }
 
-.hero-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--real);
-  box-shadow: 0 0 8px var(--real);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .hero-status-dot { animation: status-pulse 2.4s ease-in-out infinite; }
-}
-
-@keyframes status-pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--real); }
-  50% { opacity: 0.5; box-shadow: 0 0 4px var(--real); }
+.hero-status-badge:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
 }
 
 .landing-display {
-  max-width: 14ch;
-  margin: 0;
-  font-size: clamp(3.2rem, 6vw, 5.35rem);
+  max-width: 18ch;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: clamp(3rem, 6.2vw, 5.25rem);
   font-weight: 600;
-  line-height: 0.97;
+  line-height: 0.98;
   letter-spacing: -0.055em;
   text-wrap: balance;
 }
@@ -327,57 +322,64 @@ button:not(:disabled):active {
 .landing-preview-note { padding: 0 4px; color: rgba(255, 255, 255, 0.35); font-size: 11px; line-height: 1.6; }
 
 /* ========================================================================== */
-/*  3D ANALYSIS CUBE                                                          */
+/*  KINETIC SCROLL TELEMETRY STREAM                                           */
 /* ========================================================================== */
 
-.cube-viewport {
-  width: 260px;
-  height: 260px;
-  margin-top: 40px;
-  perspective: 900px;
-  perspective-origin: 50% 50%;
-}
-
-.cube-body {
-  width: 100%;
-  height: 100%;
+.kinetic-stream-wrapper {
   position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.05s linear;
+  overflow: hidden;
+  user-select: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: #040405;
+  padding: 14px 0;
 }
 
-.cube-face {
+.kinetic-stream-fade-left,
+.kinetic-stream-fade-right {
   position: absolute;
-  width: 240px;
-  height: 240px;
-  left: 50%;
-  top: 50%;
-  margin-left: -120px;
-  margin-top: -120px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
+  top: 0;
+  bottom: 0;
+  width: 140px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.kinetic-stream-fade-left {
+  left: 0;
+  background: linear-gradient(90deg, #030303 30%, transparent);
+}
+
+.kinetic-stream-fade-right {
+  right: 0;
+  background: linear-gradient(-90deg, #030303 30%, transparent);
+}
+
+.kinetic-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  backface-visibility: visible;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 200ms ease, color 200ms ease;
 }
 
-.cube-face--wire {
-  background: transparent !important;
-  border-color: rgba(255, 255, 255, 0.04) !important;
-  border-style: dashed;
+.kinetic-chip:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
 
-.cube-face-icon { color: rgba(255, 255, 255, 0.4); }
-.cube-face-label { font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.7); letter-spacing: -0.01em; }
-.cube-face-sublabel { font-size: 11px; color: rgba(255, 255, 255, 0.35); }
-
-@media (max-width: 767px) {
-  .cube-viewport { width: 200px; height: 200px; }
-  .cube-face { width: 180px; height: 180px; margin-left: -90px; margin-top: -90px; }
-  .cube-face { transform: translateZ(90px); }
+.kinetic-chip-tag {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
 }
 
 /* ========================================================================== */
@@ -466,78 +468,58 @@ button:not(:disabled):active {
 }
 
 /* ========================================================================== */
-/*  EVIDENCE LAYERS (3D stacked visualization)                                */
+/*  SCROLLYTELLING PIPELINE & PARALLAX DOSSIER                                */
 /* ========================================================================== */
 
-.evidence-layers-viewport {
-  width: 100%;
-  max-width: 320px;
-  height: 280px;
-  perspective: 600px;
-  margin: 0 auto;
-}
-
-.evidence-layers-stage {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-}
-
-.evidence-layer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 72px;
-  border-radius: 8px;
-  padding: 16px 20px;
-  border: 1px solid;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.evidence-layer--source {
-  top: 20px;
-  background: rgba(114, 201, 148, 0.06);
-  border-color: rgba(114, 201, 148, 0.2);
-}
-
-.evidence-layer--evidence {
+.scrolly-stage-indicator {
+  position: sticky;
   top: 100px;
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-panel);
+  background: rgba(10, 10, 12, 0.85);
+  backdrop-filter: blur(16px);
+  padding: 24px;
 }
 
-.evidence-layer--signal {
-  top: 180px;
-  background: rgba(240, 141, 132, 0.05);
-  border-color: rgba(240, 141, 132, 0.15);
+.scrolly-pipeline-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-panel);
+  background: #070709;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 300ms ease, box-shadow 300ms ease;
 }
 
-.evidence-layer-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+.scrolly-pipeline-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 30px 80px -20px rgba(0, 0, 0, 0.9),
+    0 0 40px -15px rgba(255, 255, 255, 0.04);
 }
 
-.evidence-layer-content {
+.parallax-dossier-shell {
+  position: relative;
+  min-height: 480px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-panel);
+  background: #060608;
+  overflow: hidden;
   display: flex;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
 }
 
-.evidence-layer-line {
-  height: 3px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.1);
-  flex: 1;
+.parallax-grid-bg {
+  position: absolute;
+  inset: -40px;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
 }
-
-.evidence-layer-line--short { flex: 0.4; }
-.evidence-layer-line--medium { flex: 0.7; }
 
 /* ========================================================================== */
 /*  CAPABILITIES LIST                                                         */

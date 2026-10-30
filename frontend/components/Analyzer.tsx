@@ -170,7 +170,7 @@ export default function Analyzer({
               className="shrink-0 whitespace-nowrap rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-[opacity,transform] active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 hover:opacity-90">
               {busy ? "Checking" : "Run check"}
             </button>
-            <p className="text-xs text-ink-3">Usually takes 10–30 seconds. Your result and source links are saved to your account; uploaded files are deleted after processing.</p>
+            <p className="text-xs text-ink-3">Usually takes 10–30 seconds. Results are saved only when you enable history; uploaded files are deleted after processing.</p>
           </div>
 
           {error && <p role="alert" className="rounded-control border border-fake/30 bg-fake-soft px-3.5 py-2.5 text-sm text-fake">{error}</p>}

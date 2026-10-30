@@ -36,6 +36,7 @@ import {
   getHealth,
   getHistory,
   saveApiKey,
+  setHistoryEnabled,
   type AccountStatus,
   type AnalysisResult,
   type HistoryEntry,
@@ -46,6 +47,13 @@ type User = { id: string; name?: string | null; email?: string | null; image?: s
 type AuthProvider = { id: string; name: string };
 type Stage = "intro" | "auth" | "workspace";
 type Section = "check" | "history" | "keys" | "method" | "capabilities" | "guide";
+const WORKSPACE_SECTIONS: readonly Section[] = ["check", "history", "keys", "method", "capabilities"];
+
+function sectionFromHash(): Section {
+  if (typeof window === "undefined") return "check";
+  const value = window.location.hash.slice(1) as Section;
+  return WORKSPACE_SECTIONS.includes(value) ? value : "check";
+}
 
 const API_PROVIDERS = [
   { id: "gemini", name: "Google Gemini", kind: "Verdict model · recommended", url: "https://aistudio.google.com/app/apikey", mark: "G", detail: "Runs the full analysis, including native video review." },
@@ -98,7 +106,7 @@ function AuthScreen({ providers }: { providers: AuthProvider[] }) {
           <ShieldCheck size={16} aria-hidden /> Private workspace
         </div>
         <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Sign in or create your account</h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink-2">Save your recent checks, manage your API keys and use your three free detections across news, images and video.</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">Manage your API keys and optionally save results. Your three free detections work across news, images and video.</p>
 
         <div className="mt-7 space-y-3">
           {allProviders.map((provider) => {
@@ -123,7 +131,7 @@ function AuthScreen({ providers }: { providers: AuthProvider[] }) {
           </p>
         )}
         <p className="mt-6 border-t border-line pt-5 text-xs leading-relaxed text-ink-3">
-          By continuing, you agree to send submitted content to the configured analysis providers. Your uploaded file is removed after processing; result history is saved to your account.
+          By continuing, you agree to send submitted content to the configured analysis providers. Uploaded files are removed after processing; results are saved only when you turn on Save detection history.
         </p>
       </motion.section>
     </section>
@@ -275,6 +283,35 @@ function VerdictLabel({ result }: { result: AnalysisResult }) {
   return <span className={`text-xs font-semibold ${color}`}>{text} · {Math.round(result.confidence * 100)}%</span>;
 }
 
+function HistorySwitch({
+  enabled,
+  busy,
+  disabled,
+  onChange,
+}: {
+  enabled: boolean;
+  busy: boolean;
+  disabled: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-label="Save detection history"
+      aria-checked={enabled}
+      aria-busy={busy}
+      title={`Save detection history ${enabled ? "on" : "off"}${enabled ? "; turning off deletes saved results" : ""}`}
+      disabled={disabled || busy}
+      onClick={onChange}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-wait disabled:opacity-60 ${enabled ? "bg-accent" : "bg-line-strong"}`}
+    >
+      <span className={`absolute left-1 top-1 size-4 rounded-full bg-elev shadow-sm transition-transform ${enabled ? "translate-x-6" : "translate-x-0"}`} />
+      <span className="sr-only">{busy ? "Saving history preference" : enabled ? "On" : "Off"}</span>
+    </button>
+  );
+}
+
 function GuidedTour({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0);
   const reduceMotion = useReducedMotion();
@@ -297,7 +334,7 @@ function GuidedTour({ onClose }: { onClose: () => void }) {
     {
       eyebrow: "04 · Your workspace",
       title: "Keep results, control your keys",
-      body: "Your first three checks are shared across all formats. Results are saved in History, while uploaded media is not. After the free checks, add a Gemini or OpenRouter key from API keys.",
+      body: "Your first three checks are shared across all formats. Turn on Save detection history in the sidebar if you want results saved; uploaded media is never saved. After the free checks, add a Gemini or OpenRouter key from API keys.",
     },
   ];
   const current = steps[step];
@@ -357,6 +394,8 @@ function Workspace({ user }: { user: User }) {
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
+  const [historyPreferenceBusy, setHistoryPreferenceBusy] = useState(false);
+  const [historyPreferenceError, setHistoryPreferenceError] = useState("");
   const greetingTimer = useRef<number | null>(null);
   const initialWorkspaceLoad = useRef<Promise<{ account: AccountStatus; history: HistoryEntry[] } | null> | null>(null);
   const reduceMotion = useReducedMotion();
@@ -387,28 +426,42 @@ function Workspace({ user }: { user: User }) {
     if (!initialWorkspaceLoad.current) initialWorkspaceLoad.current = refreshWorkspace(false);
     void initialWorkspaceLoad.current.then((initial) => {
       if (cancelled) return;
+      setActive(sectionFromHash());
       if (!initial) {
         setWorkspaceReady(true);
         return;
       }
-      const firstName = user.name?.trim().split(/\s+/)[0] || "there";
-      const greetings = initial.account.is_new_user
-        ? [`Welcome, ${firstName}`, `Great to have you here, ${firstName}`, `Let’s get started, ${firstName}`]
-        : [`Welcome back, ${firstName}`, `Good to see you again, ${firstName}`, `Ready for another check, ${firstName}`];
-      setWelcomeMessage(greetings[Math.floor(Math.random() * greetings.length)]);
+      const firstName = user.name?.trim().split(/\s+/)[0];
+      setWelcomeMessage(`${initial.account.is_new_user ? "Welcome" : "Welcome back"}${firstName ? `, ${firstName}` : ""}`);
       greetingTimer.current = window.setTimeout(() => {
         setWelcomeMessage("");
         setWorkspaceReady(true);
         if (initial.account.is_new_user) setGuideOpen(true);
         else if (initial.account.free_remaining === 0
           && !initial.account.keys.some((keyName) => keyName === "gemini" || keyName === "openrouter")) setByokOpen(true);
-      }, 2400);
+      }, 650);
     });
     return () => {
       cancelled = true;
       if (greetingTimer.current !== null) window.clearTimeout(greetingTimer.current);
     };
   }, [refreshWorkspace, user.name]);
+
+  useEffect(() => {
+    if (!window.location.hash) {
+      window.history.replaceState({ ...window.history.state, workspaceSection: "check" }, "", window.location.href);
+    }
+    function restoreWorkspaceSection() {
+      const section = sectionFromHash();
+      setActive(section);
+      setSelected(null);
+      setMobileMenuOpen(false);
+      setProfileMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    }
+    window.addEventListener("popstate", restoreWorkspaceSection);
+    return () => window.removeEventListener("popstate", restoreWorkspaceSection);
+  }, [reduceMotion]);
 
   useEffect(() => {
     if (active !== "capabilities" || health) return;
@@ -437,6 +490,35 @@ function Workspace({ user }: { user: User }) {
     }
   }
 
+  async function changeHistoryPreference(enabled: boolean) {
+    if (!account || historyPreferenceBusy) return;
+    setHistoryPreferenceBusy(true);
+    setHistoryPreferenceError("");
+    setError("");
+    try {
+      const preference = await setHistoryEnabled(enabled);
+      setAccount((current) => current ? { ...current, history_enabled: preference.history_enabled } : current);
+      if (enabled) {
+        try {
+          setHistory(await getHistory());
+        } catch (reason) {
+          const message = reason instanceof Error ? reason.message : "History was enabled, but saved results could not be loaded.";
+          setHistoryPreferenceError(message);
+          setError(message);
+        }
+      } else {
+        setHistory([]);
+        setSelected(null);
+      }
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : "Could not update the history setting.";
+      setHistoryPreferenceError(message);
+      setError(message);
+    } finally {
+      setHistoryPreferenceBusy(false);
+    }
+  }
+
   function exportHistory() {
     if (!history.length) return;
     const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
@@ -462,18 +544,11 @@ function Workspace({ user }: { user: User }) {
     }
   }
 
-  const capabilityItems: { id: string; label: string; Icon: typeof Plus; section: Section; mode?: AnalyzerMode }[] = [
-    { id: "news", label: "News detection", Icon: Newspaper, section: "check", mode: "news" },
-    { id: "image", label: "Image detection", Icon: ImageIcon, section: "check", mode: "image" },
-    { id: "video", label: "Video detection", Icon: FilmStrip, section: "check", mode: "video" },
-    { id: "history", label: "History", Icon: ClockCounterClockwise, section: "history" },
-    { id: "keys", label: "API keys", Icon: Key, section: "keys" },
+  const moreItems: { id: string; label: string; Icon: typeof Plus; section: Section }[] = [
     { id: "method", label: "How it works", Icon: Info, section: "method" },
-    { id: "capabilities", label: "Deployment status", Icon: ShieldCheck, section: "capabilities" },
+    { id: "capabilities", label: "Backend status", Icon: ShieldCheck, section: "capabilities" },
     { id: "guide", label: "Guided tour", Icon: Sparkle, section: "guide" },
   ];
-  const greeting = user.name?.trim().split(/\s+/)[0] || "there";
-
   function navigate(section: Section) {
     if (section === "guide") {
       setGuideOpen(true);
@@ -481,16 +556,16 @@ function Workspace({ user }: { user: User }) {
       setProfileMenuOpen(false);
       return;
     }
+    const nextUrl = new URL(window.location.href);
+    nextUrl.hash = section === "check" ? "" : section;
+    if (nextUrl.href !== window.location.href) {
+      window.history.pushState({ ...window.history.state, workspaceSection: section }, "", nextUrl);
+    }
     setActive(section);
     setMobileMenuOpen(false);
     setProfileMenuOpen(false);
     if (section !== "history") setSelected(null);
     window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
-  }
-
-  function openCapability(item: (typeof capabilityItems)[number]) {
-    if (item.mode) setDetectionMode(item.mode);
-    navigate(item.section);
   }
 
   const itemIcon = (modality: AnalysisResult["modality"]) => modality === "news" ? Newspaper : modality === "image" ? ImageIcon : FilmStrip;
@@ -508,34 +583,48 @@ function Workspace({ user }: { user: User }) {
     <div className="min-h-[calc(100dvh-3.5rem)]">
       <motion.div aria-hidden className="fixed left-0 right-0 top-14 z-30 h-[2px] origin-left bg-accent" style={reduceMotion ? undefined : { scaleX: scrollScale }} />
       <div className="mx-auto flex max-w-[1440px]">
-        <aside className={`${mobileMenuOpen ? "fixed inset-0 z-40 block bg-bg" : "hidden"} top-14 h-[calc(100dvh-3.5rem)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-14 md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
+        <aside className={`${mobileMenuOpen ? "fixed inset-x-0 bottom-0 top-14 z-40 block" : "hidden"} h-[calc(100dvh-3.5rem)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-14 md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
           <div className={`flex h-full min-h-0 flex-col overflow-y-auto p-4 ${sidebarExpanded ? "" : "md:p-2"}`}>
-            <div className="flex items-center justify-between px-2 py-3 md:hidden">
-              <span className="font-semibold">Workspace menu</span>
-              <button type="button" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} className="rounded-control p-2 text-ink-2 hover:bg-elev"><X size={20} /></button>
+            <div className="flex items-center justify-between gap-2 px-2 py-2 md:py-3">
+              <p className={`hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3 md:block ${sidebarExpanded ? "" : "md:sr-only"}`}>Workspace</p>
+              <button type="button" aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"} title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                onClick={() => setSidebarExpanded((value) => !value)} className="hidden size-9 items-center justify-center rounded-control text-ink-2 transition-colors hover:bg-elev focus-visible:outline md:flex">
+                <List size={18} aria-hidden />
+              </button>
+              <div className="ml-auto flex items-center justify-between gap-2 md:hidden">
+                <span className="text-sm font-semibold">Workspace menu</span>
+                <button type="button" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} className="rounded-control p-2 text-ink-2 hover:bg-elev"><X size={20} /></button>
+              </div>
             </div>
-            <p className={`px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3 ${sidebarExpanded ? "" : "md:sr-only"}`}>Workspace</p>
             <nav aria-label="Workspace" className="space-y-1">
               <button type="button" title={!sidebarExpanded ? "New detection" : undefined} aria-current={active === "check" ? "page" : undefined} onClick={() => navigate("check")}
                 className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "check" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
                 <Plus size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>New detection</span>
               </button>
+              <button type="button" title={!sidebarExpanded ? "History" : undefined} aria-current={active === "history" ? "page" : undefined} onClick={() => navigate("history")}
+                className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "history" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
+                <ClockCounterClockwise size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>History</span>
+              </button>
+              <button type="button" title={!sidebarExpanded ? "API keys" : undefined} aria-current={active === "keys" ? "page" : undefined} onClick={() => navigate("keys")}
+                className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "keys" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
+                <Key size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>API keys</span>
+              </button>
               <div>
-                <button type="button" title={!sidebarExpanded ? "Capabilities" : undefined} aria-label="Capabilities" aria-expanded={capabilitiesOpen} aria-controls="capabilities-submenu"
+                <button type="button" title={!sidebarExpanded ? "More" : undefined} aria-label="More" aria-expanded={capabilitiesOpen} aria-controls="more-submenu"
                   onClick={() => setCapabilitiesOpen((value) => !value)}
-                  className={`group flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active !== "check" ? "font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"} ${active !== "check" ? "bg-accent-soft" : ""}`}>
-                  <ShieldCheck size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>Capabilities</span>
+                  className={`group flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "method" || active === "capabilities" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
+                  <Info size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>More</span>
                   <CaretDown size={15} aria-hidden className={`ml-auto shrink-0 text-ink-3 transition-all ${capabilitiesOpen ? "rotate-180 opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"} ${sidebarExpanded ? "" : "md:hidden"}`} />
                 </button>
                 <AnimatePresence initial={false}>
-                  {capabilitiesOpen && <motion.div id="capabilities-submenu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                  {capabilitiesOpen && <motion.div id="more-submenu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2 }}
                     className={`overflow-hidden ${sidebarExpanded ? "ml-3 border-l border-line pl-2" : "md:ml-0 md:border-l-0 md:pl-0"}`}>
                     <div className="space-y-1 py-1">
-                      {capabilityItems.map((item) => {
+                      {moreItems.map((item) => {
                         const Icon = item.Icon;
-                        const current = active === item.section && (item.section !== "check" || item.mode === detectionMode);
+                        const current = active === item.section;
                         return <button key={item.id} type="button" title={!sidebarExpanded ? item.label : undefined} aria-label={item.label} aria-current={current ? "page" : undefined}
-                          onClick={() => openCapability(item)}
+                          onClick={() => navigate(item.section)}
                           className={`flex w-full items-center gap-3 rounded-control px-3 py-2 text-left text-xs transition-colors ${current ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
                           <Icon size={16} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>{item.label}</span>
                         </button>;
@@ -553,7 +642,7 @@ function Workspace({ user }: { user: User }) {
                 <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-line">
                   <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${account ? (account.free_used / account.free_limit) * 100 : 0}%` }} />
                 </div>
-                <p className="mt-2 text-[11px] leading-relaxed text-ink-3">Shared across news, images and video.</p>
+                <p className="mt-2 text-[11px] leading-relaxed text-ink-3">One allowance for every check.</p>
                 {account?.free_remaining === 0 && (
                   <button type="button" onClick={() => setByokOpen(true)} className="mt-3 text-xs font-medium text-accent underline underline-offset-2">Add your API key</button>
                 )}
@@ -563,6 +652,22 @@ function Workspace({ user }: { user: User }) {
                 <ShieldCheck size={18} aria-hidden /><span className="md:sr-only">{account ? `${account.free_used}/${account.free_limit}` : "…"}</span>
               </button>}
 
+            {sidebarExpanded ? <div className="mt-3 rounded-panel border border-line bg-elev p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium">Save detection history</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-ink-3">Results only. Media is never stored.</p>
+                  </div>
+                  <HistorySwitch enabled={!!account?.history_enabled} busy={historyPreferenceBusy} disabled={!account}
+                    onChange={() => void changeHistoryPreference(!account?.history_enabled)} />
+                </div>
+                {account?.history_enabled && <p className="mt-2 text-[10px] text-ink-3">Turning this off deletes saved results.</p>}
+                {historyPreferenceError && <p role="alert" className="mt-2 text-[11px] leading-relaxed text-fake">{historyPreferenceError}</p>}
+              </div> : <div className="mt-3 flex justify-center" title={`Save detection history ${account?.history_enabled ? "on" : "off"}`}>
+                <HistorySwitch enabled={!!account?.history_enabled} busy={historyPreferenceBusy} disabled={!account}
+                  onChange={() => void changeHistoryPreference(!account?.history_enabled)} />
+              </div>}
+
             <div className="relative mt-auto border-t border-line pt-3">
               <AnimatePresence>
                 {profileMenuOpen && <motion.div key="profile-menu" initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: reduceMotion ? 0 : 0.16 }}
@@ -571,8 +676,6 @@ function Workspace({ user }: { user: User }) {
                     <p className="truncate text-sm font-semibold">{user.name || "Veritas user"}</p>
                     <p className="mt-0.5 truncate text-xs text-ink-3">{user.email}</p>
                   </div>
-                  <button type="button" onClick={() => navigate("history")} className="mt-2 flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-ink-2 hover:bg-bg"><ClockCounterClockwise size={17} aria-hidden /> History</button>
-                  <button type="button" onClick={() => navigate("keys")} className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-ink-2 hover:bg-bg"><Key size={17} aria-hidden /> API keys</button>
                   <button type="button" onClick={() => void signOut({ redirectTo: "/" })} className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-ink-2 hover:bg-bg"><SignOut size={17} aria-hidden /> Sign out</button>
                   <button type="button" disabled={accountDeleting} onClick={() => void removeAccount()} className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-fake hover:bg-fake-soft disabled:opacity-50"><Trash size={17} aria-hidden /> {accountDeleting ? "Deleting account…" : "Delete account"}</button>
                 </motion.div>}
@@ -592,12 +695,6 @@ function Workspace({ user }: { user: User }) {
         </aside>
 
         <section aria-label="Workspace content" className="min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-8 sm:pt-7 lg:px-12">
-          <div className="mb-5 hidden md:block">
-            <button type="button" aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"} title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              onClick={() => setSidebarExpanded((value) => !value)} className="rounded-control border border-line p-2 text-ink-2 transition-colors hover:bg-elev">
-              <List size={18} aria-hidden />
-            </button>
-          </div>
           <div className="mb-6 flex items-center justify-between gap-3 md:hidden">
             <button type="button" onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-sm"><List size={17} /> Menu</button>
             <span className="truncate text-xs text-ink-3">{user.email}</span>
@@ -608,10 +705,9 @@ function Workspace({ user }: { user: User }) {
             {error && <p role="alert" className="mb-5 rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-ink-2">{error}</p>}
             {active === "check" && (
               <motion.section key="check" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45 }}>
-                <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-ink-3"><Sparkle size={15} aria-hidden /> Verification workspace</p>
-                <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-                  <div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Good to see you, {greeting}.</h1>
-                    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-ink-2">Check an article, image or short video. The result includes its evidence and uncertainty.</p></div>
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">What would you like to check?</h1>
+                    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-ink-2">Review the signals, sources and limits behind each result.</p></div>
                   {account && <p className="text-xs text-ink-3">{account.free_remaining} free {account.free_remaining === 1 ? "check" : "checks"} left</p>}
                 </div>
                 <div className="mt-7">
@@ -620,7 +716,7 @@ function Workspace({ user }: { user: User }) {
                 </div>
                 <section className="mt-12 border-t border-line pt-7">
                   <div className="flex items-center justify-between gap-3">
-                    <div><h2 className="text-lg font-semibold tracking-tight">Recent checks</h2><p className="mt-1 text-sm text-ink-2">Your latest account activity.</p></div>
+                    <div><h2 className="text-lg font-semibold tracking-tight">Recent checks</h2><p className="mt-1 text-sm text-ink-2">{account?.history_enabled ? "Your latest saved results." : "History saving is off; turn it on in the sidebar to keep results."}</p></div>
                     <button type="button" onClick={() => navigate("history")} className="text-sm text-accent hover:underline">View history</button>
                   </div>
                   {loading ? <p className="mt-4 text-sm text-ink-3">Loading account…</p> : history.length ? (
@@ -632,7 +728,7 @@ function Workspace({ user }: { user: User }) {
                         </button>;
                       })}
                     </div>
-                  ) : <p className="mt-4 rounded-control border border-dashed border-line-strong px-4 py-5 text-sm text-ink-3">Your completed checks will appear here.</p>}
+                  ) : <p className="mt-4 rounded-control border border-dashed border-line-strong px-4 py-5 text-sm text-ink-3">{account?.history_enabled ? "Your completed checks will appear here." : "History is off. Turn on Save detection history in the sidebar to keep future results; uploaded media is never saved."}</p>}
                 </section>
               </motion.section>
             )}
@@ -645,7 +741,7 @@ function Workspace({ user }: { user: User }) {
                   <ResultCard r={selected.result} />
                 </> : <>
                   <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Your account</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Detection history</h1><p className="mt-2 text-sm text-ink-2">Up to {account?.history_limit ?? 20} recent results. Uploaded media itself is not saved.</p></div>
+                    <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Your account</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Detection history</h1><p className="mt-2 text-sm text-ink-2">{account?.history_enabled ? `Up to ${account.history_limit} recent results. Uploaded media itself is not saved.` : "History saving is off. Use the sidebar switch to save future results; uploaded media is never stored."}</p></div>
                     {!!history.length && <div className="flex flex-wrap gap-2">
                       <button type="button" onClick={exportHistory} className="rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:bg-bg">Export JSON</button>
                       <button type="button" disabled={historyBusy} onClick={() => void deleteAllHistory()} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:border-fake hover:text-fake disabled:opacity-50"><Trash size={15} /> {historyBusy ? "Deleting…" : "Clear history"}</button>
@@ -662,13 +758,16 @@ function Workspace({ user }: { user: User }) {
                         </button>;
                       })}
                     </div>
-                  ) : <p className="mt-7 rounded-panel border border-dashed border-line-strong p-6 text-sm text-ink-3">No detections saved yet. Your next completed check will appear here.</p>}
+                  ) : <p className="mt-7 rounded-panel border border-dashed border-line-strong p-6 text-sm text-ink-3">{account?.history_enabled ? "No detections saved yet. Your next completed check will appear here." : "History saving is off. Turn it on with the sidebar switch to keep future results."}</p>}
                 </>}
               </motion.section>
             )}
 
             {active === "keys" && (
               <motion.section key="keys" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45 }}>
+                <button type="button" onClick={() => navigate("check")} className="mb-5 inline-flex items-center gap-1 rounded-control px-1 py-1 text-sm text-ink-2 transition-colors hover:text-ink">
+                  <CaretLeft size={16} aria-hidden /> Back to workspace
+                </button>
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Account settings</p>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight">API keys</h1>
                 <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-2">Add a personal provider key for checks after the three free detections. Keys are encrypted at rest; Veritas shows only which providers have a saved key.</p>

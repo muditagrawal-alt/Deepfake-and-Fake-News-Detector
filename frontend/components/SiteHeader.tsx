@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
 
 function stage() {
@@ -36,7 +37,7 @@ export default function SiteHeader() {
     <header className="site-header sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
         <Link href="/" aria-label="Veritas home" className="inline-flex shrink-0 items-center gap-3 rounded-control text-ink">
-          <span aria-hidden className="grid size-9 place-items-center rounded-[10px] bg-accent text-sm font-bold tracking-[-0.08em] text-accent-ink">V</span>
+          <Image src="/veritas-mark.png" alt="" aria-hidden width={36} height={36} priority className="size-9 shrink-0 rounded-full border border-line bg-white object-cover" />
           <span className="text-[15px] font-semibold tracking-[-0.035em]">Veritas</span>
         </Link>
 

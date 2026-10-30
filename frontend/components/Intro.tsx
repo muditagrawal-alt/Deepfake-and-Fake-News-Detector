@@ -51,7 +51,7 @@ function useScramble(enabled: boolean) {
   return ref;
 }
 
-export default function Intro() {
+export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const { ready, vh, reduce } = useScrollMotion();
   // The scramble is a text effect, not a transform, so it is gated directly.
   const wordRef = useScramble(!reduce);
@@ -138,12 +138,13 @@ export default function Intro() {
               transition={{ duration: 0.7, delay: 1.4, ease: EASE }}
               className="mt-8"
             >
-              <a
-                href="#check"
+              <button
+                type="button"
+                onClick={onContinue}
                 className="inline-flex rounded-control bg-accent px-5 py-3 text-sm font-semibold text-accent-ink transition-[opacity,transform] hover:opacity-90 active:scale-[0.98]"
               >
-                Run a check
-              </a>
+                Continue
+              </button>
             </motion.div>
           </motion.div>
         </motion.div>

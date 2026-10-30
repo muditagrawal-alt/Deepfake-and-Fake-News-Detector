@@ -37,7 +37,6 @@ export default function ResultCard({ r }: { r: AnalysisResult }) {
   const v = VERDICT[r.verdict];
   const pct = Math.round(r.confidence * 100);
   const [raw, setRaw] = useState(false);
-  const webChecked = r.provenance.grounded || !!r.provenance.research_provider;
   const seconds = (Object.values(r.timings_ms).reduce((a, b) => a + b, 0) / 1000).toFixed(0);
   const via = r.provenance.grounded ? "Google Search" : r.provenance.research_provider === "duckduckgo" ? "DuckDuckGo" : r.provenance.research_provider?.replace(/_/g, " ");
 
@@ -46,7 +45,7 @@ export default function ResultCard({ r }: { r: AnalysisResult }) {
       <header className="p-6 border-b border-line">
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h2 className={`text-2xl font-semibold tracking-tight ${v.color}`}>{v.label}</h2>
-          <span className="text-sm text-ink-2 tabular-nums">{pct}% confidence</span>
+          <span title="The model's estimate; it has not been empirically calibrated." className="text-sm text-ink-2 tabular-nums">{pct}% model estimate</span>
           <span className="text-sm text-ink-3 ml-auto">
             {r.modality === "news" ? "Article" : r.modality === "image" ? "Image" : "Video"}
             {r.genre ? ` · ${r.genre.replace(/_/g, " ")}` : ""}
@@ -145,7 +144,9 @@ export default function ResultCard({ r }: { r: AnalysisResult }) {
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-sm text-ink-3">{webChecked ? "No relevant sources found." : "No web check was needed for this item."}</p>
+              <p className="mt-2 text-sm text-ink-3">
+                {r.provenance.research_mode === "closed" ? "No web check was run for this item." : "No independent sources were retrieved."}
+              </p>
             )}
           </div>
 

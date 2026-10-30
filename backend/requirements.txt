@@ -15,3 +15,6 @@ onnxruntime>=1.18
 huggingface_hub>=0.24
 ddgs>=9.0
 c2pa-python>=0.37,<0.38
+sqlalchemy>=2.0,<3
+psycopg[binary]>=3.2
+cryptography>=44

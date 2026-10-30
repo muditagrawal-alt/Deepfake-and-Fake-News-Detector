@@ -36,6 +36,15 @@ class Settings(BaseSettings):
     hf_token: str = ""
 
     # ------------------------------------------------------------------
+    # Accounts, quotas, and user-supplied provider keys
+    # ------------------------------------------------------------------
+    # The same signing secret is configured in the Next.js frontend and API.
+    backend_token_secret: str = ""
+    # URL-safe base64 encoding of 32 random bytes; used for AES-GCM key storage.
+    byok_encryption_key: str = ""
+    database_url: str = f"sqlite:///{BACKEND_DIR / 'data' / 'veritas.sqlite3'}"
+
+    # ------------------------------------------------------------------
     # Engine
     # ------------------------------------------------------------------
     # Which model judges the content: "gemini" (hosted) or "ollama" (local).
@@ -116,6 +125,7 @@ class Settings(BaseSettings):
     allowed_origin_regex: str = r"https://.*\.vercel\.app"   # preview + production deployments
     rate_limit_per_ip: str = "10/hour"
     max_image_mb: float = 10.0
+    max_image_pixels: int = Field(default=40_000_000, gt=0)
     max_video_mb: float = 50.0
     max_video_seconds: float = 90.0
     tmp_dir: Path = BACKEND_DIR / "tmp"

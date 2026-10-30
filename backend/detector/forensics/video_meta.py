@@ -17,8 +17,23 @@ log = logging.getLogger(__name__)
 
 async def ffprobe_json(path: str) -> dict:
     cmd = ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path]
-    proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    out, _ = await proc.communicate()
+    try:
+        proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    except OSError as exc:
+        log.warning("ffprobe could not start: %s", exc)
+        return {}
+    try:
+        out, _ = await asyncio.wait_for(proc.communicate(), timeout=20.0)
+    except asyncio.TimeoutError:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        await proc.wait()
+        log.warning("ffprobe timed out for uploaded media")
+        return {}
+    if proc.returncode != 0:
+        return {}
     try:
         return json.loads(out.decode("utf-8", "ignore") or "{}")
     except json.JSONDecodeError:

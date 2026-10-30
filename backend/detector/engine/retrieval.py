@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 import httpx
 import trafilatura
 
+from detector.forensics.safe_fetch import fetch_html
 from detector.providers.research import Hit
 
 log = logging.getLogger(__name__)
@@ -98,10 +99,11 @@ class Retrieval:
 
 async def _read(client: httpx.AsyncClient, url: str, max_chars: int) -> str:
     try:
-        r = await client.get(url)
-        if r.status_code != 200 or "html" not in r.headers.get("content-type", ""):
+        fetched = await fetch_html(client, url, max_bytes=2 * 1024 * 1024)
+        if not fetched:
             return ""
-        return (trafilatura.extract(r.text, url=url, include_comments=False, include_tables=False) or "").strip()[:max_chars]
+        final_url, html = fetched
+        return (trafilatura.extract(html, url=final_url, include_comments=False, include_tables=False) or "").strip()[:max_chars]
     except Exception:
         return ""
 
@@ -130,7 +132,8 @@ async def retrieve(researcher, queries: list[str], *, publisher: str | None, blo
         sh = _shingles(text)
         return bool(item_sh) and len(sh) >= 5 and len(sh & item_sh) / len(sh) >= DUPLICATE_CONTAINMENT
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=12.0, headers={"User-Agent": _UA}) as client:
+    async with httpx.AsyncClient(follow_redirects=False, trust_env=False, timeout=12.0,
+                                 headers={"User-Agent": _UA}) as client:
         for q in queries:
             try:
                 raw = await researcher.search(q, max_results=per_query + 2)

@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 import httpx
 import trafilatura
 
+from detector.forensics.safe_fetch import fetch_html
 from detector.schemas import Extraction
 
 log = logging.getLogger(__name__)
@@ -46,17 +47,15 @@ async def extract_article(url: str, *, max_chars: int = 14000) -> tuple[Extracti
 
     html = None
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=20.0, headers={"User-Agent": _UA}) as client:
-            resp = await client.get(clean)
-            resp.raise_for_status()
-            html = resp.text
-            ext.final_url = str(resp.url)
+        async with httpx.AsyncClient(follow_redirects=False, trust_env=False, timeout=20.0,
+                                     headers={"User-Agent": _UA}) as client:
+            fetched = await fetch_html(client, clean, max_bytes=4 * 1024 * 1024)
+            if fetched:
+                ext.final_url, html = fetched
     except Exception as exc:
-        log.info("httpx fetch failed for %s (%s); trying trafilatura fetch", clean, exc)
-        try:
-            html = trafilatura.fetch_url(clean)
-        except Exception as exc2:
-            log.info("trafilatura fetch failed too: %s", exc2)
+        # Do not use trafilatura.fetch_url here: it follows redirects without
+        # our public-address checks and response-size limit.
+        log.info("article fetch failed for %s (%s)", clean, exc)
 
     if not html:
         ext.status = "FAILED"
@@ -80,7 +79,11 @@ async def extract_article(url: str, *, max_chars: int = 14000) -> tuple[Extracti
         ext.status = "FAILED"
         return ext, ""
 
-    data = json.loads(raw)
+    try:
+        data = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        ext.status = "FAILED"
+        return ext, ""
     text = (data.get("text") or "").strip()
     if not text:
         ext.status = "FAILED"

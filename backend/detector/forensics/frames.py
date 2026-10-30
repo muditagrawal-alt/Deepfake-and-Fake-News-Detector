@@ -9,9 +9,20 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 
 
-async def _run(cmd: list[str]) -> tuple[int, str]:
-    proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    _, err = await proc.communicate()
+async def _run(cmd: list[str], *, timeout: float = 120.0) -> tuple[int, str]:
+    try:
+        proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    except OSError as exc:
+        return 127, str(exc)
+    try:
+        _, err = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+    except asyncio.TimeoutError:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        await proc.wait()
+        return 124, "ffmpeg processing timed out"
     return proc.returncode, err.decode("utf-8", "ignore")
 
 

@@ -18,15 +18,28 @@ class JobStore:
         self.ttl = ttl_seconds
         self._jobs: dict[str, dict[str, Any]] = {}
 
-    def create(self) -> str:
+    def create(self, owner_id: str) -> str:
         self._gc()
         job_id = uuid.uuid4().hex[:16]
-        self._jobs[job_id] = {"status": "queued", "stage": None, "result": None, "error": None, "created": time.time()}
+        self._jobs[job_id] = {"owner_id": owner_id, "task": None, "status": "queued", "stage": None,
+                              "result": None, "error": None, "created": time.time()}
         return job_id
 
-    def get(self, job_id: str) -> JobStatus | None:
+    def attach_task(self, job_id: str, task: asyncio.Task) -> None:
+        if job_id in self._jobs:
+            self._jobs[job_id]["task"] = task
+
+    async def cancel_owner(self, owner_id: str) -> None:
+        tasks = [job["task"] for job in self._jobs.values()
+                 if job["owner_id"] == owner_id and job["task"] is not None and not job["task"].done()]
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+    def get(self, job_id: str, owner_id: str) -> JobStatus | None:
         job = self._jobs.get(job_id)
-        if not job:
+        if not job or job["owner_id"] != owner_id:
             return None
         return JobStatus(job_id=job_id, status=job["status"], stage=job["stage"], result=job["result"], error=job["error"])
 
@@ -36,11 +49,16 @@ class JobStore:
 
     async def run(self, job_id: str, coro_factory: Callable[[Callable[[str], None]], Awaitable[Any]], cleanup: Callable[[], None] | None = None) -> None:
         job = self._jobs[job_id]
+        job["task"] = asyncio.current_task()
         job["status"] = "running"
         try:
             job["result"] = await coro_factory(lambda stage: self.set_stage(job_id, stage))
             job["status"] = "done"
             job["stage"] = "complete"
+        except asyncio.CancelledError:
+            job["status"] = "error"
+            job["error"] = "The account's video job was cancelled."
+            raise
         except Exception as exc:  # surfaced to the client as text
             log.exception("job %s failed", job_id)
             job["status"] = "error"

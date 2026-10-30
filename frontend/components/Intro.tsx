@@ -412,132 +412,6 @@ function ScrollyPipelineSection({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Signal Geometry // Topographic Latent Manifold Component                 */
-/* -------------------------------------------------------------------------- */
-
-function TopographySection({
-  reduceMotion,
-}: {
-  reduceMotion: boolean;
-}) {
-  const [color, setColor] = useState("#4f7cff");
-
-  return (
-    <section
-      id="signal-geometry"
-      className="landing-section relative px-4 py-24 sm:px-8 sm:py-32 lg:px-12 border-t border-white/5 overflow-hidden"
-    >
-      <ScanGrid className="absolute inset-0 opacity-20" />
-
-      <div className="mx-auto max-w-[1280px]">
-        <ScrollReveal reduceMotion={reduceMotion}>
-          <div className="text-center max-w-[70ch] mx-auto mb-12">
-            <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
-              Signal Geometry // Latent Space Mapping
-            </span>
-            <h2 className="mt-3 text-[clamp(2.1rem,4vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
-              Multi-modal signals mapped onto topological surfaces.
-            </h2>
-            <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
-              High-dimensional forensic features — vocoder harmonics, PRNU noise print residuals, and claim embeddings — projected into a continuous 22-contour elevation manifold. Hover to deform the field; click to propagate an evidentiary pulse wave.
-            </p>
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal reduceMotion={reduceMotion} delay={0.1}>
-          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#060608] shadow-2xl">
-            {/* Top Telemetry Header Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-black/60 px-4 py-3 font-mono text-xs text-white/60 backdrop-blur-md">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="size-2 rounded-full animate-pulse"
-                  style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
-                />
-                <span className="font-semibold text-white">
-                  TOPOGRAPHY :: 22-CONTOUR SIGNAL ELEVATION MESH
-                </span>
-              </div>
-
-              {/* Color & Pulse Controls */}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-white/40 hidden sm:inline">PALETTE:</span>
-                <button
-                  type="button"
-                  onClick={() => setColor("#4f7cff")}
-                  className={`px-2.5 py-1 rounded text-[10px] transition-colors ${
-                    color === "#4f7cff"
-                      ? "bg-[#4f7cff]/20 text-[#4f7cff] border border-[#4f7cff]/40"
-                      : "text-white/40 border border-white/10 hover:text-white"
-                  }`}
-                >
-                  Sapphire #4f7cff
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setColor("#d4d4d8")}
-                  className={`px-2.5 py-1 rounded text-[10px] transition-colors ${
-                    color === "#d4d4d8"
-                      ? "bg-white/20 text-white border border-white/40"
-                      : "text-white/40 border border-white/10 hover:text-white"
-                  }`}
-                >
-                  Monochrome
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setColor("#34d399")}
-                  className={`px-2.5 py-1 rounded text-[10px] transition-colors ${
-                    color === "#34d399"
-                      ? "bg-[#34d399]/20 text-[#34d399] border border-[#34d399]/40"
-                      : "text-white/40 border border-white/10 hover:text-white"
-                  }`}
-                >
-                  Emerald
-                </button>
-              </div>
-            </div>
-
-            {/* The Topography Canvas Container with user props */}
-            <div style={{ width: "100%", height: "600px", position: "relative" }}>
-              <Topography
-                color={color}
-                lineCount={22}
-                lineWidth={1.2}
-                elevation={1}
-                foreground={0.2}
-                tilt={32}
-                speed={0.25}
-                direction="forward"
-                glow={0.6}
-                depthOfField={0.4}
-                fog={0.35}
-                hoverEffect="lift"
-                clickEffect="pulse"
-              />
-            </div>
-
-            {/* Bottom Telemetry Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/60 px-4 py-2.5 font-mono text-[10px] text-white/40 backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                <span>INTERACTIVE CONTROLS:</span>
-                <span className="text-white/70">HOVER TO LIFT FIELD</span>
-                <span>·</span>
-                <span className="text-white/70">CLICK TO DISPATCH PROBE PULSE</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span>TILT: 32°</span>
-                <span>SPEED: 0.25</span>
-                <span>LINES: 22</span>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
 /*  Parallax Chain-of-Custody Dossier Section (Spatial Depth Transition)      */
 /* -------------------------------------------------------------------------- */
 
@@ -886,28 +760,33 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       />
 
       {/* ------------------------------------------------------------------ */}
-      {/*  HERO (CENTERED HEADLINE & CONTROL ROOM ARCHITECTURE)              */}
+      {/*  HERO (TOPOGRAPHY BACKGROUND WITH CENTERED HEADLINE & TOOL)        */}
       {/* ------------------------------------------------------------------ */}
-      <section id="platform" className="landing-hero relative px-4 sm:px-8 lg:px-12">
-        <ScanGrid className="absolute inset-0 opacity-40" />
-
-        {/* Top telemetry ticker (Clean monochrome, no green dots) */}
-        <div className="mx-auto max-w-[1320px] pt-8 pb-4 flex items-center justify-between text-[11px] font-mono text-white/40 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-white/50 border border-white/10 rounded px-1.5 py-0.5">
-              SYS.ACTIVE
-            </span>
-            <span>VERITAS v3 // MULTI-MODAL PROVENANCE ENGINE</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-4">
-            <span>ZERO PERSISTENCE</span>
-            <span>OPEN WEB TRIANGULATION</span>
-            <span>MEDIAN LATENCY: 12.4s</span>
-          </div>
+      <section id="platform" className="landing-hero relative px-4 sm:px-8 lg:px-12 overflow-hidden min-h-[92vh]">
+        {/* Topography Interactive Background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+          <Topography
+            color="#4f7cff"
+            lineCount={22}
+            lineWidth={1.2}
+            elevation={1}
+            foreground={0.2}
+            tilt={32}
+            speed={0.25}
+            direction="forward"
+            glow={0.6}
+            depthOfField={0.4}
+            fog={0.35}
+            hoverEffect="lift"
+            clickEffect="pulse"
+          />
+          {/* Subtle gradient vignettes for pristine text legibility & smooth edge transitions */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#030303]/85 via-transparent to-[#030303] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(3,3,3,0.35)_0%,rgba(3,3,3,0.85)_100%)] pointer-events-none" />
         </div>
 
         {/* Centered Hero Header */}
-        <div className="mx-auto max-w-4xl text-center flex flex-col items-center pt-12 sm:pt-16 pb-8">
+        <div className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-20 sm:pt-28 pb-8">
           <motion.div
             className="flex flex-col items-center text-center w-full"
             variants={{
@@ -922,19 +801,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             initial={shouldReduceMotion ? false : "hidden"}
             animate="visible"
           >
-            {/* Status Badge — Clean monochrome, no green dot */}
-            <motion.div
-              variants={heroChildVariants}
-              transition={{
-                duration: shouldReduceMotion ? 0 : 0.72,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              className="hero-status-badge mx-auto"
-            >
-              <span className="size-1.5 rounded-full bg-white/50" />
-              Intelligence-Grade Media Verification
-            </motion.div>
-
             {/* Tagline — Perfectly Centered */}
             <motion.h1
               variants={heroChildVariants}
@@ -942,7 +808,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 duration: shouldReduceMotion ? 0 : 0.78,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="landing-display mt-6 text-white text-center mx-auto max-w-[18ch]"
+              className="landing-display text-white text-center mx-auto max-w-[18ch]"
             >
               See the evidence behind the media.
             </motion.h1>
@@ -1013,7 +879,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         <motion.section
           id="product-check"
           aria-labelledby="preview-title"
-          className="landing-tool-card relative mx-auto max-w-4xl w-full mb-16"
+          className="landing-tool-card relative z-10 mx-auto max-w-4xl w-full mb-16"
           initial={
             shouldReduceMotion
               ? false
@@ -1028,18 +894,12 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         >
           <div className="landing-tool-card-scan" aria-hidden="true" />
           <div className="landing-preview-heading">
-            <div>
-              <p className="text-xs font-mono font-medium text-[var(--ink-3)]">
-                TERMINAL :: VERITAS WORKSPACE
-              </p>
-              <h2
-                id="preview-title"
-                className="mt-1 text-lg font-semibold tracking-tight text-white"
-              >
-                Start a new review
-              </h2>
-            </div>
-            <span className="landing-preview-label font-mono">LIVE PREVIEW</span>
+            <h2
+              id="preview-title"
+              className="text-base font-semibold tracking-tight text-white"
+            >
+              Start a new review
+            </h2>
           </div>
           <Analyzer preview />
           <p className="landing-preview-note font-mono">
@@ -1060,11 +920,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       {/*  TRANSITION 2: SCROLLYTELLING FORENSIC PIPELINE                    */}
       {/* ------------------------------------------------------------------ */}
       <ScrollyPipelineSection reduceMotion={shouldReduceMotion} />
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  SIGNAL GEOMETRY // TOPOGRAPHIC LATENT MANIFOLD                    */}
-      {/* ------------------------------------------------------------------ */}
-      <TopographySection reduceMotion={shouldReduceMotion} />
 
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 3: MULTI-LAYER PARALLAX FORENSIC DOSSIER               */}

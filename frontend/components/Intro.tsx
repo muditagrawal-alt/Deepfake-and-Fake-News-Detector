@@ -1,154 +1,160 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "motion/react";
+import { ArrowDownRight, ArrowRight } from "@phosphor-icons/react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
-
-import { useScrollMotion } from "@/lib/useScrollMotion";
-
-const WORD = "VERITAS";
-const NOISE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const CYCLE_MS = 55;       // how fast an unresolved letter changes
-const STAGGER_MS = 105;    // delay between letters locking in
-const LEAD_MS = 260;       // everything cycles together before the first letter locks
-const TOTAL_MS = LEAD_MS + WORD.length * STAGGER_MS;
-const EASE = [0.16, 1, 0.3, 1] as const;
-
-/**
- * The wordmark resolves out of noise: the product's job is turning ambiguous
- * material into a settled answer, so the name does the same.
- */
-function useScramble(enabled: boolean) {
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (!enabled) { el.textContent = WORD; return; }
-
-    let raf = 0;
-    const start = performance.now();
-
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      // Every slot is filled from the first frame, so the wordmark never
-      // reflows: letters lock in left to right out of the noise.
-      const step = Math.floor(elapsed / CYCLE_MS);
-      let out = "";
-      for (let i = 0; i < WORD.length; i++) {
-        out += elapsed >= LEAD_MS + i * STAGGER_MS
-          ? WORD[i]
-          : NOISE[(step * 7 + i * 13) % NOISE.length];
-      }
-      el.textContent = out;
-      if (elapsed < TOTAL_MS) raf = requestAnimationFrame(tick);
-      else el.textContent = WORD;
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [enabled]);
-
-  return ref;
-}
+import Analyzer from "@/components/Analyzer";
 
 export default function Intro({ onContinue }: { onContinue?: () => void }) {
-  const { ready, vh, reduce } = useScrollMotion();
-  // The scramble is a text effect, not a transform, so it is gated directly.
-  const wordRef = useScramble(!reduce);
+  const reduceMotion = useReducedMotion();
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const previewY = useTransform(scrollYProgress, [0, 1], [0, 28]);
+  const previewOpacity = useTransform(scrollYProgress, [0, 0.95], [1, 0.72]);
 
-  // Driven by raw scroll position rather than element progress: the whole
-  // transition plays over the first viewport of scrolling, which is exact and
-  // cannot drift as the sticky stage moves. scrollY is a motion value, so
-  // scrolling never re-renders React.
-  const { scrollY } = useScroll();
-  const span = vh || 1;
-  const at = (f: number) => span * f;
-
-  // The intro occupies exactly one viewport and scrolls away normally, so the
-  // checker is always directly beneath it and no empty stage can appear.
-  //
-  // The whole block is held back against that scroll as one unit (parallax);
-  // only opacity and scale differ between its parts. Parallaxing the elements
-  // separately made them collide.
-  const blockY = useTransform(scrollY, [0, at(1)], [0, span * 0.32]);
-  const blockOpacity = useTransform(scrollY, [at(0.3), at(0.72)], [1, 0]);
-  const blockFilter = useTransform(
-    useTransform(scrollY, [at(0.3), at(0.72)], [0, 5]),
-    (v) => `blur(${v}px)`,
-  );
-  const wordScale = useTransform(scrollY, [0, at(1)], [1, 0.88]);
-
-  // The rule retracts to a stub as the block leaves. Its entry sweep lives on
-  // the inner element so it never competes with this value.
-  const ruleScale = useTransform(scrollY, [0, at(0.6)], [1, 0.2]);
-
-  // Supporting copy thins out slightly ahead of the rest.
-  const copyOpacity = useTransform(scrollY, [at(0.1), at(0.45)], [1, 0.15]);
-
+  useEffect(() => {
+    function showMethod() {
+      document.getElementById("how-it-works")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    }
+    window.addEventListener("veritas:how-it-works", showMethod);
+    return () => window.removeEventListener("veritas:how-it-works", showMethod);
+  }, [reduceMotion]);
 
   return (
-    <div className="relative h-[100dvh] overflow-hidden">
-      <div className="h-full flex flex-col justify-center px-4">
-        <motion.div
-          data-intro="block"
-          style={!ready ? undefined : { y: blockY, opacity: blockOpacity, filter: blockFilter }}
-          className="mx-auto w-full max-w-5xl will-change-transform"
-        >
-          <motion.h1
-            data-intro="word"
-            style={!ready ? undefined : { scale: wordScale }}
-            className="origin-left font-mono text-[15vw] sm:text-[12vw] lg:text-[9.5rem] leading-[0.95] font-semibold tracking-[-0.03em] select-none will-change-transform"
-          >
-            <span ref={wordRef} aria-hidden>{WORD}</span>
-            <span className="sr-only">Veritas</span>
-          </motion.h1>
-
-          {/* Outer element carries the scroll values, inner one the entry sweep. */}
-          <motion.div
-            data-intro="rule"
-            aria-hidden
-            style={!ready ? undefined : { scaleX: ruleScale }}
-            className="mt-6 h-px origin-left"
-          >
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.9, delay: 1.0, ease: EASE }}
-              className="h-full w-full origin-left bg-line-strong"
-            />
-          </motion.div>
-
-          <motion.div
-            data-intro="copy"
-            style={!ready ? undefined : { opacity: copyOpacity }}
-            className="will-change-transform"
-          >
+    <div data-app-stage="landing" className="overflow-hidden">
+      <section ref={heroRef} className="landing-hero relative isolate px-4 pb-20 pt-10 sm:pb-24 sm:pt-16 lg:pb-28 lg:pt-20">
+        <div className="mx-auto grid w-full max-w-[1320px] items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
+          <div className="relative z-[1] max-w-[570px]">
             <motion.p
-              initial={{ opacity: 0, y: 14 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 1.2, ease: EASE }}
-              className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-ink-2"
+              transition={{ duration: reduceMotion ? 0 : 0.42 }}
+              className="mb-6 flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.16em] text-ink-3"
             >
-              Latin for truth. Here, a check on whether a news link, an image or a short video is what it claims to be.
+              <span className="h-px w-8 bg-accent" /> A source-aware media check
+            </motion.p>
+
+            <motion.h1
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.62, delay: reduceMotion ? 0 : 0.06, ease: [0.16, 1, 0.3, 1] }}
+              className="max-w-[11ch] text-[clamp(3.5rem,7.2vw,6.8rem)] font-medium leading-[0.92] tracking-[-0.075em] text-pretty"
+            >
+              Look closer.<br /><span className="font-semibold text-accent">Know why.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.16 }}
+              className="mt-6 max-w-[48ch] text-[16px] leading-[1.75] text-ink-2 sm:text-[17px]"
+            >
+              Compare file facts, model analysis and independent sources for an article, image or video.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 14 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 1.4, ease: EASE }}
-              className="mt-8"
+              transition={{ duration: reduceMotion ? 0 : 0.48, delay: reduceMotion ? 0 : 0.24 }}
+              className="mt-8 flex flex-wrap items-center gap-3"
             >
-              <button
+              <motion.button
                 type="button"
                 onClick={onContinue}
-                className="inline-flex rounded-control bg-accent px-5 py-3 text-sm font-semibold text-accent-ink transition-[opacity,transform] hover:opacity-90 active:scale-[0.98]"
+                whileHover={reduceMotion ? undefined : { y: -2, boxShadow: "0 14px 28px -15px rgb(35 80 143 / 0.58)" }}
+                whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                className="group inline-flex items-center gap-3 rounded-control bg-accent px-5 py-3.5 text-sm font-semibold text-accent-ink shadow-[0_8px_24px_-18px_rgba(35,80,143,.7)] transition-colors hover:bg-[#1b4279]"
               >
-                Continue
-              </button>
+                Start a check <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden />
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" })}
+                whileHover={reduceMotion ? undefined : { x: 2 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                className="inline-flex items-center gap-2 rounded-control px-4 py-3.5 text-sm font-medium text-ink-2 transition-colors hover:text-ink"
+              >
+                How it works <ArrowDownRight size={17} aria-hidden />
+              </motion.button>
+            </motion.div>
+          </div>
+
+          <motion.div style={reduceMotion ? undefined : { y: previewY, opacity: previewOpacity }} className="relative lg:-mr-8">
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 20, rotate: 0.7 }}
+              animate={{ opacity: 1, y: 0, rotate: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.72, delay: reduceMotion ? 0 : 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="landing-preview relative rounded-[1.1rem] border border-line bg-elev p-3 shadow-[0_28px_80px_-42px_rgba(28,25,23,.38)] sm:p-5"
+            >
+              <div className="mb-3 flex items-center justify-between gap-3 px-1">
+                <span className="text-xs font-medium text-ink-2">Try the analyzer</span>
+                <span className="text-[10px] text-ink-3">Same controls as the workspace</span>
+              </div>
+              <Analyzer preview />
+              <p className="px-1 pt-3 text-[10px] leading-relaxed text-ink-3">Preview only. Sign in to submit a check and see its evidence.</p>
             </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="scroll-mt-20 border-t border-line bg-elev px-4 py-20 sm:py-24 lg:py-28">
+        <div className="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-24">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: reduceMotion ? 0 : 0.52 }}
+            className="lg:sticky lg:top-28 lg:h-fit"
+          >
+            <h2 className="max-w-[11ch] text-4xl font-medium leading-[1.02] tracking-[-0.06em] sm:text-5xl">A verdict should show its work.</h2>
+            <p className="mt-5 max-w-[40ch] text-sm leading-[1.75] text-ink-2">No single signal settles a question. Veritas puts the source, file details and outside evidence beside the model’s reading.</p>
+          </motion.div>
+
+          <div className="border-t border-line">
+            {[
+              ["Read what arrived", "Extract the article or inspect the uploaded file, available metadata and the claim that came with it."],
+              ["Look beyond the source", "Search for independent pages related to checkable claims and keep returned sources attached to the review."],
+              ["Explain the uncertainty", "See the model’s judgment beside its evidence and caveats. Treat confidence as an estimate, not proof."],
+            ].map(([title, description], index) => (
+              <motion.article
+                key={title}
+                initial={reduceMotion ? false : { opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : index * 0.075 }}
+                className="group grid gap-3 border-b border-line py-7 sm:grid-cols-[1fr_1.15fr] sm:gap-8 sm:py-9"
+              >
+                <h3 className="text-xl font-medium tracking-[-0.035em] transition-transform group-hover:translate-x-1 sm:text-2xl">{title}</h3>
+                <p className="max-w-[54ch] text-sm leading-[1.75] text-ink-2">{description}</p>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-20 sm:py-24 lg:py-28">
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: reduceMotion ? 0 : 0.55 }}
+          className="mx-auto grid max-w-[1320px] items-end gap-7 border-b border-line pb-10 sm:grid-cols-[1fr_auto] sm:pb-12"
+        >
+          <div>
+            <h2 className="max-w-[12ch] text-4xl font-medium leading-[1.02] tracking-[-0.06em] sm:text-6xl">Start with what you have.</h2>
+            <p className="mt-4 max-w-[54ch] text-sm leading-[1.75] text-ink-2">Begin with the item in front of you. Keep sources, reasoning and limitations together.</p>
+          </div>
+          <motion.button
+            type="button"
+            onClick={onContinue}
+            whileHover={reduceMotion ? undefined : { x: 4 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            className="group inline-flex h-12 items-center justify-center gap-3 justify-self-start rounded-control bg-ink px-5 text-sm font-medium text-bg transition-colors hover:bg-accent sm:justify-self-end"
+          >
+            Open Veritas <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden />
+          </motion.button>
         </motion.div>
-      </div>
+      </section>
     </div>
   );
 }

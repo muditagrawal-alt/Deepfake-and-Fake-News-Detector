@@ -26,11 +26,13 @@ export default function Analyzer({
   onModeChange,
   onAnalysisComplete,
   onByokRequired,
+  preview = false,
 }: {
   selectedMode?: Mode;
   onModeChange?: (mode: Mode) => void;
   onAnalysisComplete?: (result: AnalysisResult) => void;
   onByokRequired?: () => void;
+  preview?: boolean;
 }) {
   const [internalMode, setInternalMode] = useState<Mode>(selectedMode ?? "news");
   const mode = onModeChange && selectedMode ? selectedMode : internalMode;
@@ -44,7 +46,7 @@ export default function Analyzer({
   const [dragOver, setDragOver] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const tab = TABS.find((t) => t.id === mode)!;
-  const ready = mode === "news" ? /^https?:\/\/\S+$/i.test(url.trim()) : !!file;
+  const ready = !preview && (mode === "news" ? /^https?:\/\/\S+$/i.test(url.trim()) : !!file);
 
   function pick(m: Mode) {
     if (!onModeChange || !selectedMode) setInternalMode(m);
@@ -67,7 +69,7 @@ export default function Analyzer({
 
   async function run(e?: React.FormEvent) {
     e?.preventDefault();
-    if (busy || !ready) return;
+    if (preview || busy || !ready) return;
     setError(null); setResult(null); setBusy(true);
     try {
       let r: AnalysisResult;
@@ -103,7 +105,7 @@ export default function Analyzer({
   return (
     <div className="space-y-6">
       <form onSubmit={run} className="rounded-panel border border-line bg-elev shadow-panel">
-        <div role="tablist" aria-label="Input type" className="grid grid-cols-3 border-b border-line">
+        <div role="tablist" aria-label="Input type" data-tour="formats" className="grid grid-cols-3 border-b border-line">
           {TABS.map((t) => (
             <button key={t.id} type="button" role="tab" aria-selected={mode === t.id} onClick={() => pick(t.id)}
               className={`flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${mode === t.id ? "border-accent text-ink" : "border-transparent text-ink-2 hover:text-ink"}`}>
@@ -117,29 +119,30 @@ export default function Analyzer({
           <p className="text-sm text-ink-2 max-w-[65ch]">{tab.help}</p>
 
           {mode === "news" ? (
-            <div className="space-y-2">
+            <div data-tour="source-input" className="space-y-2">
               <label htmlFor="url" className="block text-sm font-medium">Article URL</label>
-              <input id="url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" inputMode="url" autoComplete="off" spellCheck={false}
+              <input id="url" type="url" value={url} disabled={preview} onChange={(e) => setUrl(e.target.value)} placeholder="https://" inputMode="url" autoComplete="off" spellCheck={false}
                 className="w-full rounded-control border border-line-strong bg-bg px-3.5 py-2.5 text-[15px] placeholder:text-ink-3 focus:border-accent" />
-              <p className="text-xs text-ink-3">
+              {!preview && <p className="text-xs text-ink-3">
                 Try{" "}
                 {SAMPLES.map((s, i) => (
                   <span key={s.url}>
-                    <button type="button" onClick={() => setUrl(s.url)} className="underline decoration-line-strong underline-offset-2 hover:text-accent">{s.host}</button>
+                    <button type="button" disabled={preview} onClick={() => setUrl(s.url)} className="underline decoration-line-strong underline-offset-2 hover:text-accent disabled:cursor-default">{s.host}</button>
                     {i < SAMPLES.length - 1 ? " or " : ""}
                   </span>
                 ))}
-              </p>
+              </p>}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div data-tour="source-input" className="space-y-2">
               <span className="block text-sm font-medium">{mode === "image" ? "Image file" : "Video file"}</span>
               <label
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragOver={(e) => { e.preventDefault(); if (!preview) setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
-                onDrop={(e) => { e.preventDefault(); setDragOver(false); onFile(e.dataTransfer.files?.[0] ?? null); }}
-                className={`flex items-center gap-4 rounded-control border border-dashed px-4 py-5 cursor-pointer transition-colors ${dragOver ? "border-accent bg-accent-soft" : "border-line-strong hover:border-ink-3"}`}>
-                <input ref={fileInput} type="file" className="sr-only" accept={mode === "image" ? "image/jpeg,image/png,image/webp" : "video/mp4,video/quicktime,video/webm"} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+                onDrop={(e) => { e.preventDefault(); setDragOver(false); if (!preview) onFile(e.dataTransfer.files?.[0] ?? null); }}
+                aria-disabled={preview}
+                className={`flex items-center gap-4 rounded-control border border-dashed px-4 py-5 transition-colors ${preview ? "cursor-default opacity-70" : "cursor-pointer"} ${dragOver ? "border-accent bg-accent-soft" : "border-line-strong hover:border-ink-3"}`}>
+                <input ref={fileInput} type="file" disabled={preview} className="sr-only" accept={mode === "image" ? "image/jpeg,image/png,image/webp" : "video/mp4,video/quicktime,video/webm"} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
                 <UploadSimple size={22} className="shrink-0 text-ink-3" aria-hidden />
                 {file ? (
                   <span className="text-sm">
@@ -156,7 +159,7 @@ export default function Analyzer({
               {mode === "image" && (
                 <div className="space-y-1.5 pt-2">
                   <label htmlFor="image-caption" className="block text-sm font-medium">Caption or context <span className="font-normal text-ink-3">(optional)</span></label>
-                  <textarea id="image-caption" value={caption} onChange={(e) => setCaption(e.target.value.slice(0, 2000))}
+                  <textarea id="image-caption" value={caption} disabled={preview} onChange={(e) => setCaption(e.target.value.slice(0, 2000))}
                     rows={2} maxLength={2000} placeholder="Where was this image shared? What does the post claim?"
                     className="w-full resize-y rounded-control border border-line-strong bg-bg px-3.5 py-2.5 text-sm placeholder:text-ink-3 focus:border-accent" />
                   <p className="text-xs text-ink-3">Context gives the checker a claim to compare with the image and independent sources.</p>
@@ -166,7 +169,7 @@ export default function Analyzer({
           )}
 
           <div className="flex items-center gap-4">
-            <button type="submit" disabled={busy || !ready}
+            <button type="submit" data-tour="run-check" disabled={preview || busy || !ready}
               className="shrink-0 whitespace-nowrap rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-[opacity,transform] active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 hover:opacity-90">
               {busy ? "Checking" : "Run check"}
             </button>

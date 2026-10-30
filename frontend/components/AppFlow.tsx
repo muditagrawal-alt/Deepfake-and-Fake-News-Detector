@@ -23,7 +23,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { signIn, signOut } from "next-auth/react";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Intro from "@/components/Intro";
 import Analyzer, { type AnalyzerMode } from "@/components/Analyzer";
@@ -56,10 +56,10 @@ function sectionFromHash(): Section {
 }
 
 const API_PROVIDERS = [
-  { id: "gemini", name: "Google Gemini", kind: "Verdict model · recommended", url: "https://aistudio.google.com/app/apikey", mark: "G", detail: "Runs the full analysis, including native video review." },
-  { id: "openrouter", name: "OpenRouter", kind: "Verdict model · video uses frames", url: "https://openrouter.ai/settings/keys", mark: "OR", detail: "Routes structured image and text analysis through a model gateway." },
-  { id: "groq", name: "Groq", kind: "Optional · video transcription", url: "https://console.groq.com/keys", mark: "GQ", detail: "Adds speech-to-text when video is analyzed as sampled frames." },
-  { id: "tavily", name: "Tavily", kind: "Optional · web research", url: "https://app.tavily.com/home", mark: "T", detail: "Adds a dedicated search API for finding independent sources." },
+  { id: "gemini", name: "Google Gemini", kind: "Verdict model · recommended", mark: "G", detail: "Runs the full analysis, including native video review." },
+  { id: "openrouter", name: "OpenRouter", kind: "Verdict model · video uses frames", mark: "OR", detail: "Routes structured image and text analysis through a model gateway." },
+  { id: "groq", name: "Groq", kind: "Optional · video transcription", mark: "GQ", detail: "Adds speech-to-text when video is analyzed as sampled frames." },
+  { id: "tavily", name: "Tavily", kind: "Optional · web research", mark: "T", detail: "Adds a dedicated search API for finding independent sources." },
 ] as const;
 
 function MicrosoftMark() {
@@ -99,7 +99,7 @@ function AuthScreen({ providers }: { providers: AuthProvider[] }) {
   }
 
   return (
-    <section aria-label="Sign in" className="min-h-[calc(100dvh-3.5rem)] px-4 py-14 sm:py-20 flex items-center justify-center">
+    <section data-app-stage="auth" aria-label="Sign in" className="min-h-[calc(100dvh-4.25rem)] px-4 py-14 sm:py-20 flex items-center justify-center">
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}
         className="w-full max-w-lg rounded-panel border border-line bg-elev p-7 shadow-panel sm:p-9">
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-ink-3">
@@ -194,7 +194,7 @@ function ApiKeyManager({
       <div className="space-y-2">
         {API_PROVIDERS.map((item) => (
           <article key={item.id} className="flex flex-col gap-3 rounded-control border border-line bg-bg p-3 sm:flex-row sm:items-center">
-            <a href={item.url} target="_blank" rel="noreferrer noopener" className="flex min-w-0 flex-1 items-center gap-3 rounded-control p-1 transition-colors hover:bg-elev">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-control p-1">
               <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-control border border-line bg-elev font-mono text-xs font-semibold text-ink-2">{item.mark}</span>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -203,8 +203,7 @@ function ApiKeyManager({
                 </span>
                 <span className="mt-1 block text-xs leading-relaxed text-ink-2">{item.detail}</span>
               </span>
-              <ArrowSquareOut size={15} className="shrink-0 text-ink-3" aria-hidden />
-            </a>
+            </div>
             <div className="flex shrink-0 items-center gap-3">
               {saved.has(item.id) && <span className="text-xs font-medium text-real">Saved</span>}
               {saved.has(item.id) && (
@@ -301,8 +300,9 @@ function HistorySwitch({
       aria-label="Save detection history"
       aria-checked={enabled}
       aria-busy={busy}
+      data-tour="history-toggle"
       title={`Save detection history ${enabled ? "on" : "off"}${enabled ? "; turning off deletes saved results" : ""}`}
-      disabled={disabled || busy}
+      disabled={disabled}
       onClick={onChange}
       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-wait disabled:opacity-60 ${enabled ? "bg-accent" : "bg-line-strong"}`}
     >
@@ -312,65 +312,103 @@ function HistorySwitch({
   );
 }
 
-function GuidedTour({ onClose }: { onClose: () => void }) {
+function GuidedTour({
+  onClose,
+  onSelectMode,
+  onOpenApiKeys,
+  selectedMode,
+}: {
+  onClose: () => void;
+  onSelectMode: (mode: AnalyzerMode) => void;
+  onOpenApiKeys: () => void;
+  selectedMode: AnalyzerMode;
+}) {
   const [step, setStep] = useState(0);
   const reduceMotion = useReducedMotion();
   const steps = [
     {
-      eyebrow: "01 · Choose what to check",
-      title: "Start with news, an image or a video",
-      body: "Use the tabs in the detector to choose a format. News checks a public article URL; images and videos are uploaded for analysis.",
+      target: "formats",
+      eyebrow: "Choose an input",
+      title: "Start with the item you have.",
+      body: "Switch between an article link, an image or a short video. The workspace changes its input to match.",
     },
     {
-      eyebrow: "02 · Add context",
-      title: "Tell Veritas what you want verified",
-      body: "Paste an article link or select a media file. For an image, add the caption or claim that came with it so the analysis has useful context.",
+      target: "source-input",
+      eyebrow: "Add context",
+      title: "Give the review something to check.",
+      body: "Paste a public article URL or choose a file. For images, add the caption or claim that came with it.",
     },
     {
-      eyebrow: "03 · Read the evidence",
-      title: "Treat the result as an estimate",
-      body: "Review the verdict, reasoning, signals, cited sources and caveats together. The confidence value is model-reported and is not a calibrated probability.",
+      target: "run-check",
+      eyebrow: "Read the review",
+      title: "Keep the evidence beside the estimate.",
+      body: "Results include the reasoning, available signals, returned sources and limitations. Confidence is model-reported, not a calibrated probability.",
     },
     {
-      eyebrow: "04 · Your workspace",
-      title: "Keep results, control your keys",
-      body: "Your first three checks are shared across all formats. Turn on Save detection history in the sidebar if you want results saved; uploaded media is never saved. After the free checks, add a Gemini or OpenRouter key from API keys.",
+      target: "history-toggle",
+      eyebrow: "Your choice",
+      title: "You decide what gets saved.",
+      body: "History starts off. Turn it on only if you want future results saved; uploaded media is never stored.",
+    },
+    {
+      target: "api-keys",
+      eyebrow: "Extend the workspace",
+      title: "Bring a provider key when you need one.",
+      body: "After the three shared checks, add a Gemini or OpenRouter key. Keys are encrypted before storage and never shown again.",
     },
   ];
   const current = steps[step];
 
+  useEffect(() => {
+    const target = document.querySelector<HTMLElement>(`[data-tour="${current.target}"]`);
+    if (!target) return;
+    target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center", inline: "nearest" });
+    target.setAttribute("data-tour-active", "true");
+    return () => target.removeAttribute("data-tour-active");
+  }, [current.target, reduceMotion, selectedMode]);
+
   return (
-      <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2 }}
-        onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-        <motion.section role="dialog" aria-modal="true" aria-labelledby="tour-title"
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 14, scale: reduceMotion ? 1 : 0.985 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: reduceMotion ? 0 : 0.24 }}
-          onKeyDown={(event) => { if (event.key === "Escape") onClose(); }}
-          className="w-full max-w-xl rounded-panel border border-line bg-elev p-6 shadow-panel sm:p-8">
-          <div className="flex items-start justify-between gap-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">A quick tour · {step + 1} of {steps.length}</p>
-              <p className="mt-4 text-xs font-medium uppercase tracking-[0.12em] text-ink-3">{current.eyebrow}</p>
-              <h2 id="tour-title" className="mt-2 text-2xl font-semibold tracking-tight">{current.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-ink-2">{current.body}</p>
+    <motion.aside
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="tour-title"
+      initial={{ opacity: 0, y: reduceMotion ? 0 : 18, scale: reduceMotion ? 1 : 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: reduceMotion ? 0 : 10, scale: reduceMotion ? 1 : 0.99 }}
+      transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
+      onKeyDown={(event) => { if (event.key === "Escape") onClose(); }}
+      className="tour-panel fixed bottom-4 right-4 z-50 w-[min(440px,calc(100vw-2rem))] rounded-panel border border-line bg-elev p-5 shadow-[0_24px_70px_-24px_rgba(20,24,30,.36)] sm:bottom-6 sm:right-6 sm:p-6"
+    >
+      <div className="flex items-start justify-between gap-5">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.17em] text-accent">Workspace guide · {String(step + 1).padStart(2, "0")} / {steps.length}</p>
+          <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.13em] text-ink-3">{current.eyebrow}</p>
+          <h2 id="tour-title" className="mt-1.5 text-xl font-semibold leading-tight tracking-[-0.04em]">{current.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-ink-2">{current.body}</p>
+        </div>
+        <button type="button" aria-label="Close walkthrough" onClick={onClose} className="rounded-control p-2 text-ink-3 hover:bg-bg hover:text-ink"><X size={17} aria-hidden /></button>
+      </div>
+      <div className="mt-4 flex gap-1" aria-hidden>
+        {steps.map((item, index) => <span key={item.target} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${index <= step ? "bg-accent" : "bg-line-strong"}`} />)}
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <button type="button" onClick={onClose} className="rounded-control px-2 py-2 text-xs text-ink-3 hover:text-ink">Skip</button>
+        <div className="flex items-center gap-2">
+          {step === 0 && (
+            <div className="hidden gap-1 sm:flex">
+              <button type="button" onClick={() => onSelectMode("image")} className="rounded-control border border-line px-2.5 py-2 text-xs text-ink-2 hover:bg-bg">Try image</button>
+              <button type="button" onClick={() => onSelectMode("video")} className="rounded-control border border-line px-2.5 py-2 text-xs text-ink-2 hover:bg-bg">Try video</button>
             </div>
-            <button type="button" aria-label="Close walkthrough" onClick={onClose} className="rounded-control p-2 text-ink-3 hover:bg-bg hover:text-ink"><X size={18} aria-hidden /></button>
-          </div>
-          <div className="mt-7 flex gap-1.5" aria-hidden>
-            {steps.map((item, index) => <span key={item.eyebrow} className={`h-1 flex-1 rounded-full ${index <= step ? "bg-accent" : "bg-line-strong"}`} />)}
-          </div>
-          <div className="mt-6 flex items-center justify-between gap-3">
-            <button type="button" onClick={onClose} className="rounded-control px-3 py-2 text-sm text-ink-3 hover:bg-bg hover:text-ink">Skip tour</button>
-            <div className="flex items-center gap-2">
-              {step > 0 && <button type="button" onClick={() => setStep((value) => value - 1)} className="rounded-control border border-line px-3 py-2 text-sm text-ink-2 hover:bg-bg">Back</button>}
-              <button type="button" onClick={() => step === steps.length - 1 ? onClose() : setStep((value) => value + 1)}
-                className="rounded-control bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:opacity-90">{step === steps.length - 1 ? "Start checking" : "Next"}</button>
-            </div>
-          </div>
-        </motion.section>
-      </motion.div>
+          )}
+          {step > 0 && <button type="button" onClick={() => setStep((value) => value - 1)} className="rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:bg-bg">Back</button>}
+          {step === steps.length - 1 ? (
+            <button type="button" onClick={onOpenApiKeys} className="rounded-control bg-accent px-3.5 py-2 text-xs font-semibold text-accent-ink hover:opacity-90">Open API keys</button>
+          ) : (
+            <button type="button" onClick={() => setStep((value) => value + 1)} className="rounded-control bg-accent px-3.5 py-2 text-xs font-semibold text-accent-ink hover:opacity-90">Next</button>
+          )}
+        </div>
+      </div>
+    </motion.aside>
   );
 }
 
@@ -398,13 +436,17 @@ function Workspace({ user }: { user: User }) {
   const [historyPreferenceError, setHistoryPreferenceError] = useState("");
   const greetingTimer = useRef<number | null>(null);
   const initialWorkspaceLoad = useRef<Promise<{ account: AccountStatus; history: HistoryEntry[] } | null> | null>(null);
+  const confirmedHistoryEnabled = useRef<boolean | null>(null);
+  const confirmedHistory = useRef<HistoryEntry[]>([]);
+  const preferenceRevision = useRef(0);
+  const preferenceQueue = useRef<Promise<void>>(Promise.resolve());
   const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-  const scrollScale = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
   const refreshWorkspace = useCallback(async (triggerKeyPrompt = true) => {
     try {
       const [nextAccount, nextHistory] = await Promise.all([getAccount(), getHistory()]);
+      confirmedHistoryEnabled.current = nextAccount.history_enabled;
+      confirmedHistory.current = nextHistory;
       setAccount(nextAccount);
       setHistory(nextHistory);
       setError("");
@@ -421,6 +463,26 @@ function Workspace({ user }: { user: User }) {
     }
   }, []);
 
+  const openWalkthrough = useCallback(() => {
+    const nextUrl = new URL(window.location.href);
+    nextUrl.hash = "";
+    if (nextUrl.href !== window.location.href) {
+      window.history.pushState({ ...window.history.state, workspaceSection: "check" }, "", nextUrl);
+    }
+    setActive("check");
+    setDetectionMode("news");
+    setSelected(null);
+    setMobileMenuOpen(window.matchMedia("(max-width: 767px)").matches);
+    setProfileMenuOpen(false);
+    setGuideOpen(true);
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  }, [reduceMotion]);
+
+  useEffect(() => {
+    window.addEventListener("veritas:how-it-works", openWalkthrough);
+    return () => window.removeEventListener("veritas:how-it-works", openWalkthrough);
+  }, [openWalkthrough]);
+
   useEffect(() => {
     let cancelled = false;
     if (!initialWorkspaceLoad.current) initialWorkspaceLoad.current = refreshWorkspace(false);
@@ -436,8 +498,7 @@ function Workspace({ user }: { user: User }) {
       greetingTimer.current = window.setTimeout(() => {
         setWelcomeMessage("");
         setWorkspaceReady(true);
-        if (initial.account.is_new_user) setGuideOpen(true);
-        else if (initial.account.free_remaining === 0
+        if (initial.account.free_remaining === 0
           && !initial.account.keys.some((keyName) => keyName === "gemini" || keyName === "openrouter")) setByokOpen(true);
       }, 650);
     });
@@ -491,31 +552,56 @@ function Workspace({ user }: { user: User }) {
   }
 
   async function changeHistoryPreference(enabled: boolean) {
-    if (!account || historyPreferenceBusy) return;
+    if (!account) return;
+    const revision = ++preferenceRevision.current;
     setHistoryPreferenceBusy(true);
     setHistoryPreferenceError("");
     setError("");
-    try {
+    setAccount((current) => current ? { ...current, history_enabled: enabled } : current);
+    if (!enabled) {
+      setHistory([]);
+      setSelected(null);
+    }
+
+    const request = preferenceQueue.current.catch(() => undefined).then(async () => {
       const preference = await setHistoryEnabled(enabled);
+      if (revision !== preferenceRevision.current) return;
+      confirmedHistoryEnabled.current = preference.history_enabled;
       setAccount((current) => current ? { ...current, history_enabled: preference.history_enabled } : current);
-      if (enabled) {
-        try {
-          setHistory(await getHistory());
-        } catch (reason) {
-          const message = reason instanceof Error ? reason.message : "History was enabled, but saved results could not be loaded.";
-          setHistoryPreferenceError(message);
-          setError(message);
-        }
-      } else {
+      if (!preference.history_enabled) {
+        confirmedHistory.current = [];
         setHistory([]);
         setSelected(null);
+        return;
       }
+      try {
+        const nextHistory = await getHistory();
+        if (revision !== preferenceRevision.current) return;
+        confirmedHistory.current = nextHistory;
+        setHistory(nextHistory);
+      } catch (reason) {
+        if (revision !== preferenceRevision.current) return;
+        const message = reason instanceof Error ? reason.message : "History was enabled, but saved results could not be loaded.";
+        setHistoryPreferenceError(message);
+        setError(message);
+      }
+    });
+    preferenceQueue.current = request.then(() => undefined, () => undefined);
+
+    try {
+      await request;
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : "Could not update the history setting.";
-      setHistoryPreferenceError(message);
-      setError(message);
+      if (revision === preferenceRevision.current) {
+        const message = reason instanceof Error ? reason.message : "Could not update the history setting.";
+        const restoredPreference = confirmedHistoryEnabled.current ?? !enabled;
+        setAccount((current) => current ? { ...current, history_enabled: restoredPreference } : current);
+        setHistory(confirmedHistory.current);
+        if (!restoredPreference) setSelected(null);
+        setHistoryPreferenceError(message);
+        setError(message);
+      }
     } finally {
-      setHistoryPreferenceBusy(false);
+      if (revision === preferenceRevision.current) setHistoryPreferenceBusy(false);
     }
   }
 
@@ -547,7 +633,6 @@ function Workspace({ user }: { user: User }) {
   const moreItems: { id: string; label: string; Icon: typeof Plus; section: Section }[] = [
     { id: "method", label: "How it works", Icon: Info, section: "method" },
     { id: "capabilities", label: "Backend status", Icon: ShieldCheck, section: "capabilities" },
-    { id: "guide", label: "Guided tour", Icon: Sparkle, section: "guide" },
   ];
   function navigate(section: Section) {
     if (section === "guide") {
@@ -580,19 +665,16 @@ function Workspace({ user }: { user: User }) {
   ] : [];
 
   return (
-    <div className="min-h-[calc(100dvh-3.5rem)]">
-      <motion.div aria-hidden className="fixed left-0 right-0 top-14 z-30 h-[2px] origin-left bg-accent" style={reduceMotion ? undefined : { scaleX: scrollScale }} />
+    <div data-app-stage="workspace" className="min-h-[calc(100dvh-4.25rem)]">
       <div className="mx-auto flex max-w-[1440px]">
-        <aside className={`${mobileMenuOpen ? "fixed inset-x-0 bottom-0 top-14 z-40 block" : "hidden"} h-[calc(100dvh-3.5rem)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-14 md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
+        <aside className={`${mobileMenuOpen ? "fixed inset-x-0 bottom-0 top-[68px] z-40 block" : "hidden"} h-[calc(100dvh-68px)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-[68px] md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
           <div className={`flex h-full min-h-0 flex-col overflow-y-auto p-4 ${sidebarExpanded ? "" : "md:p-2"}`}>
-            <div className="flex items-center justify-between gap-2 px-2 py-2 md:py-3">
-              <p className={`hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3 md:block ${sidebarExpanded ? "" : "md:sr-only"}`}>Workspace</p>
+            <div className="flex items-center justify-end gap-2 px-2 py-2 md:py-3">
               <button type="button" aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"} title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
                 onClick={() => setSidebarExpanded((value) => !value)} className="hidden size-9 items-center justify-center rounded-control text-ink-2 transition-colors hover:bg-elev focus-visible:outline md:flex">
                 <List size={18} aria-hidden />
               </button>
-              <div className="ml-auto flex items-center justify-between gap-2 md:hidden">
-                <span className="text-sm font-semibold">Workspace menu</span>
+              <div className="flex items-center justify-end md:hidden">
                 <button type="button" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} className="rounded-control p-2 text-ink-2 hover:bg-elev"><X size={20} /></button>
               </div>
             </div>
@@ -605,7 +687,7 @@ function Workspace({ user }: { user: User }) {
                 className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "history" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
                 <ClockCounterClockwise size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>History</span>
               </button>
-              <button type="button" title={!sidebarExpanded ? "API keys" : undefined} aria-current={active === "keys" ? "page" : undefined} onClick={() => navigate("keys")}
+              <button type="button" data-tour="api-keys" title={!sidebarExpanded ? "API keys" : undefined} aria-current={active === "keys" ? "page" : undefined} onClick={() => navigate("keys")}
                 className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "keys" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
                 <Key size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>API keys</span>
               </button>
@@ -624,7 +706,7 @@ function Workspace({ user }: { user: User }) {
                         const Icon = item.Icon;
                         const current = active === item.section;
                         return <button key={item.id} type="button" title={!sidebarExpanded ? item.label : undefined} aria-label={item.label} aria-current={current ? "page" : undefined}
-                          onClick={() => navigate(item.section)}
+                          onClick={() => item.section === "method" ? openWalkthrough() : navigate(item.section)}
                           className={`flex w-full items-center gap-3 rounded-control px-3 py-2 text-left text-xs transition-colors ${current ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
                           <Icon size={16} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>{item.label}</span>
                         </button>;
@@ -664,7 +746,7 @@ function Workspace({ user }: { user: User }) {
                 {account?.history_enabled && <p className="mt-2 text-[10px] text-ink-3">Turning this off deletes saved results.</p>}
                 {historyPreferenceError && <p role="alert" className="mt-2 text-[11px] leading-relaxed text-fake">{historyPreferenceError}</p>}
               </div> : <div className="mt-3 flex justify-center" title={`Save detection history ${account?.history_enabled ? "on" : "off"}`}>
-                <HistorySwitch enabled={!!account?.history_enabled} busy={historyPreferenceBusy} disabled={!account}
+                  <HistorySwitch enabled={!!account?.history_enabled} busy={historyPreferenceBusy} disabled={!account}
                   onChange={() => void changeHistoryPreference(!account?.history_enabled)} />
               </div>}
 
@@ -850,7 +932,12 @@ function Workspace({ user }: { user: User }) {
       </div>
 
       {byokOpen && <ByokDialog account={account} onClose={() => setByokOpen(false)} onChange={onKeyChange} />}
-      <AnimatePresence>{guideOpen && <GuidedTour onClose={() => setGuideOpen(false)} />}</AnimatePresence>
+      <AnimatePresence>{guideOpen && <GuidedTour
+        onClose={() => { setGuideOpen(false); setMobileMenuOpen(false); }}
+        onSelectMode={setDetectionMode}
+        selectedMode={detectionMode}
+        onOpenApiKeys={() => { setGuideOpen(false); setMobileMenuOpen(false); navigate("keys"); }}
+      />}</AnimatePresence>
     </div>
   );
 }
@@ -860,14 +947,8 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
   providers: AuthProvider[];
   startInWorkspace?: boolean;
 }) {
-  const [stage, setStage] = useState<Stage>(user && startInWorkspace ? "workspace" : "intro");
+  const [stage, setStage] = useState<Stage>(user ? "workspace" : "intro");
   const visibleStage: Stage = user && startInWorkspace ? "workspace" : stage;
-
-  useEffect(() => {
-    if (user && startInWorkspace) return;
-    const timer = window.setTimeout(() => setStage(user ? "workspace" : "auth"), 2300);
-    return () => window.clearTimeout(timer);
-  }, [user, startInWorkspace]);
 
   function continueFromIntro() {
     setStage(user ? "workspace" : "auth");

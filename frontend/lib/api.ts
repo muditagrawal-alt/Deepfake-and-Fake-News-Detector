@@ -75,6 +75,19 @@ export class ApiError extends Error {
   }
 }
 
+async function apiFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  unavailableMessage = "The Veritas API could not be reached. Check that the backend is running and NEXT_PUBLIC_API_URL points to it.",
+): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch (error) {
+    if (typeof DOMException !== "undefined" && error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new ApiError(unavailableMessage, 0, "api_unavailable");
+  }
+}
+
 async function parseError(res: Response): Promise<never> {
   let message = `${res.status} ${res.statusText}`;
   let code: string | undefined;
@@ -95,7 +108,11 @@ let tokenRequest: Promise<string> | null = null;
 async function backendToken(): Promise<string> {
   if (cachedToken && tokenExpiresAt > Date.now() + 30_000) return cachedToken;
   if (!tokenRequest) {
-    tokenRequest = fetch("/api/backend-token", { cache: "no-store" }).then(async (res) => {
+    tokenRequest = apiFetch(
+      "/api/backend-token",
+      { cache: "no-store" },
+      "The sign-in service could not be reached. Refresh the page and try again.",
+    ).then(async (res) => {
       if (!res.ok) return parseError(res);
       const body = await res.json();
       const token = body.token as string;
@@ -110,11 +127,11 @@ async function backendToken(): Promise<string> {
 async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${await backendToken()}`);
-  return fetch(`${API_URL}${path}`, { ...init, headers, cache: init.cache || "no-store" });
+  return apiFetch(`${API_URL}${path}`, { ...init, headers, cache: init.cache || "no-store" });
 }
 
 export async function getHealth(signal?: AbortSignal): Promise<Health> {
-  const res = await fetch(`${API_URL}/health`, { signal, cache: "no-store" });
+  const res = await apiFetch(`${API_URL}/health`, { signal, cache: "no-store" });
   if (!res.ok) return parseError(res);
   return res.json();
 }

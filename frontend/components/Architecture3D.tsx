@@ -956,6 +956,7 @@ export function Architecture3D() {
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-gemini-claims");
   const [zoom, setZoom] = useState<number>(1.0);
   const [activeStep, setActiveStep] = useState<number>(0);
+  const [isIslandExpanded, setIsIslandExpanded] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -1029,32 +1030,66 @@ export function Architecture3D() {
           ref={containerRef}
           className="rounded-3xl border border-white/15 bg-[#0b0c12] overflow-hidden shadow-2xl relative w-full"
         >
-          {/* Canvas Top Bar */}
-          <div className="px-5 py-3 border-b border-white/10 bg-[#0f1018] flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <span className="text-zinc-200 font-medium tracking-wide truncate">
-                Multimodal Deepfake & Wire Verification Pipeline
-              </span>
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-cyan-400 text-[11px]">
-                <BookOpen size={12} />
-                <span>Canvas</span>
+          {/* Dynamic Island Floating Bar */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+            <div
+              onMouseEnter={() => setIsIslandExpanded(true)}
+              onMouseLeave={() => setIsIslandExpanded(false)}
+              onClick={() => setIsIslandExpanded((prev) => !prev)}
+              className={`group/island flex items-center gap-2.5 sm:gap-3 px-4 py-2 rounded-full
+                bg-[#07080d]/90 backdrop-blur-2xl border border-white/20
+                shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_20px_rgba(56,189,248,0.18)]
+                hover:border-cyan-500/60 hover:shadow-[0_12px_45px_rgba(56,189,248,0.35)]
+                transition-all duration-300 ease-out cursor-pointer select-none whitespace-nowrap
+                ${isIslandExpanded ? "ring-2 ring-cyan-400/40 bg-[#090b14]/95" : "ring-1 ring-white/10"}
+              `}
+            >
+              {/* Left: Glowing Beacon & Live Pulse */}
+              <div className="flex items-center gap-2">
+                <span className="relative flex size-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full size-2 bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                </span>
+                <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase">
+                  LIVE DAG
+                </span>
               </div>
-            </div>
 
-            <div className="flex items-center gap-4 text-zinc-400">
-              <div className="hidden md:flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[11px]">13 Live Nodes</span>
-                <span className="text-zinc-600">·</span>
-                <span className="text-[11px]">14 Flow Paths</span>
-                <span className="text-zinc-600">·</span>
-                <span className="text-cyan-400 font-medium">{totalPipelineLatency}ms DAG Latency</span>
+              <div className="w-px h-3 bg-white/20" />
+
+              {/* Center: System Title */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-white tracking-tight">
+                  Multimodal Pipeline
+                </span>
+                <div className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-cyan-400 text-[9px] font-mono">
+                  <BookOpen size={9} />
+                  <span>Canvas</span>
+                </div>
               </div>
 
-              {/* Top View Indicator */}
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 text-[11px] text-zinc-300">
-                <span>View:</span>
-                <strong className="text-white font-semibold">Causal DAG</strong>
+              <div className="w-px h-3 bg-white/20" />
+
+              {/* Dynamic Island Morphing Content */}
+              {!isIslandExpanded ? (
+                <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-300">
+                  <span className="text-zinc-400">12 Nodes</span>
+                  <span className="text-zinc-600">·</span>
+                  <span className="text-cyan-400 font-semibold">{totalPipelineLatency}ms</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 transition-all duration-200">
+                  <CheckCircle2 size={11} className="text-emerald-400" />
+                  <span>Zero Data Retention</span>
+                </div>
+              )}
+
+              <div className="w-px h-3 bg-white/20" />
+
+              {/* Interactive View Pill */}
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-800/60 text-[9px] font-mono text-cyan-300 shadow-[0_0_8px_rgba(56,189,248,0.2)]">
+                <Activity size={9} className="text-cyan-400 animate-pulse" />
+                <span className="font-semibold">Causal Flow</span>
               </div>
             </div>
           </div>
@@ -1084,19 +1119,6 @@ export function Architecture3D() {
                   backgroundSize: "20px 20px",
                 }}
               />
-
-              {/* Column Category Title Headers */}
-              <div className="absolute top-2 inset-x-0 h-6 text-[10px] font-mono tracking-wider uppercase text-zinc-400 pointer-events-none">
-                <span style={{ position: "absolute", left: "20px", width: "195px" }}>01 · Ingestion & Sensors</span>
-                <span style={{ position: "absolute", left: "255px", width: "195px" }}>02 · Forensic Analyzers</span>
-                <span style={{ position: "absolute", left: "490px", width: "215px" }} className="text-cyan-400 font-semibold text-center">
-                  03 · Decomposition Hub
-                </span>
-                <span style={{ position: "absolute", left: "745px", width: "195px" }}>04 · Wire Triangulation</span>
-                <span style={{ position: "absolute", left: "980px", width: "195px" }} className="text-emerald-400 font-semibold text-right">
-                  05 · Bayesian Verdict
-                </span>
-              </div>
 
               {/* SVG Layer: Connecting Bezier Splines, Flowing Animated Small Nodes, and Metric Badges */}
               <svg

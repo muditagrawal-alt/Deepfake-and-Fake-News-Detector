@@ -7,7 +7,6 @@ import {
   RotateCcw,
   FastForward,
   CheckCircle2,
-  AlertTriangle,
   Cpu,
   Shield,
   Activity,

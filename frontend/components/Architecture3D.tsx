@@ -946,7 +946,7 @@ export const FLOW_EDGES: FlowEdge[] = [
   },
 ];
 
-const CANVAS_WIDTH = 1180;
+const CANVAS_WIDTH = 1195;
 const CANVAS_HEIGHT = 580;
 
 export function Architecture3D() {
@@ -1084,11 +1084,12 @@ export function Architecture3D() {
           >
             <div
               ref={canvasRef}
-              className="relative origin-top-left transition-transform duration-150 ease-out"
+              className="absolute left-1/2 top-0 transition-transform duration-150 ease-out"
               style={{
                 width: `${CANVAS_WIDTH}px`,
                 height: `${CANVAS_HEIGHT}px`,
-                transform: `scale(${fitScale * zoom})`,
+                transform: `translateX(-50%) scale(${fitScale * zoom})`,
+                transformOrigin: "top center",
               }}
             >
               {/* Dot-matrix blueprint canvas background exactly matching reference */}
@@ -1104,7 +1105,7 @@ export function Architecture3D() {
               {/* SVG Layer: Connecting Bezier Splines, Flowing Animated Small Nodes, and Metric Badges */}
               <svg
                 className="absolute inset-0 w-full h-full pointer-events-none z-10"
-                viewBox="0 0 1180 580"
+                viewBox="0 0 1195 580"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >

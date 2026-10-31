@@ -248,8 +248,7 @@ export default function SiteHeader() {
           onClick={handleStart}
           className="inline-flex items-center gap-1.5 rounded-full bg-white text-black font-semibold px-3.5 sm:px-4 py-1.5 text-xs sm:text-sm hover:bg-zinc-200 transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] shrink-0"
         >
-          <span className="hidden sm:inline">Start a review</span>
-          <span className="sm:hidden">Start</span>
+          <span>Get Started</span>
           <ArrowUpRight size={14} weight="bold" aria-hidden />
         </Link>
       </div>

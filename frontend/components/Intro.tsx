@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   ArrowUpRight,
   Newspaper,
   Eye,
@@ -1247,7 +1246,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
               auditable dossiers trusted by newsrooms and security teams.
             </motion.p>
 
-            {/* Action Buttons — Centered */}
+            {/* Action Button — Centered */}
             <motion.div
               variants={heroChildVariants}
               transition={{
@@ -1261,17 +1260,9 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 onClick={onContinue}
                 whileHover={shouldReduceMotion ? undefined : { y: -2 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
-                className="landing-primary-button inline-flex min-h-12 items-center gap-3 rounded-control px-6 text-sm font-semibold shadow-lg shadow-white/10"
+                className="landing-primary-button inline-flex min-h-12 items-center gap-3 rounded-control px-6 text-sm font-semibold shadow-lg shadow-white/10 cursor-pointer"
               >
-                Start Free Verification <ArrowUpRight size={17} aria-hidden />
-              </motion.button>
-              <motion.button
-                type="button"
-                onClick={scrollToWorkflow}
-                whileHover={shouldReduceMotion ? undefined : { x: 3 }}
-                className="landing-secondary-button inline-flex min-h-12 items-center gap-2 rounded-control px-4 text-sm font-medium"
-              >
-                Explore Enterprise Engine <ArrowRight size={16} aria-hidden />
+                Get Started <ArrowUpRight size={17} aria-hidden />
               </motion.button>
             </motion.div>
 

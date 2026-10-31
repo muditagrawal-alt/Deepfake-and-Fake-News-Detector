@@ -4,9 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   CheckCircle2,
   Activity,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
   ExternalLink,
   BookOpen,
 } from "lucide-react";
@@ -954,7 +951,7 @@ const CANVAS_HEIGHT = 580;
 
 export function Architecture3D() {
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-gemini-claims");
-  const [zoom, setZoom] = useState<number>(1.0);
+  const zoom = 1.0;
   const [activeStep, setActiveStep] = useState<number>(0);
   const [isIslandExpanded, setIsIslandExpanded] = useState<boolean>(false);
 
@@ -988,10 +985,6 @@ export function Architecture3D() {
 
   const totalPipelineLatency = FLOW_NODES.reduce((acc, n) => acc + n.latencyMs, 0);
 
-  const handleZoomIn = () => setZoom((z) => Math.min(1.4, z + 0.1));
-  const handleZoomOut = () => setZoom((z) => Math.max(0.7, z - 0.1));
-  const handleResetZoom = () => setZoom(1.0);
-
   return (
     <div
       id="architecture"
@@ -999,30 +992,18 @@ export function Architecture3D() {
     >
       <div className="max-w-7xl mx-auto space-y-6 relative z-10">
         {/* Header Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-white/10 pb-6">
-          <div className="space-y-2 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-cyan-400">
-              <Activity size={13} className="text-emerald-400 animate-pulse" />
-              <span>SYSTEM ARCHITECTURE · CAUSAL DATAFLOW PIPELINE</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
-              System Architecture Flowchart
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              Causal DAG illustrating the end-to-end multimodal pipeline: parallel sensor forensics,
-              central claim decomposition, independent wire triangulation, and calibrated Bayesian synthesis.
-            </p>
+        <div className="space-y-2 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-cyan-400">
+            <Activity size={13} className="text-emerald-400 animate-pulse" />
+            <span>SYSTEM ARCHITECTURE · CAUSAL DATAFLOW PIPELINE</span>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
-              <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>12 Active Pipeline Nodes</span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-800/40 text-xs font-mono text-cyan-400">
-              <span>Bayesian Directed Acyclic Graph</span>
-            </div>
-          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+            System Architecture Flowchart
+          </h2>
+          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+            Causal DAG illustrating the end-to-end multimodal pipeline: parallel sensor forensics,
+            central claim decomposition, independent wire triangulation, and calibrated Bayesian synthesis.
+          </p>
         </div>
 
         {/* The Exact Flowchart Canvas Container: Fits within page without horizontal scroll */}
@@ -1373,34 +1354,6 @@ export function Architecture3D() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Floating Zoom Controls in bottom-right corner matching user's reference */}
-          <div className="absolute bottom-5 right-5 z-30 flex flex-col items-center bg-[#13151f] border border-white/15 rounded-xl shadow-2xl p-1 gap-1">
-            <button
-              onClick={handleZoomIn}
-              title="Zoom In"
-              className="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <ZoomIn size={15} />
-            </button>
-            <button
-              onClick={handleZoomOut}
-              title="Zoom Out"
-              className="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <ZoomOut size={15} />
-            </button>
-            <button
-              onClick={handleResetZoom}
-              title="Fit to Screen / Reset Zoom"
-              className="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <Maximize2 size={15} />
-            </button>
-            <div className="text-[9px] font-mono text-zinc-400 pb-1 border-t border-white/10 pt-1 w-full text-center">
-              {Math.round(zoom * 100)}%
             </div>
           </div>
         </div>

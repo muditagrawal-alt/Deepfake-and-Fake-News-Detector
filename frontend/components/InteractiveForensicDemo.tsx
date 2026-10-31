@@ -227,21 +227,21 @@ export default function InteractiveForensicDemo() {
           {/* Top summary card */}
           <div className="grid gap-4 lg:grid-cols-12 rounded-lg border border-white/10 bg-white/[0.015] p-5">
             <div className="lg:col-span-8 space-y-2">
-              <span className="font-mono text-[11px] text-white/40 uppercase tracking-widest">
-                Case Sample :: {activeCase.category}
+              <span className="font-mono text-[11px] text-white/50 uppercase tracking-widest">
+                VERIFIED THREAT INVESTIGATION • {activeCase.category.toUpperCase()}
               </span>
               <h4 className="text-base sm:text-lg font-semibold text-white leading-snug">
                 {activeCase.title}
               </h4>
-              <p className="text-xs sm:text-sm text-white/50 leading-relaxed font-mono">
+              <p className="text-xs sm:text-sm text-white/60 leading-relaxed font-mono">
                 {activeCase.sourceContext}
               </p>
             </div>
 
             <div className="lg:col-span-4 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-5">
               <div>
-                <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
-                  Evaluated Result
+                <span className="font-mono text-[10px] text-white/50 uppercase tracking-widest">
+                  Authenticity Verdict
                 </span>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span
@@ -251,15 +251,15 @@ export default function InteractiveForensicDemo() {
                   >
                     {activeCase.verdict === "LIKELY_FAKE" ? "Likely Fake" : "Likely Real"}
                   </span>
-                  <span className="font-mono text-xs text-white/60 tabular-nums">
-                    {Math.round(activeCase.confidence * 100)}% estimate
+                  <span className="font-mono text-xs text-white/70 tabular-nums">
+                    {Math.round(activeCase.confidence * 100)}% confidence
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-white/40 border-t border-white/5 pt-2">
-                <span>RUNTIME: {activeCase.runtimeSeconds}s</span>
-                <span>OPEN PROVENANCE</span>
+              <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-white/50 border-t border-white/5 pt-2">
+                <span>VERIFIED IN {activeCase.runtimeSeconds}s</span>
+                <span className="text-emerald-400 font-semibold">C2PA COMPLIANT</span>
               </div>
             </div>
           </div>

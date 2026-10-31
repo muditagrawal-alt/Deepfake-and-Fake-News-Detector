@@ -31,8 +31,10 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform vec3 u_color;
   uniform vec3 u_highlight;
   uniform vec2 u_mouse;
+  uniform vec2 u_mouseVel;
   uniform float u_intensity;
   uniform float u_flameHeight;
+  uniform float u_hover;
 
   // Hash & continuous 2D noise
   float hash(vec2 p) {
@@ -68,64 +70,91 @@ const FRAGMENT_SHADER_SOURCE = `
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float aspect = u_resolution.x / u_resolution.y;
 
-    // Normalized coordinate with aspect-ratio preservation
+    // Normalized mouse position (y inverted: 0 is bottom, 1 is top)
+    vec2 mouseUV = vec2(u_mouse.x, 1.0 - u_mouse.y);
+    vec2 mDiff = uv - mouseUV;
+    mDiff.x *= aspect;
+    float mDist = length(mDiff);
+
+    // Hover-influenced flow speed
+    float flowSpeed = 0.65 + u_hover * 0.45;
+    float t = u_time * flowSpeed;
+
+    // 1. Fluid swirl vortex around pointer
+    float swirl = exp(-mDist * 4.2) * u_hover;
+    float angle = swirl * 2.4;
+    mat2 swirlRot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+
     vec2 p = uv;
     p.x *= aspect;
+    p = mouseUV + swirlRot * (p - mouseUV);
 
-    float t = u_time * 0.65;
-    float mouseShift = (u_mouse.x - 0.5) * 0.14;
+    // 2. Wind push from cursor movement
+    float wind = u_mouseVel.x * exp(-mDist * 3.5) * 0.35;
 
-    // Organic sinusoidal billowing wave foundation
-    float w1 = sin(uv.x * 3.8 + t * 0.45 + mouseShift) * 0.05;
-    float w2 = sin(uv.x * 7.5 - t * 0.6) * 0.028;
-    float w3 = cos(uv.x * 12.0 + t * 0.85) * 0.014;
+    // 3. Multi-frequency harmonic wave foundation
+    float w1 = sin(p.x * 3.8 + t * 0.45 + wind) * 0.055;
+    float w2 = sin(p.x * 7.5 - t * 0.65) * 0.028;
+    float w3 = cos(p.x * 12.0 + t * 0.95) * 0.014;
 
-    // Multi-octave organic rolling turbulence
-    vec2 nCoord1 = vec2(uv.x * 2.4 + mouseShift * 0.5 - t * 0.16, uv.y * 2.0 - t * 0.35);
+    // 4. Multi-octave organic rolling turbulence
+    vec2 nCoord1 = vec2(p.x * 2.4 - t * 0.18, uv.y * 2.0 - t * 0.4);
     float n1 = fbm(nCoord1);
 
-    vec2 nCoord2 = vec2(uv.x * 4.6 + n1 * 0.6 + t * 0.12, uv.y * 3.2 - t * 0.48);
+    vec2 nCoord2 = vec2(p.x * 4.6 + n1 * 0.6 + t * 0.14, uv.y * 3.2 - t * 0.55);
     float n2 = fbm(nCoord2);
 
-    // The crest height peaks around 0.28 - 0.34 from the bottom of the card
-    float targetCrest = u_flameHeight * 0.28;
-    float waveCrest = targetCrest + w1 + w2 + w3 + (n1 - 0.5) * 0.10 + (n2 - 0.5) * 0.04;
+    // 5. Suction & pointer attraction: flame billows dynamically towards cursor
+    float pointerLift = exp(-pow(mDist * 3.2, 2.0)) * 0.08 * u_hover;
 
-    // Vertical distance from the flame crest
+    // 6. Interactive harmonic ripple wave radiating from pointer
+    float pointerRipple = sin(mDist * 24.0 - t * 4.5) * exp(-mDist * 6.0) * 0.025 * u_hover;
+
+    // Dynamic crest height
+    float targetCrest = u_flameHeight * 0.25;
+    float waveCrest = targetCrest + w1 + w2 + w3 + (n1 - 0.5) * 0.08 + (n2 - 0.5) * 0.03 + pointerLift + pointerRipple;
+    // Strictly cap crest below the feature bullet items
+    waveCrest = min(waveCrest, 0.34);
+
     float dist = waveCrest - uv.y;
 
-    // 1. Solid billowing cloud body below crest with smooth antialiased edge
+    // Solid billowing cloud body below crest
     float body = smoothstep(-0.03, 0.05, dist);
 
-    // 2. Soft luminous rim along the crest of the flame
+    // Soft luminous rim along the crest
     float rim = exp(-abs(dist) * 26.0) * 0.65;
 
-    // 3. Volumetric diffuse glow extending slightly above the crest
-    float glowAbove = exp(-max(uv.y - waveCrest, 0.0) * 20.0) * 0.5;
+    // Volumetric diffuse glow extending slightly above the crest
+    float glowAbove = exp(-max(uv.y - waveCrest, 0.0) * 22.0) * 0.5;
 
-    // 4. Luminous saturated base in the lower area
-    float baseGlow = pow(clamp((0.34 - uv.y) / 0.34, 0.0, 1.0), 1.5) * 0.95;
+    // Luminous saturated base in the lower area
+    float baseGlow = pow(clamp((0.32 - uv.y) / 0.32, 0.0, 1.0), 1.5) * 0.95;
+
+    // Interactive cursor plasma heat bloom
+    float cursorHeat = exp(-pow(mDist * 5.0, 2.0)) * 0.65 * u_hover;
 
     // Organic density modulation for billowing cloud look
     float internalTurbulence = 0.88 + (n1 * 0.12 + n2 * 0.08);
 
     // Rich saturated color:
-    // Base maintains the deep vibrant hue (u_color) without turning milky/pastel
     vec3 col = u_color * (0.85 + 0.22 * internalTurbulence);
 
     // Crest rim receives the luminous highlight accent
     col = mix(col, u_highlight, rim * 0.8);
 
+    // Cursor heat flare adds brilliant radiant highlight
+    col = mix(col, u_highlight, cursorHeat * 0.85);
+
     // Subtle warm center accent in the heart of the flame
     col += u_highlight * (baseGlow * 0.18);
 
-    // Total intensity
-    float totalFlame = (body * 0.85 + glowAbove * 0.45 + baseGlow * 0.4) * u_intensity;
+    // Total intensity with hover boost
+    float totalFlame = (body * 0.85 + glowAbove * 0.45 + baseGlow * 0.4 + cursorHeat * 0.5) * u_intensity;
 
     // Alpha with smooth volumetric falloff
     float alpha = smoothstep(0.01, 0.28, totalFlame) * 0.98;
     // Guaranteed pristine dark void above the flame so headlines and bullets stay 100% crisp
-    alpha *= smoothstep(0.42, 0.34, uv.y);
+    alpha *= smoothstep(0.38, 0.32, uv.y);
 
     gl_FragColor = vec4(col * alpha, alpha);
   }
@@ -159,8 +188,9 @@ export function ShaderCard({
   const reduceMotion = useReducedMotion();
   const shouldReduceMotion = Boolean(reduceMotion);
 
-  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
-  const [isHovered, setIsHovered] = useState(false);
+  // Mouse / Pointer kinetic tracking
+  const mouseStateRef = useRef({ x: 0.5, y: 0.5, vx: 0, vy: 0, hover: 0 });
+  const isHoveredRef = useRef(false);
   const [tilt, setTilt] = useState<{ rotateX: number; rotateY: number }>({ rotateX: 0, rotateY: 0 });
 
   const rgbColor = parseColorToRgb(color);
@@ -172,20 +202,29 @@ export function ShaderCard({
       const rect = cardRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
-      setMousePos({ x, y });
 
-      const tiltX = (0.5 - y) * 8;
-      const tiltY = (x - 0.5) * 8;
+      const prevX = mouseStateRef.current.x;
+      const prevY = mouseStateRef.current.y;
+      mouseStateRef.current.vx = (x - prevX) * 10;
+      mouseStateRef.current.vy = (y - prevY) * 10;
+      mouseStateRef.current.x = x;
+      mouseStateRef.current.y = y;
+      mouseStateRef.current.hover = 1.0;
+
+      const tiltX = (0.5 - y) * 8.5;
+      const tiltY = (x - 0.5) * 8.5;
       setTilt({ rotateX: tiltX, rotateY: tiltY });
     },
     [interactive, shouldReduceMotion]
   );
 
-  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+  };
+
   const handleMouseLeave = () => {
-    setIsHovered(false);
+    isHoveredRef.current = false;
     setTilt({ rotateX: 0, rotateY: 0 });
-    setMousePos({ x: 0.5, y: 0.5 });
   };
 
   useEffect(() => {
@@ -251,8 +290,10 @@ export function ShaderCard({
     const uColor = gl.getUniformLocation(program, "u_color");
     const uHighlight = gl.getUniformLocation(program, "u_highlight");
     const uMouse = gl.getUniformLocation(program, "u_mouse");
+    const uMouseVel = gl.getUniformLocation(program, "u_mouseVel");
     const uIntensity = gl.getUniformLocation(program, "u_intensity");
     const uFlameHeight = gl.getUniformLocation(program, "u_flameHeight");
+    const uHover = gl.getUniformLocation(program, "u_hover");
 
     let animationFrameId: number;
     const startTime = performance.now();
@@ -279,14 +320,23 @@ export function ShaderCard({
 
       const elapsed = (time - startTime) * 0.001 * speed;
 
+      // Smooth decay of kinetic velocity and hover factor
+      const m = mouseStateRef.current;
+      m.vx *= 0.91;
+      m.vy *= 0.91;
+      const targetHover = isHoveredRef.current ? 1.0 : 0.0;
+      m.hover += (targetHover - m.hover) * 0.08;
+
       gl.useProgram(program);
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       gl.uniform1f(uTime, shouldReduceMotion ? 0.5 : elapsed);
       gl.uniform3f(uColor, rgbColor[0], rgbColor[1], rgbColor[2]);
       gl.uniform3f(uHighlight, rgbHighlight[0], rgbHighlight[1], rgbHighlight[2]);
-      gl.uniform2f(uMouse, mousePos.x, mousePos.y);
-      gl.uniform1f(uIntensity, (isHovered ? 1.25 : 1.0) * intensity);
+      gl.uniform2f(uMouse, m.x, m.y);
+      gl.uniform2f(uMouseVel, m.vx, m.vy);
+      gl.uniform1f(uIntensity, (1.0 + m.hover * 0.25) * intensity);
       gl.uniform1f(uFlameHeight, flameHeight * scale);
+      gl.uniform1f(uHover, m.hover);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -318,8 +368,6 @@ export function ShaderCard({
     intensity,
     scale,
     flameHeight,
-    isHovered,
-    mousePos,
     shouldReduceMotion,
   ]);
 

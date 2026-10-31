@@ -30,6 +30,7 @@ import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
 import BlurText from "@/components/BlurText";
 import Feedback1 from "@/components/Feedback1";
+import ShaderCard from "@/components/ui/shader-card";
 
 const Topography = dynamic(() => import("@/components/Topography"), {
   ssr: false,
@@ -68,6 +69,8 @@ const PIPELINE_STAGES = [
     stageNum: "01",
     tag: "INGESTION & DECOMPOSITION",
     title: "Multi-Modal Signal Extraction",
+    flameColor: "#06b6d4",
+    flameHighlight: "#67e8f9",
     description:
       "Isolates raw high-resolution video frames at millisecond intervals, decodes 16kHz audio vocoder harmonics, and audits container metadata headers.",
     Icon: Eye,
@@ -86,6 +89,8 @@ const PIPELINE_STAGES = [
     stageNum: "02",
     tag: "CROSS-MODAL TRIANGULATION",
     title: "Multi-Angle Wire Triangulation",
+    flameColor: "#8b5cf6",
+    flameHighlight: "#d8b4fe",
     description:
       "Decomposes complex media claims into atomic factual statements. Queries independent global press archives and primary public registries simultaneously.",
     Icon: MagnifyingGlass,
@@ -104,6 +109,8 @@ const PIPELINE_STAGES = [
     stageNum: "03",
     tag: "CALIBRATED FUSION",
     title: "Bayesian Evidence Synthesis",
+    flameColor: "#f59e0b",
+    flameHighlight: "#fef08a",
     description:
       "Synthesizes neural sensor signals with external corroboration into a calibrated probability distribution with 95% bootstrap confidence intervals.",
     Icon: Fingerprint,
@@ -397,48 +404,66 @@ function ScrollyPipelineCard({
   return (
     <motion.div
       style={reduceMotion ? {} : { y: cardY, opacity: cardOpacity }}
-      className="scrolly-pipeline-card flex flex-col justify-between"
+      className="h-full"
     >
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-white/90">
-              Phase {stage.stageNum}
-            </span>
-          </div>
-          <stage.Icon size={18} className="text-white/60" aria-hidden />
-        </div>
-
-        <h3 className="text-lg font-semibold text-white tracking-tight">
-          {stage.title}
-        </h3>
-        <p className="mt-3 text-xs sm:text-sm text-white/50 leading-relaxed">
-          {stage.description}
-        </p>
-
-        {/* Simulated Diagnostic Telemetry */}
-        <div className="mt-6 space-y-2 rounded-lg border border-white/5 bg-white/[0.015] p-3 font-mono text-[11px]">
-          <div className="text-[10px] text-white/30 uppercase tracking-widest pb-1 border-b border-white/5">
-            Live Diagnostics
-          </div>
-          {stage.readout.items.map((item, itemIdx) => (
-            <div
-              key={itemIdx}
-              className="flex items-center justify-between py-1 border-b border-white/[0.03] last:border-0"
-            >
-              <span className="text-white/40">{item.label}</span>
-              <span className="text-white/80 font-medium">{item.value}</span>
+      <ShaderCard
+        color={stage.flameColor}
+        highlightColor={stage.flameHighlight}
+        speed={0.9 + index * 0.15}
+        flameHeight={1.15}
+        interactive={true}
+        className="h-full justify-between min-h-[380px]"
+      >
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="size-2 rounded-full animate-pulse shadow-sm"
+                style={{ backgroundColor: stage.flameColor }}
+              />
+              <span className="text-xs font-semibold text-white/90">
+                Phase {stage.stageNum}
+              </span>
             </div>
-          ))}
-        </div>
-      </div>
+            <stage.Icon size={18} className="text-white/60" aria-hidden />
+          </div>
 
-      {/* Footer Note */}
-      <div className="mt-6 pt-3 border-t border-white/5 flex items-center justify-between font-mono text-[10px] text-white/30">
-        <span>{stage.detail}</span>
-        <span className="text-white/60">ACTIVE</span>
-      </div>
+          <h3 className="text-lg font-semibold text-white tracking-tight">
+            {stage.title}
+          </h3>
+          <p className="mt-3 text-xs sm:text-sm text-white/50 leading-relaxed">
+            {stage.description}
+          </p>
+
+          {/* Simulated Diagnostic Telemetry */}
+          <div className="mt-6 space-y-2 rounded-lg border border-white/5 bg-white/[0.015] p-3 font-mono text-[11px]">
+            <div className="text-[10px] text-white/30 uppercase tracking-widest pb-1 border-b border-white/5 flex items-center justify-between">
+              <span>Live Diagnostics</span>
+              <span className="font-semibold" style={{ color: stage.flameHighlight }}>
+                ACTIVE SHADER
+              </span>
+            </div>
+            {stage.readout.items.map((item, itemIdx) => (
+              <div
+                key={itemIdx}
+                className="flex items-center justify-between py-1 border-b border-white/[0.03] last:border-0"
+              >
+                <span className="text-white/40">{item.label}</span>
+                <span className="text-white/80 font-medium">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer Note */}
+        <div className="mt-6 pt-3 border-t border-white/5 flex items-center justify-between font-mono text-[10px] text-white/30">
+          <span>{stage.detail}</span>
+          <span className="font-semibold" style={{ color: stage.flameHighlight }}>
+            ACTIVE
+          </span>
+        </div>
+      </ShaderCard>
     </motion.div>
   );
 }
@@ -466,7 +491,7 @@ function ScrollyPipelineSection({
     <section
       ref={containerRef}
       id="pipeline"
-      className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20"
+      className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20 overflow-visible"
     >
       <ScanGrid className="absolute inset-0 opacity-20" />
 
@@ -502,7 +527,7 @@ function ScrollyPipelineSection({
         </ScrollReveal>
 
         {/* 3-Stage Scrollytelling Cards with Staggered Scroll Elevation */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3 pt-6 sm:pt-8">
           {PIPELINE_STAGES.map((stage, idx) => (
             <ScrollyPipelineCard
               key={stage.id}

@@ -403,23 +403,24 @@ function ScrollyPipelineCard({
       >
         <div className="flex flex-col justify-between h-full">
           <div>
-            {/* Header: Phase badge & Stage Icon */}
-            <div className="flex items-center justify-between mb-4">
-              <span
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase backdrop-blur-sm"
-                style={{
-                  backgroundColor: `${stage.flameColor}18`,
-                  color: stage.flameHighlight,
-                  border: `1px solid ${stage.flameColor}35`,
-                }}
-              >
+            {/* Header: Clean engineering index & Stage Icon */}
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-semibold tracking-widest text-zinc-500">
+                  {`${stage.stageNum} //`}
+                </span>
                 <span
-                  className="size-1.5 rounded-full animate-pulse"
-                  style={{ backgroundColor: stage.flameHighlight }}
-                />
-                Phase {stage.stageNum}
-              </span>
-              <stage.Icon size={20} className="text-zinc-400" aria-hidden />
+                  className="font-mono text-xs font-medium uppercase tracking-wider"
+                  style={{ color: stage.flameHighlight }}
+                >
+                  {stage.stageNum === "01"
+                    ? "Forensic Extraction"
+                    : stage.stageNum === "02"
+                    ? "Multi-Source Retrieval"
+                    : "Bayesian Synthesis"}
+                </span>
+              </div>
+              <stage.Icon size={18} className="text-zinc-400" aria-hidden />
             </div>
 
             {/* Title */}
@@ -432,7 +433,7 @@ function ScrollyPipelineCard({
               {stage.description}
             </p>
 
-            {/* Feature Bullet List matching the React Bits Pro Reference */}
+            {/* Feature Bullet List */}
             <div className="mt-6 space-y-3.5">
               {stage.features.map((feat, i) => (
                 <div
@@ -451,17 +452,44 @@ function ScrollyPipelineCard({
             </div>
           </div>
 
-          {/* Bottom Action Pill Button floating right on top of the luminous flame */}
-          <div className="mt-10 pt-4">
+          {/* Functional Engine Action & Telemetry */}
+          <div className="mt-8 pt-4 border-t border-white/10 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+              <span className="text-zinc-500">STAGE TELEMETRY</span>
+              <span className="text-zinc-300 font-medium">
+                {stage.stageNum === "01"
+                  ? "12 Primitives · ~180ms"
+                  : stage.stageNum === "02"
+                  ? "Parallel DDGS · ~1.2s"
+                  : "Gemini 3.5 · Calibrated"}
+              </span>
+            </div>
             <a
-              href="#inspect"
-              className="w-full py-3.5 px-6 rounded-full bg-[#f4f4f5] hover:bg-white text-zinc-950 font-semibold text-xs sm:text-sm tracking-tight text-center shadow-[0_12px_30px_rgba(0,0,0,0.6)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 group/btn"
+              href={
+                stage.stageNum === "01"
+                  ? "/demo/workspace?tab=image"
+                  : stage.stageNum === "02"
+                  ? "/demo/workspace?tab=news"
+                  : "/demo/workspace"
+              }
+              className="w-full py-2.5 px-4 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-white font-medium text-xs tracking-wide transition-all duration-150 flex items-center justify-between group/action backdrop-blur-md"
             >
-              <span>Explore Phase {stage.stageNum}</span>
+              <span className="flex items-center gap-2">
+                <span
+                  className="size-1.5 rounded-full"
+                  style={{ backgroundColor: stage.flameHighlight }}
+                />
+                <span>
+                  {stage.stageNum === "01"
+                    ? "Test File Forensics"
+                    : stage.stageNum === "02"
+                    ? "Run Web Triangulation"
+                    : "Inspect Decision Graph"}
+                </span>
+              </span>
               <ArrowUpRight
-                size={16}
-                weight="bold"
-                className="transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 text-zinc-950"
+                size={14}
+                className="text-zinc-400 transition-transform duration-150 group-hover/action:translate-x-0.5 group-hover/action:-translate-y-0.5 group-hover/action:text-white"
               />
             </a>
           </div>
@@ -569,10 +597,6 @@ function ParallaxDossierSection({
 
   // Multi-layer parallax scroll transforms
   const bgGridY = useTransform(smoothProgress, [0, 1], [-40, 40]);
-  const floatingStamp1Y = useTransform(smoothProgress, [0, 1], [60, -60]);
-  const floatingStamp1X = useTransform(smoothProgress, [0, 1], [30, -5]);
-  const floatingStamp2Y = useTransform(smoothProgress, [0, 1], [-50, 50]);
-  const floatingStamp2X = useTransform(smoothProgress, [0, 1], [-30, 5]);
   const cardScale = useTransform(smoothProgress, [0, 0.5, 1], [0.96, 1, 0.97]);
   const beamScaleX = useTransform(smoothProgress, [0.1, 0.7], [0, 1]);
 
@@ -689,24 +713,6 @@ function ParallaxDossierSection({
                 </div>
               </div>
             </div>
-          </motion.div>
-
-          {/* Layer 3A: Floating Parallax Stamp (Top Right) */}
-          <motion.div
-            className="absolute right-6 sm:right-16 top-10 sm:top-14 z-20 hidden md:flex items-center gap-2 rounded-full border border-white/15 bg-black/90 px-4 py-2 font-mono text-xs text-white shadow-xl backdrop-blur-md"
-            style={reduceMotion ? {} : { y: floatingStamp1Y, x: floatingStamp1X }}
-          >
-            <ShieldCheck size={16} className="text-emerald-400" aria-hidden />
-            <span>C2PA COALITION STANDARD COMPLIANT</span>
-          </motion.div>
-
-          {/* Layer 3B: Floating Parallax Stamp (Bottom Left) */}
-          <motion.div
-            className="absolute left-6 sm:left-16 bottom-10 sm:bottom-14 z-20 hidden md:flex items-center gap-2 rounded-full border border-white/15 bg-black/90 px-4 py-2 font-mono text-xs text-white shadow-xl backdrop-blur-md"
-            style={reduceMotion ? {} : { y: floatingStamp2Y, x: floatingStamp2X }}
-          >
-            <CheckCircle size={16} className="text-cyan-400" aria-hidden />
-            <span>14 INDEPENDENT WIRE CITATIONS ATTACHED</span>
           </motion.div>
         </div>
       </div>

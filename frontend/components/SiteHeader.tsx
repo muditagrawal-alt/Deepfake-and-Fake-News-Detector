@@ -141,7 +141,25 @@ export default function SiteHeader() {
               </div>
             </MenuItem>
 
-            {/* 3. Methodology */}
+            {/* 3. Architecture & Tech Stack */}
+            <MenuItem setActive={setActive} active={active} item="Architecture">
+              <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[300px]">
+                <HoveredLink
+                  href="/architecture"
+                  description="Interactive 3D collapsible model rendered with Anime.js."
+                >
+                  3D System Architecture
+                </HoveredLink>
+                <HoveredLink
+                  href="/tech-stack"
+                  description="Dynamic production manifest with React Bits Spotlight cards."
+                >
+                  Production Tech Stack
+                </HoveredLink>
+              </div>
+            </MenuItem>
+
+            {/* 4. Methodology */}
             <MenuItem setActive={setActive} active={active} item="Methodology">
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
                 <HoveredLink
@@ -176,7 +194,8 @@ export default function SiteHeader() {
         {/* Streamlined Fallback for Mobile Viewports */}
         <nav aria-label="Main Mobile" className="hidden sm:flex md:hidden shrink-0 items-center gap-1">
           <Link href="/#product-check" onClick={handleProduct} className="site-nav-link text-xs">Product</Link>
-          <Link href="/#how-it-works" onClick={handleHowItWorks} className="site-nav-link text-xs">How it works</Link>
+          <Link href="/architecture" className="site-nav-link text-xs">3D Arch</Link>
+          <Link href="/tech-stack" className="site-nav-link text-xs">Stack</Link>
           <Link href="/about" className="site-nav-link text-xs">Method</Link>
         </nav>
 

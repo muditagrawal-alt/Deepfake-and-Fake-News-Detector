@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const recipient = "muditagrawal03@gmail.com";
     const subject = `[Veritas Feedback] [${category?.toUpperCase() || "GENERAL"}] ${message.slice(0, 60)}${message.length > 60 ? "..." : ""}`;
 
-    // Format comprehensive email body
+    // Format email payload
     const emailPayload: Record<string, unknown> = {
       _subject: subject,
       _template: "table",
@@ -31,41 +31,52 @@ export async function POST(req: Request) {
       userAgent: metadata?.userAgent || "Unknown",
     };
 
-    // If a screenshot was attached (base64 data URL)
     if (screenshot && typeof screenshot === "string" && screenshot.startsWith("data:")) {
-      emailPayload.has_screenshot = "Yes (Attached)";
-      // Formsubmit accepts screenshot data or note
-      emailPayload.screenshot_preview = screenshot.slice(0, 100) + "... [data URL]";
+      emailPayload.has_screenshot = "Yes (Attached in payload)";
+      emailPayload.screenshot_preview = screenshot.slice(0, 100) + "...";
     }
 
-    // Forward to FormSubmit endpoint for direct delivery to muditagrawal03@gmail.com
+    let needsActivation = false;
+    let relayMessage = "";
+
+    // Forward to FormSubmit with proper Origin/Referer headers
     try {
       const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${recipient}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Origin: "https://veritas-check.vercel.app",
+          Referer: "https://veritas-check.vercel.app/",
         },
         body: JSON.stringify(emailPayload),
       });
 
-      if (!formSubmitRes.ok) {
-        console.warn("FormSubmit response status:", formSubmitRes.status);
+      const resData = await formSubmitRes.json().catch(() => ({}));
+      if (typeof resData?.message === "string" && resData.message.toLowerCase().includes("activation")) {
+        needsActivation = true;
+        relayMessage = resData.message;
       }
     } catch (relayError) {
       console.warn("FormSubmit relay warning:", relayError);
     }
 
-    // Always succeed and return mailto backup data
+    // Direct mailto links for immediate 100% reliable fallback
     const mailtoSubject = encodeURIComponent(subject);
     const mailtoBody = encodeURIComponent(
       `Category: ${category}\nSentiment: ${sentiment}\nUser: ${email || "Anonymous"}\n\nMessage:\n${message}\n\nMetadata:\nURL: ${metadata?.url}\nViewport: ${metadata?.viewport}\nTime: ${new Date().toISOString()}`
     );
 
+    const gmailWebLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient)}&su=${mailtoSubject}&body=${mailtoBody}`;
+    const directMailto = `mailto:${recipient}?subject=${mailtoSubject}&body=${mailtoBody}`;
+
     return NextResponse.json({
       success: true,
+      needsActivation,
+      relayMessage,
       message: "Feedback submitted successfully.",
-      mailtoBackup: `mailto:${recipient}?subject=${mailtoSubject}&body=${mailtoBody}`,
+      mailtoBackup: directMailto,
+      gmailLink: gmailWebLink,
     });
   } catch (error) {
     console.error("Feedback route error:", error);
@@ -75,4 +86,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

@@ -94,6 +94,8 @@ export default function Feedback1({
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mailtoLink, setMailtoLink] = useState<string | null>(null);
+  const [gmailLink, setGmailLink] = useState<string | null>(null);
+  const [needsActivation, setNeedsActivation] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -164,6 +166,8 @@ export default function Feedback1({
       if (!res.ok) throw new Error(data.error || "Submission failed");
 
       setMailtoLink(data.mailtoBackup || null);
+      setGmailLink(data.gmailLink || null);
+      setNeedsActivation(!!data.needsActivation);
       setSubmitted(true);
     } catch (err: unknown) {
       console.warn("Direct feedback relay failed, providing email fallback:", err);
@@ -424,24 +428,43 @@ export default function Feedback1({
 
             <div className="space-y-1.5">
               <h3 className="text-xl font-semibold text-white">Feedback Dispatched</h3>
-              <p className="text-sm text-neutral-400 max-w-[42ch] mx-auto leading-relaxed">
-                Your report has been submitted to <span className="text-neutral-200 font-medium">{recipientEmail}</span>. Thank you for helping calibrate the Veritas engine.
+              <p className="text-sm text-neutral-400 max-w-[46ch] mx-auto leading-relaxed">
+                Your report has been routed to <span className="text-neutral-200 font-medium">{recipientEmail}</span>.
               </p>
+              {needsActivation && (
+                <div className="mt-3 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs text-amber-200 text-left max-w-md mx-auto">
+                  <p className="font-semibold text-amber-300">Action Required for Automated Delivery:</p>
+                  <p className="mt-1 text-amber-200/90">
+                    FormSubmit sent a one-time activation email to <strong>{recipientEmail}</strong>. Please check your Gmail (including Spam) and click &ldquo;Activate Form&rdquo; so future submissions flow directly.
+                  </p>
+                </div>
+              )}
             </div>
 
-            {mailtoLink && (
-              <div className="pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              {gmailLink && (
+                <a
+                  href={gmailLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-lg"
+                >
+                  <span>Open Direct Draft in Gmail</span>
+                  <ArrowSquareOut size={14} />
+                </a>
+              )}
+              {mailtoLink && (
                 <a
                   href={mailtoLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs font-medium text-blue-400 hover:text-blue-300 underline underline-offset-4"
+                  className="inline-flex items-center gap-2 text-xs font-medium text-neutral-300 hover:text-white px-3.5 py-2 rounded-lg border border-white/10 hover:bg-white/5 transition-colors"
                 >
-                  <span>Also open copy in your email client</span>
+                  <span>Open in Mail Client</span>
                   <ArrowSquareOut size={14} />
                 </a>
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="pt-4">
               <button

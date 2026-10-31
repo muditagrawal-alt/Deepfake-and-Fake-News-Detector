@@ -41,7 +41,6 @@ export interface ArcCursorRef {
   clear: () => void;
 }
 
-const emptySubscribe = () => () => {};
 const subscribeCoarse = (callback: () => void) => {
   if (typeof window === "undefined") return () => {};
   const mql = window.matchMedia("(pointer: coarse)");
@@ -148,7 +147,7 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
     flicker = 0.5,
     charge = 1.0,
     backgroundColor = "transparent",
-    autoplay = true,
+    autoplay = false,
     autoplaySpeed = 1.0,
     idleDelay = 1.5,
     interactive = true,
@@ -198,7 +197,6 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
   const dischargesRef = useRef<DischargeBranch[]>([]);
 
   // Autoplay position state
-  const autoPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const autoAngle = useRef<number>(0);
 
   const clear = useCallback(() => {
@@ -399,9 +397,9 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
       // Blending mode: screen/lighter for luminous neon glow on dark, source-over for ink on light
       ctx.globalCompositeOperation = isDarkTheme ? "screen" : "source-over";
 
-      // Autoplay idle wandering motion
+      // Autoplay only runs if explicitly enabled and user has not interacted
       const isIdle =
-        autoplay && (!mouseActive.current || now - lastMoveTime.current > idleDelay);
+        autoplay && !mouseActive.current && lastMoveTime.current === 0;
 
       if (isIdle && !reducedMotion) {
         autoAngle.current += dt * autoplaySpeed * 1.1;

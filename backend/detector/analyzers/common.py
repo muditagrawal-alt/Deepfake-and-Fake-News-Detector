@@ -31,6 +31,7 @@ def _provenance_facts(facts: dict) -> dict:
     c2pa = meta.get("c2pa") or {}
     xmp = meta.get("xmp") or {}
     exif = meta.get("exif") or {}
+    ai_sigs = facts.get("ai_signatures") or {}
     return {
         "c2pa_present": bool(c2pa.get("present")),
         "c2pa_valid": bool(c2pa.get("valid")),
@@ -39,6 +40,8 @@ def _provenance_facts(facts: dict) -> dict:
         "exif_camera_make": exif.get("Make"),
         "container_encoder": (meta.get("container_tags") or {}).get("encoder"),
         "has_audio": meta.get("has_audio"),
+        "ai_watermark_present": bool(ai_sigs.get("watermarks_detected")),
+        "ai_metadata_present": bool(ai_sigs.get("metadata_ai_signatures")),
     }
 
 
@@ -95,6 +98,46 @@ def build_result(*, modality: str, stage: StageResult, facts: dict, extraction: 
     if stage.research_mode == "open" and not stage.sources:
         caveats.append("No independent web evidence was retrieved; claims were judged from the content alone.")
 
+    signals = list(v.signals)
+    ai_sigs = facts.get("ai_signatures") or {}
+    for wm in ai_sigs.get("watermarks_detected", []):
+        name = wm.get("name", "ai_watermark")
+        if not any(s.name == name for s in signals):
+            from detector.schemas import Signal
+            signals.insert(0, Signal(
+                name=name,
+                value=wm.get("location", "detected"),
+                direction="fake",
+                weight="strong",
+                note=wm.get("details", "AI platform watermark detected in image"),
+            ))
+    for meta_sig in ai_sigs.get("metadata_ai_signatures", []):
+        name = f"ai_generator_{meta_sig.get('tool', 'tool')}"
+        if not any(s.name == name for s in signals):
+            from detector.schemas import Signal
+            signals.insert(0, Signal(
+                name=name,
+                value=meta_sig.get("raw_value", "detected"),
+                direction="fake",
+                weight="strong",
+                note=f"AI generative tool marker found in {meta_sig.get('source')}",
+            ))
+
+    verdict = v.verdict
+    confidence = float(v.confidence)
+    summary = v.summary
+    reasoning = v.reasoning
+
+    if ai_sigs.get("watermarks_detected") and verdict != "LIKELY_FAKE":
+        verdict = "LIKELY_FAKE"
+        confidence = max(0.95, confidence)
+        wm_names = ", ".join(w.get("name", "watermark") for w in ai_sigs["watermarks_detected"])
+        summary = f"Identified as synthetic media: image contains an authentic AI platform watermark ({wm_names})."
+        reasoning = (
+            f"Forensic inspection detected a conclusive AI platform watermark ({wm_names}) stamped into the media file, "
+            f"demonstrating synthetic generation regardless of content plausibility."
+        )
+
     forensics = {**facts, "retrieval": {"mode": stage.research_mode, **stage.retrieval.log()}}
     stages = ("analyse", "verify")
     calls = [{"stage": stages[i] if i < 2 else f"call{i}", "backend": m.backend, "model": m.model,
@@ -106,17 +149,17 @@ def build_result(*, modality: str, stage: StageResult, facts: dict, extraction: 
     return AnalysisResult(
         id=new_id(modality),
         modality=modality,
-        verdict=v.verdict,
-        confidence=round(float(v.confidence), 3),
-        summary=v.summary,
-        reasoning=v.reasoning,
+        verdict=verdict,
+        confidence=round(confidence, 3),
+        summary=summary,
+        reasoning=reasoning,
         genre=v.genre or stage.analysis.genre,
         language=stage.analysis.language,
         description=stage.analysis.description,
         search_query=stage.queries[0] if stage.queries else None,
         transcript_summary=stage.analysis.transcript_summary,
         claims=v.claims,
-        signals=v.signals,
+        signals=signals,
         caveats=caveats,
         evidence=evidence,
         extraction=extraction or Extraction(),

@@ -13,6 +13,7 @@ from detector.analyzers.prompts import ANALYSE, VERIFY
 from detector.engine.parts import ImagePart, TextPart
 from detector.engine.pipeline import run_stages
 from detector.forensics.exif import analyze_image_metadata
+from detector.forensics.watermarks import scan_image_watermarks_and_signatures
 from detector.schemas import AnalysisResult
 from detector.services import Services
 
@@ -36,8 +37,9 @@ async def analyze_image(path: str | Path, services: Services, *, original_name: 
     timer = Timer()
     with timer.track("forensics"):
         meta = await asyncio.to_thread(analyze_image_metadata, path)
+        wm = await asyncio.to_thread(scan_image_watermarks_and_signatures, path, meta)
         jpeg = await asyncio.to_thread(_to_jpeg, path, services.settings.image_max_side)
-        facts: dict = {"metadata": meta}
+        facts: dict = {"metadata": meta, "ai_signatures": wm}
         if services.onnx.enabled:
             det = await asyncio.to_thread(services.onnx.predict_path, path)
             if det:

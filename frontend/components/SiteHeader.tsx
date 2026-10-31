@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Menu, MenuItem, ProductItem, HoveredLink } from "@/components/ui/navbar-menu";
+import { cn } from "@/lib/utils";
 import {
   TriangulationThumbnail,
   AudioSpectrogramThumbnail,
@@ -19,6 +20,16 @@ function stage() {
 
 export default function SiteHeader() {
   const [active, setActive] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState<boolean>(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   function handleHome(event: React.MouseEvent<HTMLAnchorElement>) {
     if (window.location.pathname !== "/") return;
@@ -72,32 +83,49 @@ export default function SiteHeader() {
   }
 
   return (
-    <header className="site-header sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
-        {/* Brand Shield & Tag */}
+    <header className="site-header fixed top-3 sm:top-5 inset-x-0 z-50 flex justify-center pointer-events-none px-3 sm:px-6">
+      <div
+        className={cn(
+          "pointer-events-auto flex items-center justify-between gap-3 sm:gap-6 rounded-full",
+          "bg-[#07080d]/85 dark:bg-[#07080d]/90 backdrop-blur-2xl border border-white/15",
+          "shadow-[0_16px_50px_rgba(0,0,0,0.85),0_0_24px_rgba(56,189,248,0.12)]",
+          "hover:border-cyan-500/40 hover:shadow-[0_18px_60px_rgba(56,189,248,0.22)]",
+          "transition-all duration-300 ease-out select-none",
+          scrolled
+            ? "py-1.5 sm:py-2 px-3 sm:px-5 bg-[#050608]/95 border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.95)]"
+            : "py-2 sm:py-2.5 px-3.5 sm:px-6"
+        )}
+      >
+        {/* Brand Shield & Title & Status Beacon */}
         <Link
           href="/"
           onClick={handleHome}
           aria-label="Veritas home"
-          className="inline-flex shrink-0 items-center gap-3 rounded-control text-ink hover:opacity-90 transition-opacity"
+          className="inline-flex shrink-0 items-center gap-2.5 rounded-full text-white hover:opacity-90 transition-opacity pl-1"
         >
           <Image
             src="/veritas-mark.png"
             alt="Veritas shield"
             aria-hidden
-            width={38}
-            height={39}
+            width={28}
+            height={29}
             priority
-            className="site-brand-mark size-[37px] shrink-0 object-contain drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
+            className="size-[26px] sm:size-[28px] shrink-0 object-contain drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]"
           />
-          <span className="text-[16px] font-semibold tracking-[-0.035em]">Veritas</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] sm:text-[15px] font-semibold tracking-[-0.03em] text-white">Veritas</span>
+            <span className="relative flex size-2 shrink-0" title="Veritas Engine: Live & Operational">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full size-2 bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+            </span>
+          </div>
         </Link>
 
-        {/* Aceternity Animated Navbar Menu for Desktop */}
+        {/* Dynamic Island Nav Menu Items (Desktop) */}
         <div className="hidden md:block">
           <Menu
             setActive={setActive}
-            className="border-line/70 bg-elev/70 backdrop-blur-md px-5 py-2 shadow-sm space-x-6"
+            className="bg-transparent border-none p-0 shadow-none space-x-6 lg:space-x-8"
           >
             {/* 1. Forensics / Detection Engines */}
             <MenuItem setActive={setActive} active={active} item="Forensics">
@@ -214,21 +242,21 @@ export default function SiteHeader() {
         </div>
 
         {/* Streamlined Fallback for Mobile Viewports */}
-        <nav aria-label="Main Mobile" className="hidden sm:flex md:hidden shrink-0 items-center gap-1">
-          <Link href="/#product-check" onClick={handleProduct} className="site-nav-link text-xs">Product</Link>
-          <Link href="/#architecture" onClick={handleArchitecture} className="site-nav-link text-xs">Topology</Link>
-          <Link href="/#tech-stack" onClick={handleTechStack} className="site-nav-link text-xs">Stack</Link>
-          <Link href="/about" className="site-nav-link text-xs">Method</Link>
+        <nav aria-label="Main Mobile" className="flex md:hidden items-center gap-1.5 sm:gap-2 text-[11px] font-mono text-zinc-400">
+          <Link href="/#product-check" onClick={handleProduct} className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Product</Link>
+          <Link href="/#architecture" onClick={handleArchitecture} className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Topology</Link>
+          <Link href="/#tech-stack" onClick={handleTechStack} className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Stack</Link>
         </nav>
 
+        {/* CTA Button */}
         <Link
           href="/"
           onClick={handleStart}
-          className="site-header-cta inline-flex min-h-10 shrink-0 items-center gap-2 rounded-control px-3.5 text-xs font-semibold sm:px-4 sm:text-sm"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white text-black font-semibold px-3.5 sm:px-4 py-1.5 text-xs sm:text-sm hover:bg-zinc-200 transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] shrink-0"
         >
           <span className="hidden sm:inline">Start a review</span>
           <span className="sm:hidden">Start</span>
-          <ArrowUpRight size={16} aria-hidden />
+          <ArrowUpRight size={14} weight="bold" aria-hidden />
         </Link>
       </div>
     </header>

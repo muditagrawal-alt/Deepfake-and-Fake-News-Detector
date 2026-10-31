@@ -1199,7 +1199,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         {/* Hero Content with Scroll-driven Parallax Recession */}
         <motion.div
           style={shouldReduceMotion ? {} : { scale: heroScale, opacity: heroOpacity, y: heroY }}
-          className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-10 sm:pt-14 pb-4"
+          className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-24 sm:pt-28 pb-4"
         >
           <motion.div
             className="flex flex-col items-center text-center w-full"

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MotionProvider from "@/components/MotionProvider";
@@ -32,20 +31,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <span className="not-italic text-ink-3 font-sans">— Mudit Agrawal</span>
             </p>
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-              <Link
-                href="/#architecture"
-                className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 transition-colors hover:border-line-strong hover:text-white"
-              >
-                <span>3D Architecture</span>
-              </Link>
-
-              <Link
-                href="/#tech-stack"
-                className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 transition-colors hover:border-line-strong hover:text-white"
-              >
-                <span>Tech Stack</span>
-              </Link>
-
               <a
                 href="https://www.linkedin.com/in/muditagrawal0309/"
                 target="_blank"

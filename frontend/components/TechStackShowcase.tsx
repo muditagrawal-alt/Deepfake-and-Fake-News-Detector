@@ -282,7 +282,7 @@ export function TechStackShowcase() {
             key={filter}
             items={filteredItems}
             perspective={2500}
-            mouseSensitivity={2.4}
+            mouseSensitivity={3.0}
             enableDepthFog={true}
             enableMagneticAttraction={true}
           />

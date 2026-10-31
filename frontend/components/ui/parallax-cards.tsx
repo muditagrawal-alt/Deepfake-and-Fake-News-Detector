@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 export interface ParallaxCardItem {
@@ -21,39 +21,61 @@ export interface ParallaxCardsProps {
   className?: string;
   perspective?: number;
   mouseSensitivity?: number;
+  cardWidth?: number;
+  cardHeight?: number;
   animationDuration?: number;
   enableDepthFog?: boolean;
   fogIntensity?: number;
   enableMagneticAttraction?: boolean;
   magneticStrength?: number;
+  onCardClick?: (index: number, item: ParallaxCardItem) => void;
 }
+
+// 14 distinct 3D field coordinates matching React Bits Pro Parallax Cards specification
+const CARD_LAYOUT_PRESETS = [
+  { x: -260, y: -120, z: -100, rotY: 4, rotX: -4, scale: 0.95, zIndex: 140 },
+  { x: 260, y: -140, z: -180, rotY: -4, rotX: -3, scale: 0.90, zIndex: 130 },
+  { x: -380, y: 160, z: -260, rotY: 5, rotX: 3, scale: 0.85, zIndex: 120 },
+  { x: 380, y: 180, z: -340, rotY: -5, rotX: 4, scale: 0.80, zIndex: 110 },
+  { x: 0, y: -260, z: -420, rotY: 0, rotX: -6, scale: 0.78, zIndex: 100 },
+  { x: -520, y: 20, z: -500, rotY: 8, rotX: 0, scale: 0.74, zIndex: 90 },
+  { x: 520, y: 20, z: -580, rotY: -8, rotX: 0, scale: 0.70, zIndex: 80 },
+  { x: 0, y: 260, z: -660, rotY: 0, rotX: 6, scale: 0.66, zIndex: 70 },
+  { x: -320, y: -190, z: -760, rotY: 4, rotX: -4, scale: 0.62, zIndex: 60 },
+  { x: 320, y: -190, z: -860, rotY: -4, rotX: -4, scale: 0.58, zIndex: 50 },
+  { x: -320, y: 190, z: -960, rotY: 4, rotX: 4, scale: 0.54, zIndex: 40 },
+  { x: 320, y: 190, z: -1060, rotY: -4, rotX: 4, scale: 0.50, zIndex: 30 },
+  { x: -200, y: 0, z: -1180, rotY: 2, rotX: 0, scale: 0.46, zIndex: 20 },
+  { x: 200, y: 0, z: -1280, rotY: -2, rotX: 0, scale: 0.42, zIndex: 10 },
+];
 
 export function ParallaxCards({
   items,
   className = "",
   perspective = 2500,
-  mouseSensitivity = 2.4,
-  animationDuration = 0.6,
+  mouseSensitivity = 3.0,
+  cardWidth = 420,
+  cardHeight = 320,
+  animationDuration = 0.8,
   enableDepthFog = true,
   fogIntensity = 1,
   enableMagneticAttraction = true,
-  magneticStrength = 40,
+  magneticStrength = 50,
+  onCardClick,
 }: ParallaxCardsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [cursor, setCursor] = useState({ x: 0, y: 0, normX: 0, normY: 0 });
-  const [smoothCursor, setSmoothCursor] = useState({ x: 0, y: 0, normX: 0, normY: 0 });
+  const [cursor, setCursor] = useState({ normX: 0, normY: 0 });
+  const [smoothCursor, setSmoothCursor] = useState({ normX: 0, normY: 0 });
 
-  // Smooth lerp animation loop for fluid cursor trailing
+  // Fluid interpolation for cursor tracking
   useEffect(() => {
     let animId: number;
     const lerp = () => {
       setSmoothCursor((prev) => {
-        const factor = 0.14;
+        const factor = 0.12;
         return {
-          x: prev.x + (cursor.x - prev.x) * factor,
-          y: prev.y + (cursor.y - prev.y) * factor,
           normX: prev.normX + (cursor.normX - prev.normX) * factor,
           normY: prev.normY + (cursor.normY - prev.normY) * factor,
         };
@@ -67,46 +89,28 @@ export function ParallaxCards({
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const normX = (x / rect.width) * 2 - 1; // -1 to 1
-    const normY = (y / rect.height) * 2 - 1; // -1 to 1
+    const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1; // -1 to 1
+    const normY = ((e.clientY - rect.top) / rect.height) * 2 - 1; // -1 to 1
 
-    setCursor({ x, y, normX, normY });
+    setCursor({ normX, normY });
   }, []);
 
   const handleMouseEnter = useCallback(() => setIsHovered(true), []);
   const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
-    setCursor({ x: 0, y: 0, normX: 0, normY: 0 });
+    setCursor({ normX: 0, normY: 0 });
   }, []);
 
-  const handlePrev = useCallback(() => {
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
-  }, [items.length]);
-
-  const handleNext = useCallback(() => {
-    setActiveIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
-  }, [items.length]);
-
-  // Handle keyboard arrow keys
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
-      if (e.key === "ArrowLeft") handlePrev();
-      if (e.key === "ArrowRight") handleNext();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlePrev, handleNext]);
+  const activeIndex = useMemo(() => {
+    if (!selectedCardId) return -1;
+    return items.findIndex((it) => it.id === selectedCardId);
+  }, [selectedCardId, items]);
 
   if (!items || items.length === 0) return null;
 
-  const currentItem = items[activeIndex] || items[0];
-
   return (
-    <div className={cn("w-full space-y-6 select-none", className)}>
-      {/* 3D Stage Viewport */}
+    <div className={cn("w-full relative select-none", className)}>
+      {/* Expansive 3D Stage Viewport (min 720px tall to accommodate full 3D depth field) */}
       <div
         ref={containerRef}
         onMouseMove={handleMouseMove}
@@ -115,108 +119,152 @@ export function ParallaxCards({
         style={{
           perspective: `${perspective}px`,
         }}
-        className="relative w-full h-[520px] sm:h-[560px] flex items-center justify-center overflow-hidden rounded-3xl border border-line bg-gradient-to-b from-elev/80 via-elev/40 to-elev/80"
+        className="relative w-full h-[680px] sm:h-[720px] lg:h-[760px] flex items-center justify-center overflow-hidden rounded-3xl border border-line bg-gradient-to-b from-elev/80 via-elev/40 to-elev/80"
       >
-        {/* Background coordinate grid */}
+        {/* Stage background coordinate blueprint grid */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          className="pointer-events-none absolute inset-0 opacity-[0.035]"
           style={{
             backgroundImage:
               "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
+            backgroundSize: "36px 36px",
           }}
         />
 
-        {/* Dynamic Ambient Stage Glow based on Active Item Color */}
+        {/* Ambient Stage Glow following cursor */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 transition-opacity duration-700"
           style={{
-            background: `radial-gradient(circle 550px at ${50 + smoothCursor.normX * 25}% ${
+            background: `radial-gradient(circle 600px at ${50 + smoothCursor.normX * 25}% ${
               50 + smoothCursor.normY * 25
-            }%, ${currentItem.spotlightColor}, transparent 70%)`,
-            opacity: isHovered ? 0.95 : 0.45,
+            }%, rgba(56, 189, 248, 0.12), transparent 70%)`,
+            opacity: isHovered ? 1 : 0.4,
           }}
         />
 
-        {/* 3D Parallax Stack Container */}
+        {/* 3D Master Parallax Stage */}
         <div
-          className="relative w-[310px] sm:w-[420px] md:w-[480px] h-[340px] sm:h-[360px]"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
           style={{
             transformStyle: "preserve-3d",
-            transform: `rotateY(${smoothCursor.normX * 10 * mouseSensitivity}deg) rotateX(${
-              -smoothCursor.normY * 10 * mouseSensitivity
-            }deg)`,
-            transition: isHovered ? "none" : `transform ${animationDuration}s cubic-bezier(0.2, 0.8, 0.2, 1)`,
+            transform: `translate3d(0px, 0px, 0px) rotateY(${
+              smoothCursor.normX * 4 * mouseSensitivity
+            }deg) rotateX(${-smoothCursor.normY * 4 * mouseSensitivity}deg)`,
+            transition: isHovered
+              ? "none"
+              : `transform ${animationDuration}s cubic-bezier(0.2, 0.8, 0.2, 1)`,
           }}
         >
           {items.map((item, idx) => {
-            // Calculate wrapped distance from active card (-2, -1, 0, 1, 2)
-            let diff = idx - activeIndex;
-            if (diff > items.length / 2) diff -= items.length;
-            if (diff < -items.length / 2) diff += items.length;
+            const isSelected = activeIndex === idx;
+            const layout = CARD_LAYOUT_PRESETS[idx % CARD_LAYOUT_PRESETS.length];
 
-            const absDiff = Math.abs(diff);
-            // Show up to 2 cards on each side in 3D fanned deck
-            if (absDiff > 2) return null;
+            // When selected, bring directly into central focused foreground
+            let posX = layout.x;
+            let posY = layout.y;
+            let posZ = layout.z;
+            let rotX = layout.rotX;
+            let rotY = layout.rotY;
+            let scale = layout.scale;
+            let zIndex = layout.zIndex;
+            let opacity = 1;
+            let blur = 0;
 
-            const isFront = diff === 0;
+            if (isSelected) {
+              posX = 0;
+              posY = 0;
+              posZ = 120; // Float forward above everything
+              rotX = 0;
+              rotY = 0;
+              scale = 1.05;
+              zIndex = 1000;
+              opacity = 1;
+              blur = 0;
+            } else if (activeIndex !== -1) {
+              // Dim and push back non-selected cards slightly
+              posZ -= 200;
+              opacity = 0.35;
+              blur = 4;
+            } else {
+              // Standard 3D scattered layout with cursor parallax offset
+              const depthFactor = (1500 + posZ) / 1500; // 0 to 1
+              const parallaxX = enableMagneticAttraction
+                ? smoothCursor.normX * magneticStrength * (1.2 - depthFactor * 0.8)
+                : 0;
+              const parallaxY = enableMagneticAttraction
+                ? smoothCursor.normY * magneticStrength * (1.2 - depthFactor * 0.8)
+                : 0;
+              posX += parallaxX;
+              posY += parallaxY;
 
-            // 3D positioning metrics for fanned deck
-            const xSpread = diff * 125; // Horizontal separation
-            const zDistance = -absDiff * 140; // Depth into space
-            const yOffset = absDiff * 14; // Slight vertical curve
-            const rotZ = diff * 3.5; // Slight rotation fan
-            const rotY = diff * -4; // Face slightly toward center
-
-            // Magnetic attraction on mouse move
-            const xMagnetic = enableMagneticAttraction
-              ? smoothCursor.normX * (magneticStrength / (1 + absDiff * 0.7))
-              : 0;
-            const yMagnetic = enableMagneticAttraction
-              ? smoothCursor.normY * (magneticStrength / (1 + absDiff * 0.7))
-              : 0;
-
-            const scale = Math.max(0.78, 1 - absDiff * 0.08);
-            const blurAmount = enableDepthFog && !isFront ? absDiff * 2.2 * fogIntensity : 0;
-            const opacity = isFront ? 1 : Math.max(0.35, 1 - absDiff * 0.28);
+              if (enableDepthFog) {
+                // Deeper cards get subtle atmospheric blur and opacity falloff
+                const depthRatio = Math.abs(posZ) / 1500;
+                blur = depthRatio * 3.5 * fogIntensity;
+                opacity = Math.max(0.4, 1 - depthRatio * 0.5);
+              }
+            }
 
             return (
               <div
                 key={item.id}
-                onClick={() => setActiveIndex(idx)}
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCardId(isSelected ? null : item.id);
+                  if (onCardClick) onCardClick(idx, item);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedCardId(isSelected ? null : item.id);
+                    if (onCardClick) onCardClick(idx, item);
+                  }
+                }}
+                aria-label={`Inspect ${item.name}`}
                 style={{
+                  width: `min(${cardWidth}px, 86vw)`,
+                  height: `${cardHeight}px`,
                   position: "absolute",
-                  inset: 0,
                   transformStyle: "preserve-3d",
-                  transform: `translate3d(${xSpread + xMagnetic}px, ${yOffset + yMagnetic}px, ${zDistance}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
+                  transform: `translate3d(${posX}px, ${posY}px, ${posZ}px) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${scale})`,
                   opacity,
-                  filter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
-                  zIndex: 20 - absDiff,
+                  filter: blur > 0 ? `blur(${blur}px)` : undefined,
+                  zIndex,
+                  pointerEvents: "auto",
                   transition: `transform ${animationDuration}s cubic-bezier(0.2, 0.8, 0.2, 1), opacity ${animationDuration}s ease, filter ${animationDuration}s ease`,
-                  cursor: isFront ? "default" : "pointer",
                 }}
                 className={cn(
-                  "rounded-2xl border p-6 sm:p-7 flex flex-col justify-between shadow-2xl transition-colors will-change-transform",
-                  isFront
-                    ? "bg-elev border-line-strong shadow-[0_30px_70px_-15px_rgba(0,0,0,0.85)]"
-                    : "bg-elev/85 border-line hover:border-line-strong hover:bg-elev"
+                  "rounded-2xl border p-6 flex flex-col justify-between shadow-2xl transition-colors cursor-pointer group will-change-transform",
+                  isSelected
+                    ? "bg-elev border-white shadow-[0_30px_90px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/20"
+                    : "bg-elev/85 border-line/80 hover:border-line-strong hover:bg-elev shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)]"
                 )}
               >
-                {/* Specular Radial Glare Reflection on Front Card */}
-                {isFront && (
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden transition-opacity duration-300"
-                    style={{
-                      background: `radial-gradient(circle 380px at ${(smoothCursor.normX + 1) * 50}% ${
-                        (smoothCursor.normY + 1) * 50
-                      }%, rgba(255, 255, 255, 0.12), transparent 70%)`,
-                      opacity: isHovered ? 1 : 0,
-                    }}
-                  />
-                )}
+                {/* Specular Radial Glare Reflection */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden transition-opacity duration-300"
+                  style={{
+                    background: `radial-gradient(circle 380px at ${(smoothCursor.normX + 1) * 50}% ${
+                      (smoothCursor.normY + 1) * 50
+                    }%, rgba(255, 255, 255, 0.12), transparent 70%)`,
+                    opacity: isHovered || isSelected ? 1 : 0,
+                  }}
+                />
+
+                {/* Ambient Card Radial Gradient Tint */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -inset-px rounded-2xl transition-opacity duration-500"
+                  style={{
+                    background: `radial-gradient(ellipse at 50% 0%, ${item.spotlightColor}, transparent 75%)`,
+                    opacity: isSelected ? 1 : 0.45,
+                  }}
+                />
 
                 {/* Card Top: Badges & Version */}
                 <div className="space-y-3 relative z-10">
@@ -228,15 +276,15 @@ export function ParallaxCards({
                   </div>
 
                   <div>
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center justify-between">
+                    <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white group-hover:text-accent transition-colors flex items-center justify-between">
                       <span>{item.name}</span>
-                      {isFront && item.docsUrl && (
+                      {item.docsUrl && (
                         <a
                           href={item.docsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`Official documentation for ${item.name}`}
-                          className="text-xs font-mono text-ink-3 hover:text-white px-2.5 py-1 rounded bg-elev border border-line hover:border-line-strong transition-all inline-flex items-center gap-1"
+                          className="text-xs font-mono text-ink-3 hover:text-white px-2 py-0.5 rounded bg-line/40 hover:bg-line transition-all inline-flex items-center gap-1"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <span>Docs</span>
@@ -244,19 +292,19 @@ export function ParallaxCards({
                         </a>
                       )}
                     </h3>
-                    <div className="text-xs sm:text-sm font-mono text-accent mt-1 flex items-center gap-1.5">
+                    <div className="text-xs font-mono text-accent mt-1 flex items-center gap-1.5">
                       <span className="size-1.5 rounded-full bg-real" />
                       <span>{item.role}</span>
                     </div>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-ink-2 leading-relaxed line-clamp-3 sm:line-clamp-none">
+                  <p className="text-xs sm:text-sm text-ink-2 leading-relaxed line-clamp-3">
                     {item.description}
                   </p>
                 </div>
 
-                {/* Card Bottom: Telemetry Metric & Category Indicator */}
-                <div className="pt-4 mt-4 border-t border-line/60 flex items-center justify-between text-xs font-mono relative z-10">
+                {/* Card Bottom: Metric & Category Indicator */}
+                <div className="pt-4 mt-3 border-t border-line/60 flex items-center justify-between text-xs font-mono relative z-10">
                   <div className="flex items-center gap-1.5 text-ink">
                     <span className="size-1.5 rounded-full bg-real animate-pulse" />
                     <span>{item.metric}</span>
@@ -270,43 +318,25 @@ export function ParallaxCards({
           })}
         </div>
 
-        {/* Stack Navigation Overlay Controls */}
-        <div className="absolute bottom-5 inset-x-6 flex items-center justify-between pointer-events-none">
-          <button
-            type="button"
-            onClick={handlePrev}
-            aria-label="Previous tech card in 3D stack"
-            className="pointer-events-auto px-4 py-2 rounded-control bg-elev/90 border border-line hover:border-line-strong text-ink-2 hover:text-white text-xs font-mono transition-all backdrop-blur-md cursor-pointer flex items-center gap-1.5"
-          >
-            <span aria-hidden="true">&larr;</span>
-            <span className="hidden sm:inline">Previous</span>
-          </button>
-
-          {/* Stepper Dots */}
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            {items.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setActiveIndex(i)}
-                aria-label={`Jump to tech card ${i + 1}`}
-                className={cn(
-                  "h-1.5 rounded-full transition-all cursor-pointer",
-                  activeIndex === i ? "w-6 bg-white" : "w-1.5 bg-line-strong hover:bg-ink-3"
-                )}
-              />
-            ))}
+        {/* Overlay Instructions & Stage Hint */}
+        <div className="absolute bottom-5 inset-x-6 flex items-center justify-between text-xs font-mono text-ink-3 pointer-events-none">
+          <div className="flex items-center gap-2">
+            <span className="size-1.5 rounded-full bg-accent animate-ping" />
+            <span>MOVE CURSOR TO SHIFT 3D PERSPECTIVE DEPTH</span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleNext}
-            aria-label="Next tech card in 3D stack"
-            className="pointer-events-auto px-4 py-2 rounded-control bg-elev/90 border border-line hover:border-line-strong text-ink-2 hover:text-white text-xs font-mono transition-all backdrop-blur-md cursor-pointer flex items-center gap-1.5"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <span aria-hidden="true">&rarr;</span>
-          </button>
+          <div className="hidden sm:flex items-center gap-3">
+            {selectedCardId && (
+              <button
+                type="button"
+                onClick={() => setSelectedCardId(null)}
+                className="pointer-events-auto px-3 py-1 rounded bg-elev border border-line hover:border-line-strong text-ink text-xs transition-colors cursor-pointer"
+              >
+                Reset Focus
+              </button>
+            )}
+            <span>CLICK ANY CARD TO FOCUS FOREGROUND</span>
+          </div>
         </div>
       </div>
     </div>

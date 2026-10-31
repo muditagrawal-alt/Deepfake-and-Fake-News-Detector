@@ -58,12 +58,12 @@ export const HeroParallax = ({
 
   const springConfig = { stiffness: 220, damping: 30, bounce: 0 };
 
-  const rawTranslateX = useTransform(scrollYProgress, [0.15, 0.9], [0, 650]);
-  const rawTranslateXReverse = useTransform(scrollYProgress, [0.15, 0.9], [0, -650]);
-  const rawRotateX = useTransform(scrollYProgress, [0.1, 0.45], [16, 0]);
-  const rawOpacity = useTransform(scrollYProgress, [0.08, 0.28], [0.15, 1]);
-  const rawRotateZ = useTransform(scrollYProgress, [0.1, 0.45], [12, 0]);
-  const rawTranslateY = useTransform(scrollYProgress, [0.1, 0.45], [80, 0]);
+  const rawTranslateX = useTransform(scrollYProgress, [0.05, 0.88], [0, 520]);
+  const rawTranslateXReverse = useTransform(scrollYProgress, [0.05, 0.88], [0, -520]);
+  const rawRotateX = useTransform(scrollYProgress, [0.02, 0.35], [14, 0]);
+  const rawOpacity = useTransform(scrollYProgress, [0.01, 0.2], [0.35, 1]);
+  const rawRotateZ = useTransform(scrollYProgress, [0.02, 0.35], [10, 0]);
+  const rawTranslateY = useTransform(scrollYProgress, [0.02, 0.35], [40, 0]);
 
   const translateX = useSpring(rawTranslateX, springConfig);
   const translateXReverse = useSpring(rawTranslateXReverse, springConfig);
@@ -76,7 +76,7 @@ export const HeroParallax = ({
     <div
       ref={ref}
       className={cn(
-        "h-[260vh] sm:h-[300vh] py-24 sm:py-36 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]",
+        "h-[135vh] sm:h-[150vh] py-8 sm:py-12 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]",
         className
       )}
     >
@@ -102,7 +102,7 @@ export const HeroParallax = ({
         className="will-change-transform"
       >
         {/* Row 1: Glides forward (translateX) */}
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-12 sm:space-x-16 mb-12 sm:mb-16">
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 mb-6 sm:mb-8">
           {firstRow.map((product) => (
             <ProductCard
               product={product}
@@ -113,7 +113,7 @@ export const HeroParallax = ({
         </motion.div>
 
         {/* Row 2: Glides opposite (translateXReverse) */}
-        <motion.div className="flex flex-row mb-12 sm:mb-16 space-x-12 sm:space-x-16">
+        <motion.div className="flex flex-row mb-6 sm:mb-8 space-x-8 sm:space-x-10">
           {secondRow.map((product) => (
             <ProductCard
               product={product}
@@ -124,7 +124,7 @@ export const HeroParallax = ({
         </motion.div>
 
         {/* Row 3: Glides forward (translateX) */}
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-12 sm:space-x-16">
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10">
           {thirdRow.map((product) => (
             <ProductCard
               product={product}
@@ -140,16 +140,16 @@ export const HeroParallax = ({
 
 export const Header = () => {
   return (
-    <div className="max-w-7xl relative mx-auto py-16 md:py-28 px-4 w-full left-0 top-0 z-20">
-      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1 text-[11px] font-mono text-white/70 mb-6 backdrop-blur-md">
+    <div className="max-w-7xl relative mx-auto pt-4 pb-8 md:pt-8 md:pb-10 px-4 w-full left-0 top-0 z-20">
+      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1 text-[11px] font-mono text-white/70 mb-4 backdrop-blur-md">
         <span className="size-1.5 rounded-full bg-accent animate-pulse" />
         <span>MULTIMODAL FORENSIC DOSSIERS // 15 EVIDENCE CHANNELS</span>
       </div>
 
-      <h2 className="text-3xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.04em] text-white max-w-4xl leading-[1.08]">
+      <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.04em] text-white max-w-4xl leading-[1.08]">
         Evidence across every dimension.
       </h2>
-      <p className="max-w-2xl text-sm sm:text-base md:text-lg mt-5 text-white/60 leading-relaxed font-normal">
+      <p className="max-w-2xl text-xs sm:text-sm md:text-base mt-3 text-white/60 leading-relaxed font-normal">
         Veritas audits 15 parallel evidentiary modalities simultaneously. Scroll through
         our real-time forensic inspection telemetry — cross-referencing C2PA cryptographic container manifests,
         16kHz vocoder harmonics, and global wire registries.
@@ -313,7 +313,7 @@ export const ProductCard = ({
         transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
       }}
       key={product.title}
-      className="group/product h-[22rem] sm:h-96 w-[22rem] sm:w-[28rem] md:w-[32rem] relative shrink-0 rounded-2xl border border-white/10 bg-[#090a0d] p-0.5 shadow-2xl transition-all duration-300 hover:border-white/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden"
+      className="group/product h-[18rem] sm:h-[21rem] w-[20rem] sm:w-[25rem] md:w-[28rem] relative shrink-0 rounded-2xl border border-white/10 bg-[#090a0d] p-0.5 shadow-2xl transition-all duration-300 hover:border-white/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden"
     >
       <Link
         href={product.link || "#"}

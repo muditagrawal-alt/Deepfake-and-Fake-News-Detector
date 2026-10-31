@@ -30,6 +30,7 @@ import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
 import BlurText from "@/components/BlurText";
 import Feedback1 from "@/components/Feedback1";
+import { cn } from "@/lib/utils";
 
 const Topography = dynamic(() => import("@/components/Topography"), {
   ssr: false,
@@ -466,21 +467,21 @@ function ScrollyPipelineSection({
     <section
       ref={containerRef}
       id="pipeline"
-      className="landing-section relative px-4 py-24 sm:px-8 sm:py-32 lg:px-12 border-t border-white/5"
+      className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20"
     >
       <ScanGrid className="absolute inset-0 opacity-20" />
 
       {/* Progressive luminous border beam on scroll */}
       <motion.div
         aria-hidden="true"
-        className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent origin-left"
+        className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/60 to-transparent origin-left z-20"
         style={reduceMotion ? {} : { scaleX: beamScaleX }}
       />
 
       <div className="mx-auto max-w-[1280px]">
         {/* Section Header */}
         <ScrollReveal reduceMotion={reduceMotion}>
-          <div className="text-center max-w-[70ch] mx-auto mb-16">
+          <div className="text-center max-w-[70ch] mx-auto mb-8 sm:mb-10">
             <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
               Forensic Inspection Pipeline
             </span>
@@ -546,15 +547,24 @@ function ParallaxDossierSection({
   const floatingStamp2Y = useTransform(smoothProgress, [0, 1], [-50, 50]);
   const floatingStamp2X = useTransform(smoothProgress, [0, 1], [-30, 5]);
   const cardScale = useTransform(smoothProgress, [0, 0.5, 1], [0.96, 1, 0.97]);
+  const beamScaleX = useTransform(smoothProgress, [0.1, 0.7], [0, 1]);
 
   return (
     <section
       ref={containerRef}
-      className="landing-section relative px-4 py-24 sm:px-8 sm:py-32 lg:px-12 border-t border-white/5 overflow-hidden"
+      id="dossier"
+      className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 overflow-hidden scroll-mt-20"
     >
+      {/* Progressive luminous border beam on scroll */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/60 to-transparent origin-left z-20"
+        style={reduceMotion ? {} : { scaleX: beamScaleX }}
+      />
+
       <div className="mx-auto max-w-[1280px]">
         <ScrollReveal reduceMotion={reduceMotion}>
-          <div className="text-center max-w-[70ch] mx-auto mb-14">
+          <div className="text-center max-w-[70ch] mx-auto mb-8 sm:mb-10">
             <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
               Verifiable Evidence Chain
             </span>
@@ -576,7 +586,7 @@ function ParallaxDossierSection({
         </ScrollReveal>
 
         {/* Parallax Depth Shell */}
-        <div className="parallax-dossier-shell p-6 sm:p-12 relative">
+        <div className="parallax-dossier-shell p-4 sm:p-8 relative">
           {/* Layer 1: Parallax Grid Background */}
           <motion.div
             className="parallax-grid-bg"
@@ -705,6 +715,7 @@ function FolderFloatSection({
   const folder3X = useTransform(smoothProgress, [0, 1], [32, 0]);
   const folder3Rotate = useTransform(smoothProgress, [0, 1], [5, 0]);
   const folder3Y = useTransform(smoothProgress, [0, 1], [45, 0]);
+  const beamScaleX = useTransform(smoothProgress, [0.1, 0.7], [0, 1]);
 
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
   const selectedDetail = selectedNote ? FORENSIC_PILL_DETAILS[selectedNote] : null;
@@ -713,13 +724,20 @@ function FolderFloatSection({
     <section
       ref={containerRef}
       id="case-notes"
-      className="landing-section relative px-4 py-24 sm:px-8 sm:py-32 lg:px-12 border-t border-white/5 overflow-hidden"
+      className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 overflow-hidden scroll-mt-20"
     >
       <ScanGrid className="absolute inset-0 opacity-15" />
 
+      {/* Progressive luminous border beam on scroll */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent origin-left z-20"
+        style={reduceMotion ? {} : { scaleX: beamScaleX }}
+      />
+
       <div className="mx-auto max-w-[1280px]">
         <ScrollReveal reduceMotion={reduceMotion}>
-          <div className="text-center max-w-[70ch] mx-auto mb-14">
+          <div className="text-center max-w-[70ch] mx-auto mb-8 sm:mb-10">
             <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
               Zero-Gravity Forensic Dossiers // Matter.js Physics
             </span>
@@ -740,8 +758,8 @@ function FolderFloatSection({
         </ScrollReveal>
 
         <ScrollReveal reduceMotion={reduceMotion} delay={0.1}>
-          <div className="mx-auto max-w-5xl rounded-2xl border border-white/10 bg-[#060608] p-6 sm:p-12 shadow-2xl relative">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 mb-16 font-mono text-xs text-white/50">
+          <div className="mx-auto max-w-5xl rounded-2xl border border-white/10 bg-[#060608] p-5 sm:p-8 shadow-2xl relative">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 mb-6 sm:mb-8 font-mono text-xs text-white/50">
               <div className="flex items-center gap-2">
                 <span className="size-1.5 rounded-full bg-white/60" />
                 <span>FORENSIC ARCHIVES :: 3 MULTIMODAL MODALITIES</span>
@@ -752,7 +770,7 @@ function FolderFloatSection({
             </div>
 
             {/* Folders Display Container */}
-            <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 pt-12 pb-6 min-h-[380px]">
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 pt-6 pb-2 min-h-[280px]">
               {/* Folder 1: Signal Artifacts */}
               <motion.div
                 style={reduceMotion ? {} : { x: folder1X, y: folder1Y, rotate: folder1Rotate }}
@@ -942,12 +960,80 @@ const heroChildVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+const SECTIONS_NAV = [
+  { id: "platform", label: "Overview", num: "01" },
+  { id: "parallax-evidence", label: "Modalities", num: "02" },
+  { id: "pipeline", label: "Pipeline", num: "03" },
+  { id: "dossier", label: "Dossier", num: "04" },
+  { id: "case-notes", label: "Zero-G", num: "05" },
+  { id: "interactive-demo", label: "Case Study", num: "06" },
+  { id: "benchmarks", label: "Evaluation", num: "07" },
+  { id: "how-it-works", label: "Methodology", num: "08" },
+  { id: "cta-section", label: "Inspect", num: "09" },
+  { id: "feedback-section", label: "Feedback", num: "10" },
+];
+
+function PageScrollNavigator({
+  activeId,
+  onNavigate,
+}: {
+  activeId: string;
+  onNavigate: (id: string) => void;
+}) {
+  return (
+    <nav
+      aria-label="Section Page Navigator"
+      className="fixed right-3.5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col items-end gap-2.5 p-2 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.85)]"
+    >
+      <div className="text-[9px] font-mono text-white/40 tracking-widest px-1 pb-1 uppercase border-b border-white/5 w-full text-center">
+        Track
+      </div>
+      {SECTIONS_NAV.map((section) => {
+        const isActive = activeId === section.id;
+        return (
+          <button
+            key={section.id}
+            type="button"
+            onClick={() => onNavigate(section.id)}
+            aria-label={`Jump to Section ${section.num}: ${section.label}`}
+            className="group relative flex items-center gap-2 p-1 focus:outline-none"
+          >
+            {/* Tooltip on hover */}
+            <span className="pointer-events-none absolute right-7 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap rounded-md border border-white/10 bg-[#0a0a0c] px-2.5 py-1 font-mono text-[10px] text-white/90 shadow-xl">
+              <span className="text-blue-400 font-semibold">{section.num}</span> {section.label}
+            </span>
+
+            {/* Glowing pip indicator */}
+            <span
+              className={cn(
+                "rounded-full transition-all duration-300",
+                isActive
+                  ? "size-2.5 bg-blue-500 ring-4 ring-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.9)]"
+                  : "size-1.5 bg-white/20 group-hover:bg-white/60 group-hover:scale-125"
+              )}
+            />
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+function SectionScrollConnector() {
+  return (
+    <div className="relative flex items-center justify-center -my-3 pointer-events-none z-20" aria-hidden="true">
+      <div className="h-6 w-[1.5px] bg-gradient-to-b from-blue-400/50 via-white/30 to-transparent" />
+      <div className="absolute size-1.5 rounded-full bg-blue-400/80 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+    </div>
+  );
+}
+
 export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const reduceMotion = useReducedMotion();
   const shouldReduceMotion = Boolean(reduceMotion);
   const evidenceHeadingRef = useRef<HTMLHeadingElement>(null);
 
-
+  const [activeSectionId, setActiveSectionId] = useState<string>("platform");
 
   // Section Scroll Transition 0: Hero Parallax Scale & Recede
   const heroRef = useRef<HTMLDivElement>(null);
@@ -967,6 +1053,11 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   });
   const demoScale = useTransform(demoProgress, [0, 1], [0.95, 1]);
   const demoOpacity = useTransform(demoProgress, [0, 0.8], [0.4, 1]);
+  const { scrollYProgress: demoBeamProgress } = useScroll({
+    target: demoRef,
+    offset: ["start end", "end start"],
+  });
+  const demoBeamScaleX = useTransform(demoBeamProgress, [0.1, 0.7], [0, 1]);
 
   // Section Scroll Transition 6: Benchmarks Elevation
   const benchmarksRef = useRef<HTMLDivElement>(null);
@@ -976,12 +1067,23 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   });
   const benchmarksScale = useTransform(benchmarksProgress, [0, 1], [0.96, 1]);
   const benchmarksY = useTransform(benchmarksProgress, [0, 1], [35, 0]);
+  const { scrollYProgress: benchmarksBeamProgress } = useScroll({
+    target: benchmarksRef,
+    offset: ["start end", "end start"],
+  });
+  const benchmarksBeamScaleX = useTransform(benchmarksBeamProgress, [0.1, 0.7], [0, 1]);
 
   // Section Scroll Transition 7: Methodology Text Scrubbing
+  const howItWorksRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: evidenceProgress } = useScroll({
     target: evidenceHeadingRef,
     offset: ["start 0.92", "start 0.34"],
   });
+  const { scrollYProgress: howItWorksBeamProgress } = useScroll({
+    target: howItWorksRef,
+    offset: ["start end", "end start"],
+  });
+  const howItWorksBeamScaleX = useTransform(howItWorksBeamProgress, [0.1, 0.7], [0, 1]);
 
   // Section Scroll Transition 8: Final CTA Scale & Focus
   const ctaRef = useRef<HTMLDivElement>(null);
@@ -991,6 +1093,53 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   });
   const ctaScale = useTransform(ctaProgress, [0, 1], [0.95, 1]);
   const ctaY = useTransform(ctaProgress, [0, 1], [30, 0]);
+  const { scrollYProgress: ctaBeamProgress } = useScroll({
+    target: ctaRef,
+    offset: ["start end", "end start"],
+  });
+  const ctaBeamScaleX = useTransform(ctaBeamProgress, [0.1, 0.7], [0, 1]);
+
+  // Section Scroll Transition 9: Feedback Beam
+  const feedbackSectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: feedbackBeamProgress } = useScroll({
+    target: feedbackSectionRef,
+    offset: ["start end", "end start"],
+  });
+  const feedbackBeamScaleX = useTransform(feedbackBeamProgress, [0.1, 0.7], [0, 1]);
+
+  // Scroll spy for section navigator
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length > 0) {
+          visible.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+          setActiveSectionId(visible[0].target.id);
+        }
+      },
+      { threshold: [0.1, 0.3, 0.6], rootMargin: "-10% 0px -40% 0px" }
+    );
+
+    SECTIONS_NAV.forEach((s) => {
+      const el = document.getElementById(s.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleNavClick = useCallback(
+    (id: string) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({
+          behavior: shouldReduceMotion ? "auto" : "smooth",
+          block: "start",
+        });
+      }
+    },
+    [shouldReduceMotion]
+  );
 
   const scrollToWorkflow = useCallback(() => {
     document.getElementById("how-it-works")?.scrollIntoView({
@@ -1006,14 +1155,17 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   }, [scrollToWorkflow]);
 
   return (
-    <div data-app-stage="landing" className="landing-shell">
+    <div data-app-stage="landing" className="landing-shell relative">
+      {/* Floating Section Page Navigator */}
+      <PageScrollNavigator activeId={activeSectionId} onNavigate={handleNavClick} />
+
       {/* ------------------------------------------------------------------ */}
       {/*  HERO (TOPOGRAPHY BACKGROUND WITH CENTERED HEADLINE & TOOL)        */}
       {/* ------------------------------------------------------------------ */}
       <section
         ref={heroRef}
         id="platform"
-        className="landing-hero relative px-4 sm:px-8 lg:px-12 overflow-hidden min-h-[92vh]"
+        className="landing-hero relative px-4 sm:px-8 lg:px-12 overflow-hidden min-h-[85vh] scroll-mt-20"
       >
         {/* Topography Interactive Background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
@@ -1035,13 +1187,13 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             clickEffect="pulse"
           />
           {/* Subtle bottom fade to blend into subsequent sections seamlessly */}
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#030303]/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#030303]/80 to-transparent pointer-events-none" />
         </div>
 
         {/* Hero Content with Scroll-driven Parallax Recession */}
         <motion.div
           style={shouldReduceMotion ? {} : { scale: heroScale, opacity: heroOpacity, y: heroY }}
-          className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-20 sm:pt-28 pb-8"
+          className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-10 sm:pt-14 pb-4"
         >
           <motion.div
             className="flex flex-col items-center text-center w-full"
@@ -1082,7 +1234,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 duration: shouldReduceMotion ? 0 : 0.72,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="mt-6 max-w-[58ch] text-[15px] leading-7 text-white/70 sm:text-base text-center mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
+              className="mt-5 max-w-[58ch] text-[15px] leading-7 text-white/70 sm:text-base text-center mx-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]"
             >
               Veritas extracts source facts, queries independent press records, and audits
               forensic sensor signals into one transparent review — so analysts and newsrooms
@@ -1096,7 +1248,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 duration: shouldReduceMotion ? 0 : 0.72,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="mt-8 flex flex-wrap items-center justify-center gap-3"
+              className="mt-6 flex flex-wrap items-center justify-center gap-3"
             >
               <motion.button
                 type="button"
@@ -1124,7 +1276,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                 duration: shouldReduceMotion ? 0 : 0.72,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-10 border-t border-white/10 pt-5 text-xs sm:text-sm text-white/50"
+              className="mt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10 border-t border-white/10 pt-4 text-xs sm:text-sm text-white/50"
               aria-label="Supported media types"
             >
               {INPUT_TYPES.map(({ label, Icon }) => (
@@ -1141,7 +1293,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         <motion.section
           id="product-check"
           aria-labelledby="preview-title"
-          className="landing-tool-card relative z-10 mx-auto max-w-4xl w-full mb-16"
+          className="landing-tool-card relative z-10 mx-auto max-w-4xl w-full mb-6 sm:mb-8"
           initial={
             shouldReduceMotion
               ? false
@@ -1170,38 +1322,61 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         </motion.section>
       </section>
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  ACETERNITY UI HERO-PARALLAX: 3D FORENSIC TELEMETRY FLYBY         */}
       {/* ------------------------------------------------------------------ */}
-      <section id="parallax-evidence" className="border-t border-white/5 relative bg-[#030303]">
+      <section id="parallax-evidence" className="border-t border-white/5 relative bg-[#030303] scroll-mt-20">
         <HeroParallaxDemo />
       </section>
+
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
 
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 1: SCROLLYTELLING FORENSIC PIPELINE                    */}
       {/* ------------------------------------------------------------------ */}
       <ScrollyPipelineSection reduceMotion={shouldReduceMotion} />
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 3: MULTI-LAYER PARALLAX FORENSIC DOSSIER               */}
       {/* ------------------------------------------------------------------ */}
       <ParallaxDossierSection reduceMotion={shouldReduceMotion} />
+
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
 
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 4: ZERO-GRAVITY CASE FOLDERS // MATTER-JS PHYSICS      */}
       {/* ------------------------------------------------------------------ */}
       <FolderFloatSection reduceMotion={shouldReduceMotion} />
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 5: INTERACTIVE FORENSIC DEMO (Live Multimodal Cases)   */}
       {/* ------------------------------------------------------------------ */}
       <section
         ref={demoRef}
-        className="landing-section relative px-4 py-20 sm:px-8 sm:py-28 lg:px-12 border-t border-white/5"
+        id="interactive-demo"
+        className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20"
       >
+        {/* Progressive luminous border beam on scroll */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/60 to-transparent origin-left z-20"
+          style={shouldReduceMotion ? {} : { scaleX: demoBeamScaleX }}
+        />
+
         <div className="mx-auto max-w-[1280px]">
           <ScrollReveal reduceMotion={shouldReduceMotion}>
-            <div className="text-center max-w-[70ch] mx-auto mb-12">
+            <div className="text-center max-w-[70ch] mx-auto mb-6 sm:mb-8">
               <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
                 Auditable Case Walkthrough
               </span>
@@ -1214,7 +1389,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                   className="justify-center text-center"
                 />
               </h2>
-              <p className="mt-4 text-sm text-white/55 sm:text-base leading-relaxed">
+              <p className="mt-3 text-sm text-white/55 sm:text-base leading-relaxed">
                 Click across real case studies to observe how claim triangulation, acoustic voice clone signals, and C2PA manifests are reported with explicit evidentiary citations.
               </p>
             </div>
@@ -1228,16 +1403,27 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         </div>
       </section>
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 6: EMPIRICAL BENCHMARKS (Academic Ground Truth)        */}
       {/* ------------------------------------------------------------------ */}
       <section
         ref={benchmarksRef}
-        className="landing-section relative px-4 py-20 sm:px-8 sm:py-28 lg:px-12 border-t border-white/5"
+        id="benchmarks"
+        className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20"
       >
+        {/* Progressive luminous border beam on scroll */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-purple-500/60 to-transparent origin-left z-20"
+          style={shouldReduceMotion ? {} : { scaleX: benchmarksBeamScaleX }}
+        />
+
         <div className="mx-auto max-w-[1280px]">
           <ScrollReveal reduceMotion={shouldReduceMotion}>
-            <div className="text-center max-w-[70ch] mx-auto mb-12">
+            <div className="text-center max-w-[70ch] mx-auto mb-6 sm:mb-8">
               <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
                 Empirical Evaluation // Controlled Runs
               </span>
@@ -1250,7 +1436,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
                   className="justify-center text-center"
                 />
               </h2>
-              <p className="mt-4 text-sm text-white/55 sm:text-base leading-relaxed">
+              <p className="mt-3 text-sm text-white/55 sm:text-base leading-relaxed">
                 Single-turn AI checkers hallucinate consensus or overfit to compression noise. Veritas measures balanced accuracy with 95% confidence intervals and open provenance.
               </p>
             </div>
@@ -1264,13 +1450,24 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         </div>
       </section>
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 7: WORD-BY-WORD SCROLL SCRUBBING (How it Works)        */}
       {/* ------------------------------------------------------------------ */}
       <section
+        ref={howItWorksRef}
         id="how-it-works"
-        className="landing-section relative scroll-mt-[68px] px-4 py-20 sm:px-8 sm:py-28 lg:px-12 border-t border-white/5"
+        className="landing-section relative scroll-mt-20 px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5"
       >
+        {/* Progressive luminous border beam on scroll */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent origin-left z-20"
+          style={shouldReduceMotion ? {} : { scaleX: howItWorksBeamScaleX }}
+        />
+
         <div className="mx-auto max-w-[1120px]">
           <ScrollReveal
             reduceMotion={shouldReduceMotion}
@@ -1292,7 +1489,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             </p>
           </ScrollReveal>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+          <div className="mt-8 sm:mt-10 grid gap-6 md:grid-cols-3">
             {PRIVACY_PILLARS.map((pillar, idx) => (
               <ScrollReveal
                 key={pillar.title}
@@ -1321,13 +1518,24 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         </div>
       </section>
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 8: FINAL CTA SCALE & FOCAL SPOTLIGHT                   */}
       {/* ------------------------------------------------------------------ */}
       <section
         ref={ctaRef}
-        className="landing-control relative px-4 py-20 sm:px-8 sm:py-28 lg:px-12 border-t border-white/5"
+        id="cta-section"
+        className="landing-control relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20"
       >
+        {/* Progressive luminous border beam on scroll */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/60 to-transparent origin-left z-20"
+          style={shouldReduceMotion ? {} : { scaleX: ctaBeamScaleX }}
+        />
+
         <ScanGrid className="absolute inset-0 opacity-15" />
         <div className="relative mx-auto max-w-[1120px]">
           <motion.div
@@ -1363,13 +1571,24 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         </div>
       </section>
 
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
       {/* ------------------------------------------------------------------ */}
       {/*  FEEDBACK & CALIBRATION SECTION (React Bits Pro Feedback 1)       */}
       {/* ------------------------------------------------------------------ */}
       <section
+        ref={feedbackSectionRef}
         id="feedback-section"
-        className="relative px-4 py-20 sm:px-8 sm:py-28 lg:px-12 border-t border-white/5 bg-[#030305]"
+        className="relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 bg-[#030305] scroll-mt-20"
       >
+        {/* Progressive luminous border beam on scroll */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/60 to-transparent origin-left z-20"
+          style={shouldReduceMotion ? {} : { scaleX: feedbackBeamScaleX }}
+        />
+
         <ScanGrid className="absolute inset-0 opacity-15 pointer-events-none" />
         <div className="relative mx-auto max-w-[1120px]">
           <ScrollReveal reduceMotion={shouldReduceMotion}>

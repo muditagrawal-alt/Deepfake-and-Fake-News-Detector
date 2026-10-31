@@ -230,3 +230,4 @@ def scan_image_watermarks_and_signatures(path: str | Path, metadata: dict | None
 
     res["has_ai_indicators"] = bool(res["watermarks_detected"] or res["metadata_ai_signatures"])
     return res
+

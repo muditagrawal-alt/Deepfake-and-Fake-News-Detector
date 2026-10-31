@@ -62,3 +62,4 @@ def test_metadata_ai_signatures():
     assert "Midjourney" in tools or "midjourney" in [t.lower() for t in tools]
     assert "c2pa_iptc_trained_algorithmic" in tools
     assert "generative_generation_metadata" in tools
+

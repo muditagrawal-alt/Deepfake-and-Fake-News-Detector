@@ -14,6 +14,10 @@ import {
   Cpu,
   LockKey,
   CheckCircle,
+  Lightning,
+  Sparkle,
+  Waveform,
+  Scales,
 } from "@phosphor-icons/react";
 import {
   motion,
@@ -72,17 +76,14 @@ const PIPELINE_STAGES = [
     flameColor: "#06b6d4",
     flameHighlight: "#67e8f9",
     description:
-      "Isolates raw high-resolution video frames at millisecond intervals, decodes 16kHz audio vocoder harmonics, and audits container metadata headers.",
+      "Isolates raw high-resolution video frames at millisecond intervals, decodes 16kHz audio harmonics, and audits container metadata.",
     Icon: Eye,
-    detail: "EXIF, C2PA JUMBF manifests, spectral FFT, structural article body",
-    readout: {
-      type: "signal",
-      items: [
-        { label: "Keyframe Extraction", value: "32 I-frames decoded", status: "PASS" },
-        { label: "Acoustic Spectrum", value: "16kHz harmonic FFT", status: "PASS" },
-        { label: "C2PA Container", value: "Manifest parsed & verified", status: "VERIFIED" },
-      ],
-    },
+    features: [
+      { text: "32 I-frames decoded per second", Icon: Cpu },
+      { text: "16kHz harmonic acoustic FFT", Icon: Waveform },
+      { text: "C2PA JUMBF container verified", Icon: ShieldCheck },
+      { text: "Frame-accurate pixel artifact scoring", Icon: Sparkle },
+    ],
   },
   {
     id: "evidence",
@@ -92,17 +93,14 @@ const PIPELINE_STAGES = [
     flameColor: "#8b5cf6",
     flameHighlight: "#d8b4fe",
     description:
-      "Decomposes complex media claims into atomic factual statements. Queries independent global press archives and primary public registries simultaneously.",
+      "Decomposes complex media claims into atomic factual statements. Queries independent global press archives and primary registries.",
     Icon: MagnifyingGlass,
-    detail: "Reuters Wire, Associated Press, national archives, Tavily & DuckDuckGo consensus",
-    readout: {
-      type: "wire",
-      items: [
-        { label: "Reuters Wire Record", value: "Corroborated 3m ago", status: "MATCH" },
-        { label: "Associated Press API", value: "Identical dispatch found", status: "MATCH" },
-        { label: "Fact-Check Registries", value: "14 citations audited", status: "CONSENSUS" },
-      ],
-    },
+    features: [
+      { text: "14 independent wire registries", Icon: Globe },
+      { text: "Reuters & AP real-time corroborated", Icon: Newspaper },
+      { text: "Fact-check consensus triangulation", Icon: CheckCircle },
+      { text: "Sub-second archive consensus query", Icon: Lightning },
+    ],
   },
   {
     id: "signal",
@@ -114,15 +112,12 @@ const PIPELINE_STAGES = [
     description:
       "Synthesizes neural sensor signals with external corroboration into a calibrated probability distribution with 95% bootstrap confidence intervals.",
     Icon: Fingerprint,
-    detail: "Multi-signal weighting, Bayesian credibility bands, explicit failure caveats",
-    readout: {
-      type: "synthesis",
-      items: [
-        { label: "Confidence Interval", value: "95% CI: [0.08, 0.22]", status: "CALIBRATED" },
-        { label: "Decision Threshold", value: "Calibrated Bayesian cutoff", status: "OPTIMAL" },
-        { label: "Audit Ledger", value: "Immutable cryptographic hash", status: "SIGNED" },
-      ],
-    },
+    features: [
+      { text: "95% bootstrap confidence interval", Icon: Scales },
+      { text: "Calibrated Bayesian cutoff threshold", Icon: Cpu },
+      { text: "Immutable cryptographic ledger", Icon: LockKey },
+      { text: "Multi-signal adversarial weighting", Icon: Sparkle },
+    ],
   },
 ] as const;
 
@@ -409,59 +404,75 @@ function ScrollyPipelineCard({
       <ShaderCard
         color={stage.flameColor}
         highlightColor={stage.flameHighlight}
-        speed={0.9 + index * 0.15}
-        flameHeight={1.15}
+        speed={0.85 + index * 0.12}
+        flameHeight={1.0}
         interactive={true}
-        className="h-full justify-between min-h-[380px]"
+        className="h-full min-h-[520px] sm:min-h-[540px]"
       >
-        <div>
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-            <div className="flex items-center gap-2.5">
+        <div className="flex flex-col justify-between h-full">
+          <div>
+            {/* Header: Phase badge & Stage Icon */}
+            <div className="flex items-center justify-between mb-4">
               <span
-                className="size-2 rounded-full animate-pulse shadow-sm"
-                style={{ backgroundColor: stage.flameColor }}
-              />
-              <span className="text-xs font-semibold text-white/90">
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase backdrop-blur-sm"
+                style={{
+                  backgroundColor: `${stage.flameColor}18`,
+                  color: stage.flameHighlight,
+                  border: `1px solid ${stage.flameColor}35`,
+                }}
+              >
+                <span
+                  className="size-1.5 rounded-full animate-pulse"
+                  style={{ backgroundColor: stage.flameHighlight }}
+                />
                 Phase {stage.stageNum}
               </span>
+              <stage.Icon size={20} className="text-zinc-400" aria-hidden />
             </div>
-            <stage.Icon size={18} className="text-white/60" aria-hidden />
+
+            {/* Title */}
+            <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+              {stage.title}
+            </h3>
+
+            {/* Description */}
+            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              {stage.description}
+            </p>
+
+            {/* Feature Bullet List matching the React Bits Pro Reference */}
+            <div className="mt-6 space-y-3.5">
+              {stage.features.map((feat, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 text-xs sm:text-[13px] text-zinc-200/95 font-medium"
+                >
+                  <feat.Icon
+                    size={16}
+                    weight="bold"
+                    className="shrink-0"
+                    style={{ color: stage.flameHighlight }}
+                  />
+                  <span>{feat.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <h3 className="text-lg font-semibold text-white tracking-tight">
-            {stage.title}
-          </h3>
-          <p className="mt-3 text-xs sm:text-sm text-white/50 leading-relaxed">
-            {stage.description}
-          </p>
-
-          {/* Simulated Diagnostic Telemetry */}
-          <div className="mt-6 space-y-2 rounded-lg border border-white/5 bg-white/[0.015] p-3 font-mono text-[11px]">
-            <div className="text-[10px] text-white/30 uppercase tracking-widest pb-1 border-b border-white/5 flex items-center justify-between">
-              <span>Live Diagnostics</span>
-              <span className="font-semibold" style={{ color: stage.flameHighlight }}>
-                ACTIVE SHADER
-              </span>
-            </div>
-            {stage.readout.items.map((item, itemIdx) => (
-              <div
-                key={itemIdx}
-                className="flex items-center justify-between py-1 border-b border-white/[0.03] last:border-0"
-              >
-                <span className="text-white/40">{item.label}</span>
-                <span className="text-white/80 font-medium">{item.value}</span>
-              </div>
-            ))}
+          {/* Bottom Action Pill Button floating right on top of the luminous flame */}
+          <div className="mt-10 pt-4">
+            <a
+              href="#inspect"
+              className="w-full py-3.5 px-6 rounded-full bg-[#f4f4f5] hover:bg-white text-zinc-950 font-semibold text-xs sm:text-sm tracking-tight text-center shadow-[0_12px_30px_rgba(0,0,0,0.6)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 group/btn"
+            >
+              <span>Explore Phase {stage.stageNum}</span>
+              <ArrowUpRight
+                size={16}
+                weight="bold"
+                className="transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 text-zinc-950"
+              />
+            </a>
           </div>
-        </div>
-
-        {/* Footer Note */}
-        <div className="mt-6 pt-3 border-t border-white/5 flex items-center justify-between font-mono text-[10px] text-white/30">
-          <span>{stage.detail}</span>
-          <span className="font-semibold" style={{ color: stage.flameHighlight }}>
-            ACTIVE
-          </span>
         </div>
       </ShaderCard>
     </motion.div>

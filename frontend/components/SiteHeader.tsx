@@ -5,6 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Menu, MenuItem, ProductItem, HoveredLink } from "@/components/ui/navbar-menu";
+import {
+  TriangulationThumbnail,
+  AudioSpectrogramThumbnail,
+  MicroSaccadeThumbnail,
+  C2paThumbnail,
+} from "@/components/ForensicThumbnails";
 
 function stage() {
   if (typeof document === "undefined") return null;
@@ -48,6 +54,7 @@ export default function SiteHeader() {
   return (
     <header className="site-header sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
+        {/* Brand Shield & Tag */}
         <Link
           href="/"
           onClick={handleHome}
@@ -61,9 +68,9 @@ export default function SiteHeader() {
             width={38}
             height={39}
             priority
-            className="site-brand-mark size-[37px] shrink-0 object-contain drop-shadow-[0_2px_10px_rgba(255,255,255,0.12)]"
+            className="site-brand-mark size-[37px] shrink-0 object-contain drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
           />
-          <span className="text-[15px] font-semibold tracking-[-0.035em]">Veritas</span>
+          <span className="text-[16px] font-semibold tracking-[-0.035em]">Veritas</span>
         </Link>
 
         {/* Aceternity Animated Navbar Menu for Desktop */}
@@ -72,48 +79,95 @@ export default function SiteHeader() {
             setActive={setActive}
             className="border-line/70 bg-elev/70 backdrop-blur-md px-5 py-2 shadow-sm space-x-6"
           >
-            <MenuItem setActive={setActive} active={active} item="Platform">
-              <div className="grid grid-cols-2 gap-4 p-2 text-sm w-[540px]">
+            {/* 1. Forensics / Detection Engines */}
+            <MenuItem setActive={setActive} active={active} item="Forensics">
+              <div className="grid grid-cols-2 gap-3 p-2 text-sm w-[580px]">
                 <ProductItem
-                  title="Multi-Modal Triangulation"
+                  title="Claim Triangulation"
                   href="/#product-check"
-                  src="https://assets.aceternity.com/demos/algochurn.webp"
-                  description="Cross-verifies claims against primary sources and real-time news."
+                  visual={<TriangulationThumbnail />}
+                  description="Cross-indexes disputed claims with Reuters, AP, and primary wire consensus."
                 />
                 <ProductItem
-                  title="Acoustic Voice Forensics"
+                  title="Spectral Voice Clone"
                   href="/#product-check"
-                  src="https://assets.aceternity.com/demos/tailwindmasterkit.webp"
-                  description="Acoustic spectral clone detection and phoneme alignment analysis."
+                  visual={<AudioSpectrogramThumbnail />}
+                  description="Mel-frequency pitch jitter, synthetic voice timbre, and phoneme latency audit."
                 />
                 <ProductItem
                   title="Micro-Saccade Vision"
                   href="/#product-check"
-                  src="/images/landing/phone.jpg"
-                  description="Audits synthetic face borders, diffusion noise, and gaze jitters."
+                  visual={<MicroSaccadeThumbnail />}
+                  description="Pixel boundary blending, pupil micro-fixations, and facial landmark anomalies."
                 />
                 <ProductItem
-                  title="C2PA Provenance Ledger"
+                  title="C2PA Provenance"
                   href="/#product-check"
-                  src="/images/landing/newspaper.jpg"
-                  description="Hardware sensor manifests and cryptographic tamper seals."
+                  visual={<C2paThumbnail />}
+                  description="Hardware sensor manifests, cryptographically bound signatures, and edit trails."
                 />
               </div>
             </MenuItem>
-            <MenuItem setActive={setActive} active={active} item="Verification">
-              <div className="flex flex-col space-y-2 p-1 text-sm min-w-[210px]">
-                <HoveredLink href="/#product-check" onClick={handleProduct}>Direct Media Upload</HoveredLink>
-                <HoveredLink href="/#pipeline" onClick={handleHowItWorks}>Four-Stage Pipeline</HoveredLink>
-                <HoveredLink href="/#case-notes">Case Dossiers</HoveredLink>
-                <HoveredLink href="/#parallax-evidence">Live Evidence Stream</HoveredLink>
+
+            {/* 2. Verification Pipeline */}
+            <MenuItem setActive={setActive} active={active} item="Pipeline">
+              <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
+                <HoveredLink
+                  href="/#product-check"
+                  onClick={handleProduct}
+                  description="Media ingestion, hash generation, and claim extraction."
+                >
+                  Direct Inspection Ingestion
+                </HoveredLink>
+                <HoveredLink
+                  href="/#pipeline"
+                  onClick={handleHowItWorks}
+                  description="Primary wire reporting indexation and consensus scoring."
+                >
+                  Four-Stage Provenance Pipeline
+                </HoveredLink>
+                <HoveredLink
+                  href="/#case-notes"
+                  description="Audited deepfakes and manipulated reporting breakdowns."
+                >
+                  Investigative Case Dossiers
+                </HoveredLink>
+                <HoveredLink
+                  href="/#parallax-evidence"
+                  description="Real-time sensor signals, EXIF data, and telemetry stream."
+                >
+                  Forensic Evidence Stream
+                </HoveredLink>
               </div>
             </MenuItem>
+
+            {/* 3. Methodology */}
             <MenuItem setActive={setActive} active={active} item="Methodology">
-              <div className="flex flex-col space-y-2 p-1 text-sm min-w-[210px]">
-                <HoveredLink href="/about">Technical Whitepaper</HoveredLink>
-                <HoveredLink href="/about#signals">Forensic Signals</HoveredLink>
-                <HoveredLink href="/about#consensus">Consensus Scoring</HoveredLink>
-                <HoveredLink href="/about#zero-persistence">Zero Persistence</HoveredLink>
+              <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
+                <HoveredLink
+                  href="/about"
+                  description="Full architectural review of the multi-signal forensic approach."
+                >
+                  Technical Whitepaper
+                </HoveredLink>
+                <HoveredLink
+                  href="/about#signals"
+                  description="Taxonomy of spectral, metadata, and neural forensic models."
+                >
+                  Sensor Signal Directory
+                </HoveredLink>
+                <HoveredLink
+                  href="/about#consensus"
+                  description="Weighted Bayesian consensus scoring across independent sources."
+                >
+                  Consensus Triangulation
+                </HoveredLink>
+                <HoveredLink
+                  href="/about#zero-persistence"
+                  description="Zero media retention: inputs are purged immediately upon review."
+                >
+                  Zero-Persistence Privacy
+                </HoveredLink>
               </div>
             </MenuItem>
           </Menu>

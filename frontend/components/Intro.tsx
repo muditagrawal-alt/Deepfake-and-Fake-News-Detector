@@ -136,27 +136,7 @@ const PRIVACY_PILLARS = [
   },
 ] as const;
 
-const KINETIC_TELEMETRY_TRACK_1 = [
-  { tag: "C2PA", text: "JUMBF MANIFEST VALIDATION" },
-  { tag: "VOCODER", text: "16kHz SPECTRAL DECOMPOSITION" },
-  { tag: "WIRE", text: "REUTERS & AP OPEN CONSENSUS" },
-  { tag: "PRNU", text: "SENSOR RESIDUAL COHERENCE" },
-  { tag: "LATENCY", text: "12.4s MEDIAN PIPELINE" },
-  { tag: "BOOTSTRAP", text: "95% CONFIDENCE INTERVALS" },
-  { tag: "RAM", text: "ZERO DISK PERSISTENCE" },
-  { tag: "ATOMIC", text: "CLAIM TRIPLET EXTRACTION" },
-];
 
-const KINETIC_TELEMETRY_TRACK_2 = [
-  { tag: "BAYESIAN", text: "CALIBRATED SIGNAL SYNTHESIS" },
-  { tag: "LIAR", text: "78.4% BALANCED ACCURACY" },
-  { tag: "FF++", text: "91.2% CROSS-DATASET AUC" },
-  { tag: "MMSOC", text: "CROSS-MODAL LATTICE RESOLUTION" },
-  { tag: "EPHEMERAL", text: "IN-MEMORY CONTAINER EXECUTION" },
-  { tag: "CHAIN", text: "CRYPTOGRAPHIC PROVENANCE DOSSIER" },
-  { tag: "CUSTODY", text: "SHA-256 IMMUTABLE LEDGER" },
-  { tag: "SEARCH", text: "MULTI-REGISTRY TRIANGULATION" },
-];
 
 /* -------------------------------------------------------------------------- */
 /*  Forensic Pill Detailed Breakdown Dictionary                              */
@@ -385,62 +365,7 @@ function ScanGrid({ className }: { className?: string }) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Kinetic Scroll Telemetry Ribbon (Section Scroll Transition 1)             */
-/* -------------------------------------------------------------------------- */
 
-function KineticScrollTelemetry({
-  pageProgress,
-  reduceMotion,
-}: {
-  pageProgress: MotionValue<number>;
-  reduceMotion: boolean;
-}) {
-  const track1X = useTransform(pageProgress, [0, 1], ["0%", "-35%"]);
-  const track2X = useTransform(pageProgress, [0, 1], ["-25%", "8%"]);
-  const ribbonRotateX = useTransform(pageProgress, [0, 0.5, 1], [4, 0, -4]);
-
-  return (
-    <motion.div
-      style={reduceMotion ? {} : { rotateX: ribbonRotateX }}
-      className="kinetic-stream-wrapper"
-      aria-hidden="true"
-    >
-      <div className="kinetic-stream-fade-left" />
-      <div className="kinetic-stream-fade-right" />
-
-      {/* Track 1: Glides Left on Scroll */}
-      <motion.div
-        className="flex items-center gap-3 py-1.5"
-        style={reduceMotion ? {} : { x: track1X }}
-      >
-        {[...KINETIC_TELEMETRY_TRACK_1, ...KINETIC_TELEMETRY_TRACK_1].map(
-          (item, idx) => (
-            <div key={`track1-${idx}`} className="kinetic-chip">
-              <span className="kinetic-chip-tag">[{item.tag}]</span>
-              <span>{item.text}</span>
-            </div>
-          )
-        )}
-      </motion.div>
-
-      {/* Track 2: Glides Right on Scroll */}
-      <motion.div
-        className="flex items-center gap-3 py-1.5 mt-2"
-        style={reduceMotion ? {} : { x: track2X }}
-      >
-        {[...KINETIC_TELEMETRY_TRACK_2, ...KINETIC_TELEMETRY_TRACK_2].map(
-          (item, idx) => (
-            <div key={`track2-${idx}`} className="kinetic-chip">
-              <span className="kinetic-chip-tag">[{item.tag}]</span>
-              <span>{item.text}</span>
-            </div>
-          )
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /*  Scrollytelling Forensic Pipeline (Section Scroll Transition 2)            */
@@ -477,12 +402,8 @@ function ScrollyPipelineCard({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold text-white/80">
-              STAGE {stage.stageNum}
-            </span>
-            <span className="font-mono text-[10px] text-white/30">{"//"}</span>
-            <span className="font-mono text-[10px] text-white/40 tracking-wider">
-              {stage.tag}
+            <span className="text-xs font-semibold text-white/90">
+              Phase {stage.stageNum}
             </span>
           </div>
           <stage.Icon size={18} className="text-white/60" aria-hidden />
@@ -1025,13 +946,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const shouldReduceMotion = Boolean(reduceMotion);
   const evidenceHeadingRef = useRef<HTMLHeadingElement>(null);
 
-  // Global scroll progress
-  const { scrollYProgress: pageProgress } = useScroll();
-  const smoothPageProgress = useSpring(pageProgress, {
-    stiffness: 110,
-    damping: 28,
-    restDelta: 0.001,
-  });
+
 
   // Section Scroll Transition 0: Hero Parallax Scale & Recede
   const heroRef = useRef<HTMLDivElement>(null);
@@ -1102,22 +1017,24 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         {/* Topography Interactive Background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
           <Topography
-            color="#4f7cff"
-            lineCount={52}
-            lineWidth={1.35}
-            elevation={1.4}
-            foreground={0.88}
-            tilt={34}
+            color="#38bdf8"
+            lineCount={75}
+            lineWidth={1.3}
+            elevation={0.92}
+            foreground={0.02}
+            scale={0.65}
+            tilt={62}
             speed={0.2}
             direction="forward"
-            glow={0.75}
-            depthOfField={0.12}
-            fog={0.12}
+            glow={0.9}
+            brightness={1.35}
+            depthOfField={0.04}
+            fog={0.08}
             hoverEffect="lift"
             clickEffect="pulse"
           />
           {/* Subtle bottom fade to blend into subsequent sections seamlessly */}
-          <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#030303] via-[#030303]/40 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#030303]/80 to-transparent pointer-events-none" />
         </div>
 
         {/* Hero Content with Scroll-driven Parallax Recession */}
@@ -1260,15 +1177,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/*  TRANSITION 1: KINETIC SCROLL TELEMETRY STREAM                     */}
-      {/* ------------------------------------------------------------------ */}
-      <KineticScrollTelemetry
-        pageProgress={smoothPageProgress}
-        reduceMotion={shouldReduceMotion}
-      />
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  TRANSITION 2: SCROLLYTELLING FORENSIC PIPELINE                    */}
+      {/*  TRANSITION 1: SCROLLYTELLING FORENSIC PIPELINE                    */}
       {/* ------------------------------------------------------------------ */}
       <ScrollyPipelineSection reduceMotion={shouldReduceMotion} />
 

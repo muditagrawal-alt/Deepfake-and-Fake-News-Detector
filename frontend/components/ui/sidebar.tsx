@@ -9,6 +9,8 @@ export interface Links {
   href?: string;
   icon: React.JSX.Element | React.ReactNode;
   onClick?: (e: React.MouseEvent) => void;
+  badge?: string;
+  sublabel?: string;
 }
 
 interface SidebarContextProps {
@@ -91,11 +93,11 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[300px] shrink-0 overflow-x-hidden",
+          "h-full px-3.5 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[290px] shrink-0 overflow-x-hidden",
           className
         )}
         animate={{
-          width: animate ? (open ? "300px" : "60px") : "300px",
+          width: animate ? (open ? "290px" : "64px") : "290px",
         }}
         transition={reduceMotion ? { duration: 0 } : undefined}
         onMouseEnter={() => setOpen(true)}
@@ -120,7 +122,7 @@ export const MobileSidebar = ({
     <>
       <div
         className={cn(
-          "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-neutral-100 dark:bg-neutral-800 w-full"
+          "h-12 px-4 py-3 flex flex-row md:hidden items-center justify-between bg-neutral-100 dark:bg-neutral-800 w-full"
         )}
         {...props}
       >
@@ -145,15 +147,15 @@ export const MobileSidebar = ({
                     }
               }
               className={cn(
-                "fixed h-full w-full inset-0 bg-white dark:bg-neutral-900 p-10 z-[100] flex flex-col justify-between",
+                "fixed h-full w-full inset-0 bg-white dark:bg-[#070709] p-6 sm:p-8 z-[100] flex flex-col justify-between overflow-y-auto",
                 className
               )}
             >
               <div
-                className="absolute right-10 top-10 z-50 text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                className="absolute right-6 top-6 sm:right-8 sm:top-8 z-50 text-neutral-800 dark:text-neutral-200 cursor-pointer p-1.5 rounded-lg hover:bg-white/10 transition-colors"
                 onClick={() => setOpen(!open)}
               >
-                <IconX />
+                <IconX size={20} />
               </div>
               {children}
             </motion.div>
@@ -168,10 +170,12 @@ export const SidebarLink = ({
   link,
   className,
   onClick,
+  active = false,
   ...props
 }: {
   link: Links;
   className?: string;
+  active?: boolean;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
   const { open, animate } = useSidebar();
   const reduceMotion = useReducedMotion();
@@ -189,24 +193,44 @@ export const SidebarLink = ({
     <a
       href={link.href || "#"}
       onClick={handleClick}
+      title={!open ? link.label : undefined}
       className={cn(
-        "flex items-center justify-start gap-2 group/sidebar py-2 cursor-pointer",
+        "flex items-center justify-start gap-3 group/sidebar py-2 px-2.5 rounded-lg transition-colors cursor-pointer",
+        active
+          ? "bg-white/[0.08] text-white font-medium"
+          : "text-neutral-400 hover:text-white hover:bg-white/[0.04]",
         className
       )}
       {...props}
     >
-      {link.icon}
+      <div className="shrink-0 flex items-center justify-center">
+        {link.icon}
+      </div>
 
-      <motion.span
+      <motion.div
         animate={{
-          display: animate ? (open ? "inline-block" : "none") : "inline-block",
+          display: animate ? (open ? "flex" : "none") : "flex",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
         transition={reduceMotion ? { duration: 0 } : undefined}
-        className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+        className="flex-1 flex items-center justify-between overflow-hidden whitespace-nowrap min-w-0"
       >
-        {link.label}
-      </motion.span>
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm font-medium tracking-tight truncate group-hover/sidebar:translate-x-0.5 transition duration-150">
+            {link.label}
+          </span>
+          {link.sublabel && (
+            <span className="text-[10px] text-neutral-500 truncate leading-none mt-0.5">
+              {link.sublabel}
+            </span>
+          )}
+        </div>
+        {link.badge && (
+          <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase bg-accent-soft text-accent border border-accent/20">
+            {link.badge}
+          </span>
+        )}
+      </motion.div>
     </a>
   );
 };

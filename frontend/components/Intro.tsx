@@ -404,7 +404,7 @@ function ScrollyPipelineCard({
         interactive={true}
         className="h-full min-h-[520px] sm:min-h-[540px]"
       >
-        <div className="flex flex-col justify-between h-full">
+        <div className="flex flex-col justify-between h-full drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
           <div>
             {/* Header: Clean engineering index & Stage Icon */}
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
@@ -428,12 +428,12 @@ function ScrollyPipelineCard({
             </div>
 
             {/* Title */}
-            <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+            <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
               {stage.title}
             </h3>
 
             {/* Description */}
-            <p className="mt-2 text-xs sm:text-sm text-zinc-400 leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-zinc-200 leading-relaxed drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
               {stage.description}
             </p>
 
@@ -442,7 +442,7 @@ function ScrollyPipelineCard({
               {stage.features.map((feat, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 text-xs sm:text-[13px] text-zinc-200/95 font-medium"
+                  className="flex items-center gap-3 text-xs sm:text-[13px] text-white font-medium drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]"
                 >
                   <feat.Icon
                     size={16}
@@ -458,9 +458,9 @@ function ScrollyPipelineCard({
 
           {/* Functional Engine Action & Telemetry */}
           <div className="mt-8 pt-4 border-t border-white/10 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-              <span className="text-zinc-500">STAGE TELEMETRY</span>
-              <span className="text-zinc-300 font-medium">
+            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+              <span className="text-zinc-400">STAGE TELEMETRY</span>
+              <span className="text-zinc-200 font-medium">
                 {stage.stageNum === "01"
                   ? "12 Primitives · ~180ms"
                   : stage.stageNum === "02"

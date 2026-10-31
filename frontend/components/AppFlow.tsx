@@ -31,21 +31,19 @@ import {
   deleteAccount,
   deleteApiKey,
   getAccount,
-  getHealth,
   getHistory,
   saveApiKey,
   setHistoryEnabled,
   type AccountStatus,
   type AnalysisResult,
   type HistoryEntry,
-  type Health,
 } from "@/lib/api";
 
 type User = { id: string; name?: string | null; email?: string | null; image?: string | null };
 type AuthProvider = { id: string; name: string };
 type Stage = "intro" | "auth" | "workspace";
-type Section = "check" | "history" | "keys" | "method" | "capabilities" | "guide";
-const WORKSPACE_SECTIONS: readonly Section[] = ["check", "history", "keys", "method", "capabilities"];
+type Section = "check" | "history" | "keys" | "method" | "guide";
+const WORKSPACE_SECTIONS: readonly Section[] = ["check", "history", "keys", "method"];
 
 function sectionFromHash(): Section {
   if (typeof window === "undefined") return "check";
@@ -350,8 +348,6 @@ function Workspace({ user }: { user: User }) {
   const [active, setActive] = useState<Section>("check");
   const [detectionMode, setDetectionMode] = useState<AnalyzerMode>("news");
   const [account, setAccount] = useState<AccountStatus | null>(null);
-  const [health, setHealth] = useState<Health | null>(null);
-  const [healthError, setHealthError] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [selected, setSelected] = useState<HistoryEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -474,14 +470,6 @@ function Workspace({ user }: { user: User }) {
     return () => window.removeEventListener("popstate", restoreWorkspaceSection);
   }, [reduceMotion]);
 
-  useEffect(() => {
-    if (active !== "capabilities" || health) return;
-    let cancelled = false;
-    void getHealth().then((data) => { if (!cancelled) { setHealth(data); setHealthError(""); } })
-      .catch((reason: unknown) => { if (!cancelled) setHealthError(reason instanceof Error ? reason.message : "Could not read deployment status."); });
-    return () => { cancelled = true; };
-  }, [active, health]);
-
   async function onKeyChange(provider: string) {
     await refreshWorkspace(false);
     if (provider === "gemini" || provider === "openrouter") setByokOpen(false);
@@ -600,15 +588,6 @@ function Workspace({ user }: { user: User }) {
   }
 
   const itemIcon = (modality: AnalysisResult["modality"]) => modality === "news" ? Newspaper : modality === "image" ? ImageIcon : FilmStrip;
-  const capabilityRows = health ? [
-    { name: "Article extraction and claim research", state: health.engine.research_mode === "closed" ? "Research disabled" : `Using ${health.engine.researcher || "configured researcher"}`, detail: "Open mode searches for independent pages; DuckDuckGo works without a key and Tavily is optional." },
-    { name: "Image metadata and provenance", state: "Available", detail: "The detector reads image metadata and checks supported C2PA provenance information; image captions add claim context." },
-    { name: "Pixel classifier", state: health.engine.onnx_detector ? health.onnx_ready ? "Ready" : health.onnx_error ? "Could not load" : "Loading" : "Off", detail: health.engine.onnx_detector ? `Configured model: ${health.engine.onnx_detector}.` : "Optional ONNX classifier is disabled in this deployment. The administrator can enable it with ENABLE_ONNX_DETECTOR=true after considering its memory cost." },
-    { name: "Video inspection", state: health.engine.video_strategy === "frames" ? "Sampled frames" : "Native video", detail: health.engine.video_strategy === "frames" ? "The current backend samples frames; optional Groq credentials add a transcript." : "The shared backend sends video to its native video model. OpenRouter BYOK checks use sampled frames." },
-    { name: "Speech transcription", state: health.providers.groq ? "Groq configured" : "Optional · not configured", detail: health.providers.groq ? "Available for video checks that use sampled frames." : "Add GROQ_API_KEY to the backend to transcribe speech in sampled-frame video checks." },
-    { name: "Local Ollama model", state: health.engine.backend === "ollama" ? `Active · ${health.engine.model}` : "Available in the repository", detail: health.engine.backend === "ollama" ? "This deployment is using its local Ollama model." : "Ollama can run the analysis locally when configured by the operator; it is not selectable from this account." },
-    { name: "Offline evaluation tools", state: "Developer workflow", detail: "The repository includes an evaluation pipeline for maintainers. It does not run during user checks." },
-  ] : [];
 
   return (
     <div data-app-stage="workspace" className="workspace-shell min-h-[calc(100dvh-4.25rem)]">
@@ -616,17 +595,23 @@ function Workspace({ user }: { user: User }) {
         <Sidebar open={sidebarExpanded} setOpen={setSidebarExpanded}>
           <SidebarBody className="justify-between gap-6 border-r border-line bg-bg dark:bg-[#070709] h-[calc(100dvh-68px)] md:sticky md:top-[68px]">
             <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
-              <div
-                className="flex items-center gap-3 py-2 px-1 cursor-pointer select-none"
-                onClick={() => setSidebarExpanded((prev) => !prev)}
-                title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              <Link
+                href="/"
+                onClick={(e) => {
+                  if (window.location.pathname === "/") {
+                    e.preventDefault();
+                    window.dispatchEvent(new Event("veritas:home"));
+                  }
+                }}
+                className="flex items-center gap-3 py-2 px-1 cursor-pointer select-none group"
+                title="Return to landing page"
               >
                 <Image
                   src="/veritas-mark.png"
                   width={32}
                   height={32}
                   alt="Veritas"
-                  className="size-8 object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(255,255,255,0.12)]"
+                  className="size-8 object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(255,255,255,0.12)] group-hover:scale-105 transition-transform"
                 />
                 <motion.span
                   animate={{
@@ -634,11 +619,11 @@ function Workspace({ user }: { user: User }) {
                     opacity: sidebarExpanded ? 1 : 0,
                   }}
                   transition={reduceMotion ? { duration: 0 } : undefined}
-                  className="font-semibold text-sm tracking-tight text-ink whitespace-pre"
+                  className="font-semibold text-sm tracking-tight text-ink whitespace-pre group-hover:text-white transition-colors"
                 >
                   Veritas Workspace
                 </motion.span>
-              </div>
+              </Link>
 
               <div className="mt-6 flex flex-col gap-1.5">
                 <SidebarLink
@@ -738,31 +723,6 @@ function Workspace({ user }: { user: User }) {
                   }}
                   className={
                     active === "method"
-                      ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
-                      : "rounded-control px-2.5 hover:bg-elev text-ink-2"
-                  }
-                />
-                <SidebarLink
-                  link={{
-                    label: "Backend status",
-                    href: "#capabilities",
-                    icon: (
-                      <ShieldCheck
-                        size={19}
-                        className={
-                          active === "capabilities"
-                            ? "shrink-0 text-accent"
-                            : "shrink-0 text-ink-3 group-hover/sidebar:text-ink"
-                        }
-                      />
-                    ),
-                    onClick: (e) => {
-                      e.preventDefault();
-                      navigate("capabilities");
-                    },
-                  }}
-                  className={
-                    active === "capabilities"
                       ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
                       : "rounded-control px-2.5 hover:bg-elev text-ink-2"
                   }
@@ -1020,36 +980,6 @@ function Workspace({ user }: { user: User }) {
               </motion.section>
             )}
 
-            {active === "capabilities" && (
-              <motion.section key="capabilities" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Deployment status</p>
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight">Capabilities</h1>
-                <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-2">These are the analysis paths already present in the codebase and whether the current backend has them enabled. Some options require an operator to configure the deployment.</p>
-                {healthError && <p role="alert" className="mt-5 rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-ink-2">{healthError}</p>}
-                {!health && !healthError && <p className="mt-6 text-sm text-ink-3">Reading backend capabilities…</p>}
-                {health && <>
-                  <div className="mt-6 rounded-panel border border-line bg-elev p-4">
-                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-3">Current judgment engine</p>
-                    <p className="mt-2 text-sm font-semibold">{health.engine.backend} · {health.engine.model}</p>
-                    <p className="mt-1 text-xs text-ink-3">Research mode: {health.engine.research_mode}. Configuration is controlled by the backend operator.</p>
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {capabilityRows.map((row) => {
-                      const inactive = ["Off", "Research disabled", "Available in the repository", "Developer workflow", "Could not load", "Loading"].includes(row.state)
-                        || row.state.includes("not configured");
-                      return <article key={row.name} className="rounded-panel border border-line bg-elev p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <h2 className="text-sm font-semibold">{row.name}</h2>
-                          <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold ${inactive ? "bg-bg text-ink-3" : "bg-accent-soft text-accent"}`}>{row.state}</span>
-                        </div>
-                        <p className="mt-2 text-sm leading-relaxed text-ink-2">{row.detail}</p>
-                      </article>;
-                    })}
-                  </div>
-                  <p className="mt-5 text-xs leading-relaxed text-ink-3">The verdict confidence is a model-reported estimate, not a calibrated probability. Turning on more signals can add evidence, but this page does not claim measured accuracy gains.</p>
-                </>}
-              </motion.section>
-            )}
               </motion.div> : <motion.div key="welcome" aria-live="polite" className="flex min-h-[55dvh] items-center justify-center px-4 text-center"
                 initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }} transition={{ duration: reduceMotion ? 0 : 0.32 }}>
                 <AnimatePresence mode="wait" initial={false}>
@@ -1128,6 +1058,7 @@ export default function AppFlow({ user, providers, startInWorkspace = false }: {
       }
       window.scrollTo(0, 0);
     }
+    window.dispatchEvent(new CustomEvent("veritas:stage-change", { detail: stage }));
   }, [stage]);
 
   useEffect(() => {

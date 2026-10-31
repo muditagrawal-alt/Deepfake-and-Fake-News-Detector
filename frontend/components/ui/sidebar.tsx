@@ -1,6 +1,8 @@
 "use client";
 import { cn } from "@/lib/utils";
 import React, { useState, createContext, useContext } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 
@@ -126,7 +128,27 @@ export const MobileSidebar = ({
         )}
         {...props}
       >
-        <div className="flex justify-end z-20 w-full">
+        <div className="flex items-center justify-between z-20 w-full">
+          <Link
+            href="/"
+            onClick={(e) => {
+              if (window.location.pathname === "/") {
+                e.preventDefault();
+                window.dispatchEvent(new Event("veritas:home"));
+              }
+            }}
+            className="flex items-center gap-2 cursor-pointer"
+            title="Return to landing page"
+          >
+            <Image
+              src="/veritas-mark.png"
+              width={24}
+              height={24}
+              alt="Veritas"
+              className="size-6 object-contain"
+            />
+            <span className="font-semibold text-xs tracking-tight text-white">Veritas</span>
+          </Link>
           <IconMenu2
             className="text-neutral-800 dark:text-neutral-200 cursor-pointer"
             onClick={() => setOpen(!open)}

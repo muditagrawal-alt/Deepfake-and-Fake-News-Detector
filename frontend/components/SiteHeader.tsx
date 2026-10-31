@@ -21,6 +21,7 @@ function stage() {
 export default function SiteHeader() {
   const [active, setActive] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState<boolean>(false);
+  const [isWorkspace, setIsWorkspace] = useState<boolean>(false);
 
   useEffect(() => {
     const onScroll = () => {
@@ -29,6 +30,35 @@ export default function SiteHeader() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const checkWorkspace = () => {
+      if (typeof window === "undefined") return;
+      const urlStage = new URLSearchParams(window.location.search).get("stage");
+      const stored = sessionStorage.getItem("veritas_stage");
+      const domStage = document.querySelector<HTMLElement>("[data-app-stage]")?.dataset.appStage;
+      setIsWorkspace(urlStage === "workspace" || stored === "workspace" || domStage === "workspace");
+    };
+
+    checkWorkspace();
+    window.addEventListener("veritas:stage-change", checkWorkspace);
+    window.addEventListener("veritas:home", () => setIsWorkspace(false));
+    window.addEventListener("veritas:start", () => {
+      setTimeout(checkWorkspace, 50);
+    });
+    window.addEventListener("popstate", checkWorkspace);
+
+    const observer = new MutationObserver(checkWorkspace);
+    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["data-app-stage"] });
+
+    return () => {
+      window.removeEventListener("veritas:stage-change", checkWorkspace);
+      window.removeEventListener("veritas:home", () => setIsWorkspace(false));
+      window.removeEventListener("veritas:start", () => setTimeout(checkWorkspace, 50));
+      window.removeEventListener("popstate", checkWorkspace);
+      observer.disconnect();
+    };
   }, []);
 
   function handleHome(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -80,6 +110,10 @@ export default function SiteHeader() {
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
       target.scrollIntoView({ behavior, block: "start" });
     }
+  }
+
+  if (isWorkspace) {
+    return null;
   }
 
   return (

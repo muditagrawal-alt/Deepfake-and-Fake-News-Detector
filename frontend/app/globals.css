@@ -528,30 +528,6 @@ button:not(:disabled):active {
 }
 
 /* ========================================================================== */
-/*  CAPABILITIES LIST                                                         */
-/* ========================================================================== */
-
-.capabilities-list {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.capability-row {
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  transition: background-color 280ms ease, padding-left 280ms ease;
-}
-
-.capability-row:last-child { border-bottom: 0; }
-
-.capability-row:hover {
-  background: rgba(255, 255, 255, 0.02);
-  padding-left: 8px;
-}
-
-/* ========================================================================== */
 /*  FINAL CTA                                                                 */
 /* ========================================================================== */
 

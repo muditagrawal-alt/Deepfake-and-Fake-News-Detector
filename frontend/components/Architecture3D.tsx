@@ -17,6 +17,7 @@ import {
   FileCode2,
   ExternalLink,
   BookOpen,
+  Zap,
 } from "lucide-react";
 
 export type PayloadPreset = "deepfake_image" | "satire_news" | "verified_dispatch";
@@ -958,7 +959,7 @@ export const FLOW_EDGES: FlowEdge[] = [
 ];
 
 export function Architecture3D() {
-  const [activePreset, setActivePreset] = useState<PayloadPreset>("deepfake_image");
+  const [activePreset, setActivePreset] = useState<PayloadPreset>("verified_dispatch");
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [simSpeed, setSimSpeed] = useState<number>(1);
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-gemini-claims");
@@ -1394,30 +1395,42 @@ export function Architecture3D() {
                         <span className={isCenterHub ? "text-cyan-400 font-semibold" : "text-zinc-400"}>
                           {node.typeTag}
                         </span>
-                        {isFlagged ? (
-                          <span className="text-red-400 font-semibold flex items-center gap-0.5">
-                            <AlertTriangle size={10} />
-                            Flagged
+                        {activePreset === "verified_dispatch" ? (
+                          <span className="text-emerald-400 font-medium flex items-center gap-1">
+                            <CheckCircle2 size={10} />
+                            Verified
+                          </span>
+                        ) : activePreset === "satire_news" ? (
+                          <span className="text-amber-400 font-medium flex items-center gap-1">
+                            <CheckCircle2 size={10} />
+                            Satire Match
+                          </span>
+                        ) : isFlagged ? (
+                          <span className="text-cyan-400 font-medium flex items-center gap-1">
+                            <Zap size={10} className="text-amber-400" />
+                            Anomaly Caught
                           </span>
                         ) : (
-                          <span className="text-emerald-400 font-medium flex items-center gap-0.5">
+                          <span className="text-emerald-400 font-medium flex items-center gap-1">
                             <CheckCircle2 size={10} />
-                            Done
+                            Pass
                           </span>
                         )}
                       </div>
 
-                      {/* Progress Bar matching reference design */}
+                      {/* Progress Bar matching reference design: colorful execution status */}
                       <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-2">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
-                            isFlagged
-                              ? "bg-red-500"
-                              : isCenterHub
+                            isCenterHub
                               ? "bg-cyan-400"
-                              : node.column === 5
-                              ? "bg-emerald-400"
-                              : "bg-amber-400"
+                              : node.column === 1
+                              ? "bg-sky-400"
+                              : node.column === 2
+                              ? "bg-purple-400"
+                              : node.column === 4
+                              ? "bg-amber-400"
+                              : "bg-emerald-400"
                           }`}
                           style={{ width: `${node.statusPercent}%` }}
                         />
@@ -1524,19 +1537,19 @@ export function Architecture3D() {
           {/* Test Payload Live Execution Telemetry */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-              <span className="text-[10px] font-mono uppercase text-zinc-500">Live Execution Status</span>
+              <span className="text-[10px] font-mono uppercase text-zinc-500">Payload Forensic Signal</span>
               <div className="flex items-center gap-2">
                 {payloadData.status === "verified" ? (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                    <CheckCircle2 size={14} /> Verified Genuine
+                    <CheckCircle2 size={14} /> Verified Genuine Dispatch
                   </span>
                 ) : payloadData.status === "flagged" ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-400">
-                    <AlertTriangle size={14} /> Flagged Synthetic Anomaly
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400">
+                    <Zap size={14} className="text-amber-400" /> Synthetic Anomaly Isolated (Caught)
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400">
-                    <AlertTriangle size={14} /> Contradicted Assertion
+                    <CheckCircle2 size={14} /> Satirical Assertion Identified
                   </span>
                 )}
               </div>
@@ -1551,11 +1564,17 @@ export function Architecture3D() {
             </div>
 
             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-              <span className="text-[10px] font-mono uppercase text-zinc-500">Node Execution Contract</span>
+              <span className="text-[10px] font-mono uppercase text-zinc-500">Service Architecture Health</span>
               <div className="space-y-1 text-xs font-mono">
                 <div className="flex justify-between text-zinc-400">
                   <span>Engine:</span>
                   <span className="text-white">{selectedNode.engine}</span>
+                </div>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Service SLA:</span>
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 size={11} /> 100% Operational
+                  </span>
                 </div>
                 <div className="flex justify-between text-zinc-400">
                   <span>Latency:</span>

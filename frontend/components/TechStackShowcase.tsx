@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ParallaxCard } from "@/components/ui/parallax-card";
+import { ParallaxCard, ParallaxLayer } from "@/components/ui/parallax-card";
 import { DecryptedText } from "@/components/ui/decrypted-text";
 import {
   Activity,
@@ -265,19 +265,24 @@ export function TechStackShowcase() {
             <ParallaxCard
               key={item.name}
               glowColor={item.spotlightColor}
-              maxTilt={10}
+              maxTilt={12}
+              mouseSensitivity={1.3}
+              enableMagneticAttraction={true}
+              enableDepthFog={true}
               className="flex flex-col justify-between h-full group"
             >
-              {/* Card Top: Badges & Version */}
-              <div className="space-y-4">
+              {/* Card Top: Badges & Version with depth shift */}
+              <ParallaxLayer depth={15} className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-mono tracking-wider px-2.5 py-1 rounded bg-line/60 border border-line text-ink-2">
                     {item.badge}
                   </span>
                   <span className="text-xs font-mono text-ink-3">{item.version}</span>
                 </div>
+              </ParallaxLayer>
 
-                {/* Tech Title with DecryptedText effect on hover */}
+              {/* Card Middle: Tech Title & Description with higher depth shift */}
+              <ParallaxLayer depth={35} className="space-y-3 my-4">
                 <div>
                   <h3 className="text-xl font-semibold tracking-tight text-white group-hover:text-accent transition-colors flex items-center justify-between">
                     <DecryptedText
@@ -307,10 +312,10 @@ export function TechStackShowcase() {
                 <p className="text-xs sm:text-sm text-ink-2 leading-relaxed">
                   {item.description}
                 </p>
-              </div>
+              </ParallaxLayer>
 
-              {/* Card Bottom: Metric & Category Tag */}
-              <div className="pt-4 mt-5 border-t border-line/60 flex items-center justify-between text-xs font-mono">
+              {/* Card Bottom: Metric & Category Tag with midground depth shift */}
+              <ParallaxLayer depth={20} className="pt-4 mt-auto border-t border-line/60 flex items-center justify-between text-xs font-mono">
                 <div className="flex items-center gap-1.5 text-ink">
                   <Activity size={13} className="text-real" />
                   <span>{item.metric}</span>
@@ -318,7 +323,7 @@ export function TechStackShowcase() {
                 <span className="text-ink-3 uppercase text-[10px] tracking-wider">
                   {item.category}
                 </span>
-              </div>
+              </ParallaxLayer>
             </ParallaxCard>
           ))}
         </div>

@@ -1,638 +1,801 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  useScroll,
-  useSpring,
-  useTransform,
-  useReducedMotion,
-} from "motion/react";
-import {
-  Cpu,
-  Database,
+  Play,
+  Pause,
+  RotateCcw,
+  FastForward,
   CheckCircle2,
-  Terminal,
-  Activity,
-  ExternalLink,
+  AlertTriangle,
+  Cpu,
   Shield,
-  Search,
-  Radio,
-  Lock,
-  Wrench,
-  Maximize2,
-  Minimize2,
+  Activity,
+  Terminal,
+  ExternalLink,
+  ChevronRight,
+  Zap,
 } from "lucide-react";
 
-interface ChassisModule {
+export type PayloadPreset = "deepfake_image" | "satire_news" | "verified_dispatch";
+
+export interface PipelineNode {
   id: string;
+  stageId: number;
   name: string;
+  category: string;
   role: string;
-  quadrant: "top" | "left" | "right" | "bottom";
-  mechanicalTag: string;
-  accentColor: string;
-  glowColor: string;
   codePath: string;
+  accentColor: string;
   latencyMs: number;
   inputContract: string;
   outputContract: string;
-  purpose: string;
-  specifications: string[];
-  submodules: { name: string; desc: string }[];
+  description: string;
+  specs: string[];
+  testPayloads: Record<
+    PayloadPreset,
+    {
+      status: "verified" | "flagged" | "passed" | "contradicted";
+      readout: string;
+      telemetry: string;
+    }
+  >;
 }
 
-const CHASSIS_MODULES: ChassisModule[] = [
+export const PIPELINE_STAGES = [
+  { id: 0, title: "Multimodal Ingestion", subtitle: "Extract raw container, audio & frame signals", color: "#38bdf8" },
+  { id: 1, title: "Sensor Forensics", subtitle: "Audit C2PA certificates, FFT spectra & SynthID", color: "#a855f7" },
+  { id: 2, title: "Claim Decomposition", subtitle: "Extract atomic verifiable propositions via LLM", color: "#3b82f6" },
+  { id: 3, title: "Wire Triangulation", subtitle: "Cross-check 14 independent wire registries", color: "#f59e0b" },
+  { id: 4, title: "Bayesian Synthesis", subtitle: "Calibrate posterior odds & issue cryptographic seal", color: "#10b981" },
+];
+
+export const PIPELINE_NODES: PipelineNode[] = [
+  // Stage 0: Multimodal Ingestion
   {
-    id: "chassis-ingest",
-    name: "Forensic Ingestion Chassis",
-    role: "Hardware C2PA Provenance & Signal Extraction",
-    quadrant: "top",
-    mechanicalTag: "CHASSIS MODULE: OPTIC SENSOR CROWN",
+    id: "node-trafilatura",
+    stageId: 0,
+    name: "Article Content Extractor",
+    category: "Ingestion Bus",
+    role: "DOM Sanitization & Text Extraction",
+    codePath: "backend/detector/forensics/article.py",
     accentColor: "#38bdf8",
-    glowColor: "rgba(56, 189, 248, 0.4)",
-    codePath: "backend/app/services/forensic_orchestrator.py",
-    latencyMs: 185,
-    inputContract: "multipart/form-data (Binary Image, Audio WAV/MP3, or Claim String)",
-    outputContract: "ForensicSignalsPayload { c2pa, ela_fft, audio_spectrogram, synthid }",
-    purpose: "Audits immutable hardware container manifests, 2D FFT frequency anomalies, and acoustic vocoder pitch micro-jitter before claim parsing.",
-    specifications: [
-      "X.509 C2PA Hardware Certificate Chain Matcher",
-      "Discrete Cosine Transform (DCT) & 2D FFT Spatial Residuals",
-      "Mel-Frequency Spectrogram Acoustic Pitch Discontinuity",
-      "Volatile Enclave Zero Media Retention Protocol",
-    ],
-    submodules: [
-      { name: "C2PA JUMBF Box Auditor", desc: "Verifies camera hardware sensor cryptographic binding" },
-      { name: "ELA Forensic Analyzer", desc: "Identifies multi-pass compression & spatial splice boundaries" },
-    ],
+    latencyMs: 24,
+    inputContract: "{ url: string, raw_html?: string }",
+    outputContract: "{ title: string, text: string, domain: string, author?: string }",
+    description:
+      "Strips script payloads, banner ads, and boilerplate tracking elements to construct clean markdown text for NLP extraction.",
+    specs: ["Trafilatura v2.3.0 Engine", "Sub-50ms DOM Tree Walker", "Strict Enclave Zero-Retention Buffer"],
+    testPayloads: {
+      deepfake_image: {
+        status: "passed",
+        readout: "Static binary payload detected — bypassing article DOM parser.",
+        telemetry: "0 bytes DOM extracted (image mode active)",
+      },
+      satire_news: {
+        status: "passed",
+        readout: "Article body successfully parsed from theonion.com. 420 words extracted.",
+        telemetry: "Extracted 2,410 chars; author: Editorial Staff",
+      },
+      verified_dispatch: {
+        status: "passed",
+        readout: "Wire article verified from apnews.com dispatch stream. Clean body delivered.",
+        telemetry: "Extracted 3,890 chars; accredited AP wire stamp",
+      },
+    },
   },
   {
-    id: "chassis-decompose",
-    name: "Proposition Decomposition Core",
-    role: "Structured Proposition Parsing & NER",
-    quadrant: "left",
-    mechanicalTag: "CHASSIS MODULE: PROPOSITION MATRIX",
+    id: "node-frame-decoder",
+    stageId: 0,
+    name: "Keyframe & EXIF Decoder",
+    category: "Ingestion Bus",
+    role: "Hardware Metadata & I-Frame Extraction",
+    codePath: "backend/detector/forensics/frames.py",
+    accentColor: "#38bdf8",
+    latencyMs: 38,
+    inputContract: "{ binary_stream: Buffer, mime: string }",
+    outputContract: "{ exif: Record<string, any>, frames: ImageBuffer[], fps: number }",
+    description:
+      "Extracts unaltered raw EXIF camera metadata, lens profiles, exposure tags, and samples I-frames at calibrated millisecond intervals.",
+    specs: ["Pillow + PyAV Hardware Acceleration", "Lossless RAM Frame Slicing", "EXIF/TIFF Tag Extraction"],
+    testPayloads: {
+      deepfake_image: {
+        status: "flagged",
+        readout: "Missing camera hardware serial and lens EXIF tags. Software signature: 'Gemini Generative Engine'.",
+        telemetry: "EXIF missing camera serial number; 0x00 header mismatch",
+      },
+      satire_news: {
+        status: "passed",
+        readout: "Headline banner image parsed; stock photo tags verified intact.",
+        telemetry: "Metadata format valid; sRGB IEC61966-2.1 profile",
+      },
+      verified_dispatch: {
+        status: "verified",
+        readout: "Canon EOS R5 camera serial #0429188 validated with signed Sony/Canon hardware EXIF.",
+        telemetry: "Signed EXIF timestamp matches AP newsroom wire dispatch",
+      },
+    },
+  },
+
+  // Stage 1: Sensor Forensics
+  {
+    id: "node-c2pa",
+    stageId: 1,
+    name: "C2PA Provenance Auditor",
+    category: "Forensics Engine",
+    role: "Hardware Signature & Manifest Verification",
+    codePath: "backend/detector/forensics/provenance.py",
     accentColor: "#a855f7",
-    glowColor: "rgba(168, 85, 247, 0.4)",
-    codePath: "backend/app/services/claim_extractor.py",
+    latencyMs: 42,
+    inputContract: "{ raw_buffer: Buffer }",
+    outputContract: "{ jumbf_valid: boolean, cert_chain: string[], signed_by?: string }",
+    description:
+      "Inspects the binary JUMBF box for Coalition for Content Provenance and Authenticity (C2PA) cryptographic manifests and root CA certs.",
+    specs: ["C2PA Rust-backed Core Parser", "X.509 Cryptographic Certificate Chain", "Hardware Signature Matcher"],
+    testPayloads: {
+      deepfake_image: {
+        status: "flagged",
+        readout: "No authentic C2PA hardware manifest detected in binary header.",
+        telemetry: "JUMBF box absent; unauthenticated generation origin",
+      },
+      satire_news: {
+        status: "passed",
+        readout: "Editorial CMS manifest verified without camera sensor binding.",
+        telemetry: "Web publishing cert present; no camera binding",
+      },
+      verified_dispatch: {
+        status: "verified",
+        readout: "Cryptographic C2PA root manifest confirmed from AP photojournalism pool.",
+        telemetry: "X.509 cert chain verified to accredited news agency root CA",
+      },
+    },
+  },
+  {
+    id: "node-onnx-fft",
+    stageId: 1,
+    name: "Neural FFT & Stego Hunter",
+    category: "Forensics Engine",
+    role: "2D Spectral Frequency Anomaly Detector",
+    codePath: "backend/detector/forensics/onnx_detector.py",
+    accentColor: "#a855f7",
+    latencyMs: 76,
+    inputContract: "{ image_tensor: Float32Array[1, 3, 512, 512] }",
+    outputContract: "{ synth_prob: number, spectral_residual: number, watermark_detected: boolean }",
+    description:
+      "Performs 2D Fast Fourier Transform (FFT) and discrete cosine transform (DCT) to expose diffusion model high-frequency checkerboard artifacts and SynthID watermarks.",
+    specs: ["Local ONNX Runtime 1.19 CPU/GPU", "2D FFT Radial Spatial Residuals", "SynthID Steganographic Decoder"],
+    testPayloads: {
+      deepfake_image: {
+        status: "flagged",
+        readout: "High-frequency checkerboard grid anomaly detected (91.4% synthetic residual). SynthID watermark match.",
+        telemetry: "Spectral anomaly p=0.914; SynthID digital watermark active",
+      },
+      satire_news: {
+        status: "passed",
+        readout: "Text modality; neural image classifier bypassed.",
+        telemetry: "Pass-through execution (0ms neural inference)",
+      },
+      verified_dispatch: {
+        status: "verified",
+        readout: "Natural CMOS sensor Poisson noise distribution verified across all color channels. 0.04% residual.",
+        telemetry: "Noise variance 0.012; authentic physical sensor profile",
+      },
+    },
+  },
+
+  // Stage 2: Claim Decomposition
+  {
+    id: "node-gemini-claims",
+    stageId: 2,
+    name: "Gemini 2.5 Flash Lite",
+    category: "Decomposition Stage",
+    role: "Atomic Proposition & Query Extractor",
+    codePath: "backend/detector/providers/gemini.py",
+    accentColor: "#3b82f6",
     latencyMs: 220,
-    inputContract: "ForensicSignalsPayload + Transcribed Text",
-    outputContract: "AtomicClaimsArray [{ claim_id, text, entities, temporal_anchor }]",
-    purpose: "Deconstructs complex multimedia statements into atomic testable assertions with strict JSON Schema constraints using Gemini 2.5 Flash Lite.",
-    specifications: [
-      "Strict JSON-Mode Grammar Constraint (Gemini 2.5)",
-      "Groq LPU LLaMA-3.3-70B Failover Engine (<100ms SLA)",
-      "Geopolitical & Temporal Entity Resolution (NER)",
-      "Contextual Repurposing & Misattribution Classifier",
-    ],
-    submodules: [
-      { name: "Entity Anchor Resolver", desc: "Maps actors, timestamps, and geolocation coordinates" },
-      { name: "Atomic Fact Disaggregator", desc: "Isolates falsifiable propositions from compound sentences" },
-    ],
+    inputContract: "{ modality: string, content: string | ImagePart, forensic_facts: Record<string, any> }",
+    outputContract: "{ claims: string[], search_queries: string[], genre: string }",
+    description:
+      "Decomposes complex media claims into atomic, testable propositions and formulates targeted search queries in strict JSON mode.",
+    specs: ["Structured Output Mode (Strict Schema)", "Sub-300ms p95 First Token", "Zero-Shot Claim Isolation"],
+    testPayloads: {
+      deepfake_image: {
+        status: "flagged",
+        readout: "Extracted 3 visual claims: 'Chinese warship struck by missile', 'Fighter jets conducting attack', 'Active maritime battle'.",
+        telemetry: "Formulated 4 search queries against naval registries",
+      },
+      satire_news: {
+        status: "contradicted",
+        readout: "Extracted satirical headline claim: 'Nation somehow more divided than ever before after fictional poll'.",
+        telemetry: "Isolated key satirical hyperbole propositions",
+      },
+      verified_dispatch: {
+        status: "passed",
+        readout: "Extracted official summit statement: 'Trade delegation signs bilateral tariff reduction accord'.",
+        telemetry: "Extracted 3 factual claims with named delegates",
+      },
+    },
   },
+
+  // Stage 3: Wire Triangulation
   {
-    id: "chassis-triangulate",
-    name: "Wire Triangulation Router",
-    role: "Federated Press Archive Cross-Referencing",
-    quadrant: "right",
-    mechanicalTag: "CHASSIS MODULE: CROSS-WIRE REGISTRY",
-    accentColor: "#10b981",
-    glowColor: "rgba(16, 185, 129, 0.4)",
-    codePath: "backend/app/services/triangulation_service.py",
-    latencyMs: 340,
-    inputContract: "AtomicClaimsArray + Temporal Bounds",
-    outputContract: "WireConsensusDossier [{ source, title, url, stance, credibility_weight }]",
-    purpose: "Autonomously cross-indexes extracted atomic claims across 14 independent wire archives (Reuters, AP, BBC) and live eyewitness streams.",
-    specifications: [
-      "DuckDuckGo Deep News Indexation & Boolean Query Matrix",
-      "Trafilatura Zero-Clutter DOM Extractor & Ad Stripper",
-      "Editorial Stance Agreement & Corroboration Engine",
-      "Tweepy X API v2 Real-Time Event Correlator",
-    ],
-    submodules: [
-      { name: "Federated Query Dispatcher", desc: "Dispatches parallel search vectors to wire registries" },
-      { name: "Domain Reputation Scorer", desc: "Dynamic credibility weighting based on editorial lineage" },
-    ],
-  },
-  {
-    id: "chassis-synthesis",
-    name: "Bayesian Synthesis Nexus",
-    role: "Dynamic Likelihood Aggregator & Attestation",
-    quadrant: "bottom",
-    mechanicalTag: "CHASSIS MODULE: CHEVRON KEEL FOUNDATION",
+    id: "node-retrieval",
+    stageId: 3,
+    name: "Autonomous Wire Scraper",
+    category: "Triangulation Engine",
+    role: "Multi-Source Consensus Verification",
+    codePath: "backend/detector/engine/retrieval.py",
     accentColor: "#f59e0b",
-    glowColor: "rgba(245, 158, 11, 0.4)",
-    codePath: "backend/app/services/verdict_service.py",
-    latencyMs: 145,
-    inputContract: "ForensicSignalsPayload + WireConsensusDossier",
-    outputContract: "FinalVerdictReport { classification, confidence, audit_hash, timeline }",
-    purpose: "Synthesizes multi-modal forensic probabilities with journalistic wire consensus into a calibrated authenticity verdict with SHA-256 seal.",
-    specifications: [
-      "Dynamic Bayesian Network (DBN) Likelihood Aggregator",
-      "Wilson Score 95% Bootstrap Empirical Confidence Bounds",
-      "Laplace-Smoothed Adversarial Signal Weighting",
-      "NIST FIPS 180-4 Immutable Cryptographic Report Hash",
-    ],
-    submodules: [
-      { name: "Bayesian Synthesizer", desc: "Calculates posterior belief distribution across all vectors" },
-      { name: "SHA-256 Audit Seal", desc: "Produces tamper-evident cryptographic verification seal" },
-    ],
+    latencyMs: 380,
+    inputContract: "{ queries: string[], limit: number }",
+    outputContract: "{ hits: WireHit[], provider: string, agreement_ratio: number }",
+    description:
+      "Queries 14 independent wire registries (Reuters, Associated Press, BBC, AFP, Bloomberg) to triangulate independent corroboration.",
+    specs: ["DuckDuckGo + Google Grounding Fallback", "14 Wire Registries Scraped", "Adversarial Disinformation Filter"],
+    testPayloads: {
+      deepfake_image: {
+        status: "contradicted",
+        readout: "0 of 14 accredited wire registries report any naval engagement. Contradicted by official maritime dispatches.",
+        telemetry: "0/14 corroborations; no naval incident logged globally",
+      },
+      satire_news: {
+        status: "contradicted",
+        readout: "Identified domain theonion.com as registered satirical comedy publication; zero primary news hits.",
+        telemetry: "Wire corpus confirms satirical origin",
+      },
+      verified_dispatch: {
+        status: "verified",
+        readout: "Corroborated across 12 independent news wires including Reuters, AP News, and BBC World Service.",
+        telemetry: "12/12 wire agreement; matching press pool dispatch",
+      },
+    },
+  },
+
+  // Stage 4: Bayesian Synthesis
+  {
+    id: "node-bayesian",
+    stageId: 4,
+    name: "Bayesian Evidence Synthesizer",
+    category: "Synthesis Engine",
+    role: "Empirical Likelihood & Confidence Calibration",
+    codePath: "backend/detector/engine/pipeline.py",
+    accentColor: "#10b981",
+    latencyMs: 18,
+    inputContract: "{ claims: Claim[], signals: Signal[], forensic_facts: Record<string, any> }",
+    outputContract: "{ verdict: string, confidence: number, ci_95: [number, number], ledger_hash: string }",
+    description:
+      "Combines neural sensor probabilities, C2PA manifest trust, and wire consensus through calibrated Bayesian likelihood calculation.",
+    specs: ["Wilson-Score Confidence Interval (95% CI)", "Calibrated Posterior Odds Ratio", "SHA-256 Ledger Token Seal"],
+    testPayloads: {
+      deepfake_image: {
+        status: "flagged",
+        readout: "Verdict: LIKELY_FAKE (94.2% confidence). 95% CI: [91.8%, 96.5%]. High sensor residual + 0 wire corroboration.",
+        telemetry: "Ledger Token #VRT-2026-8812; Cryptographic Seal Engaged",
+      },
+      satire_news: {
+        status: "flagged",
+        readout: "Verdict: LIKELY_FAKE (96.0% confidence). Satirical publication identified with contradicted assertions.",
+        telemetry: "Ledger Token #VRT-2026-4409; Satirical Flag Affixed",
+      },
+      verified_dispatch: {
+        status: "verified",
+        readout: "Verdict: LIKELY_REAL (98.4% confidence). 95% CI: [96.9%, 99.4%]. Valid C2PA root + 12 wire corroborations.",
+        telemetry: "Ledger Token #VRT-2026-9914; Genuine Cryptographic Seal",
+      },
+    },
   },
 ];
 
 export function Architecture3D() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const shouldReduceMotion = useReducedMotion();
+  const [activePreset, setActivePreset] = useState<PayloadPreset>("deepfake_image");
+  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [simSpeed, setSimSpeed] = useState<number>(1);
+  const [currentStage, setCurrentStage] = useState<number>(0);
+  const [selectedNodeId, setSelectedNodeId] = useState<string>("node-onnx-fft");
+  const [packetProgress, setPacketProgress] = useState<number>(0);
 
-  // Active chassis selection for inspection
-  const [activeChassisId, setActiveChassisId] = useState<string>("chassis-ingest");
-  const [manualAssembly, setManualAssembly] = useState<number | null>(null);
-
-  // Scroll tracking across this mechanical section
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-
-  // Smooth scroll assembly progress (0.0 = completely collapsed chassis, 1.0 = fully assembled Veritas logo)
-  const mappedScrollProgress = useTransform(scrollYProgress, [0.18, 0.68], [0, 1]);
-  const smoothProgress = useSpring(mappedScrollProgress, {
-    stiffness: 85,
-    damping: 22,
-    restDelta: 0.001,
-  });
-
-  const [scrollProgressVal, setScrollProgressVal] = useState(0);
-
+  // Simulation timer loop
   useEffect(() => {
-    const unsubscribe = smoothProgress.on("change", (latest) => {
-      setScrollProgressVal(Math.max(0, Math.min(1, latest)));
-    });
-    return () => unsubscribe();
-  }, [smoothProgress]);
+    if (!isPlaying) return;
 
-  const assemblyProgress =
-    manualAssembly !== null ? manualAssembly : scrollProgressVal;
+    const intervalTime = Math.max(30, 40 / simSpeed);
+    const interval = setInterval(() => {
+      setPacketProgress((prev) => {
+        if (prev >= 100) {
+          setCurrentStage((s) => (s + 1) % PIPELINE_STAGES.length);
+          return 0;
+        }
+        return prev + 2;
+      });
+    }, intervalTime);
 
-  const activeChassis =
-    CHASSIS_MODULES.find((m) => m.id === activeChassisId) || CHASSIS_MODULES[0];
+    return () => clearInterval(interval);
+  }, [isPlaying, simSpeed]);
 
-  const p = shouldReduceMotion ? 1 : assemblyProgress;
-  const isFullyAssembled = p >= 0.88;
+  const selectedNode = PIPELINE_NODES.find((n) => n.id === selectedNodeId) || PIPELINE_NODES[0];
+  const payloadData = selectedNode.testPayloads[activePreset];
+
+  // Stage Latencies calculation
+  const stageLatencies = [
+    PIPELINE_NODES.filter((n) => n.stageId === 0).reduce((acc, n) => acc + n.latencyMs, 0),
+    PIPELINE_NODES.filter((n) => n.stageId === 1).reduce((acc, n) => acc + n.latencyMs, 0),
+    PIPELINE_NODES.filter((n) => n.stageId === 2).reduce((acc, n) => acc + n.latencyMs, 0),
+    PIPELINE_NODES.filter((n) => n.stageId === 3).reduce((acc, n) => acc + n.latencyMs, 0),
+    PIPELINE_NODES.filter((n) => n.stageId === 4).reduce((acc, n) => acc + n.latencyMs, 0),
+  ];
+  const totalLatency = stageLatencies.reduce((a, b) => a + b, 0);
+
+  const handleStepForward = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentStage((s) => (s + 1) % PIPELINE_STAGES.length);
+    setPacketProgress(0);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setCurrentStage(0);
+    setPacketProgress(0);
+  }, []);
 
   return (
     <div
-      ref={sectionRef}
       id="architecture"
-      className="w-full bg-bg text-ink relative py-16 px-4 sm:px-8 lg:px-12 selection:bg-accent/20 scroll-mt-16"
+      className="w-full bg-bg text-ink relative pt-20 pb-16 px-4 sm:px-8 lg:px-12 selection:bg-accent/20 scroll-mt-24"
     >
-      {/* Blueprint Coordinate Grid Background */}
+      {/* Background blueprint coordinate grid */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(#1e222a_1px,transparent_1px)] [background-size:28px_28px] opacity-45"
         aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.035]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
       />
 
-      <div className="mx-auto max-w-[1400px] relative z-10 flex flex-col gap-10">
-        {/* Section Technical Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-line pb-8">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-accent-soft border border-line text-xs font-mono tracking-wider text-ink-2">
-              <Wrench size={13} className="text-accent" />
-              <span>MECHANICAL ARCHITECTURE · SCROLL-DRIVEN VERITAS LOGO ASSEMBLY</span>
+      <div className="max-w-7xl mx-auto space-y-10 relative z-10">
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-line pb-8">
+          <div className="space-y-3 max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-badge bg-elev border border-line text-xs font-mono text-accent">
+              <Activity size={13} className="text-real" />
+              <span>LIVE FORENSIC PIPELINE ARCHITECTURE</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-white">
-              System Architecture & Mechanical Model
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+              Dynamic Live Pipeline Architecture
             </h2>
-            <p className="text-sm sm:text-base text-ink-2 max-w-2xl leading-relaxed">
-              Scroll into this section to witness Veritas&apos;s four core pipeline chassis mechanically
-              articulate, slide, and interlock into the iconic Veritas Shield logo. Click any module to inspect its
-              active repo code path and data contracts.
+            <p className="text-sm sm:text-base text-ink-2 leading-relaxed">
+              Real-time interactive topology demonstrating how Veritas decomposes raw multimodal media, verifies C2PA
+              hardware provenance, extracts atomic propositions, triangulates wire consensus, and performs calibrated
+              Bayesian evidence synthesis.
             </p>
           </div>
 
-          {/* Interactive Mechanical Toolbar */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Quick Toggle Assembly Button */}
-            <button
-              onClick={() => {
-                if (manualAssembly === null) {
-                  setManualAssembly(isFullyAssembled ? 0 : 1);
-                } else {
-                  setManualAssembly(manualAssembly > 0.5 ? 0 : 1);
-                }
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-control bg-elev border border-line hover:border-line-strong hover:bg-line/40 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
-            >
-              {isFullyAssembled ? (
-                <>
-                  <Minimize2 size={15} className="text-accent" />
-                  <span>Disassemble Chassis</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 size={15} className="text-accent" />
-                  <span>Assemble Logo (100%)</span>
-                </>
-              )}
-            </button>
-
-            {/* Manual Assembly Progress Scrubber */}
-            <div className="inline-flex items-center gap-2.5 rounded-control border border-line bg-elev px-3 py-1.5 text-xs font-mono">
-              <span className="text-ink-3">ALIGN:</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={p}
-                onChange={(e) => setManualAssembly(parseFloat(e.target.value))}
-                className="w-24 sm:w-32 accent-accent cursor-pointer"
-                aria-label="Mechanical assembly scrubber"
-              />
-              <span className="text-white font-semibold w-9 text-right">
-                {Math.round(p * 100)}%
-              </span>
+          {/* Test Payload Preset Picker */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <span className="text-xs font-mono text-ink-3 uppercase tracking-wider">Test Payload:</span>
+            <div className="inline-flex p-1 rounded-control bg-elev border border-line">
+              {[
+                { id: "deepfake_image", label: "Synthetic AI Image" },
+                { id: "satire_news", label: "Satirical Onion Wire" },
+                { id: "verified_dispatch", label: "AP Wire Dispatch" },
+              ].map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    setActivePreset(preset.id as PayloadPreset);
+                    handleReset();
+                  }}
+                  className={`px-3 py-1.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    activePreset === preset.id
+                      ? "bg-white text-black font-semibold shadow-sm"
+                      : "text-ink-2 hover:text-white"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Main Stage: Mechanical Stage Left + Chassis Blueprint Inspector Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left: 3D Mechanical Assembly Canvas */}
-          <div className="lg:col-span-7 flex flex-col items-center justify-center min-h-[620px] lg:min-h-[700px] rounded-2xl border border-line bg-[#07080b] p-6 relative overflow-hidden select-none shadow-2xl">
-            {/* Blueprint HUD Caliper Corners */}
-            <div className="absolute top-4 left-4 font-mono text-[11px] text-ink-3 flex items-center gap-2">
-              <Activity size={13} className="text-accent" />
-              <span>CHASSIS TOLERANCE: ±0.015MM · TORQUE: 42NM</span>
-            </div>
-            <div className="absolute top-4 right-4 font-mono text-[11px] text-ink-3 flex items-center gap-2">
-              <span className="size-2 rounded-full" style={{ backgroundColor: isFullyAssembled ? "#22c55e" : "#eab308" }} />
-              <span>{isFullyAssembled ? "VERITAS LOGO ASSEMBLED" : "COLLAPSED CHASSIS BLUEPRINT"}</span>
-            </div>
-
-            {/* Circular Caliper Angle Reticle */}
-            <div
-              className="absolute size-[480px] rounded-full border border-line/40 pointer-events-none"
-              style={{
-                transform: `rotate(${p * 90}deg)`,
-                transition: "transform 200ms ease-out",
-              }}
+        {/* Dynamic Simulation Control Bar & Real-Time Telemetry Bar */}
+        <div className="rounded-2xl border border-line bg-elev/70 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-panel">
+          {/* Controls: Play/Pause, Step, Reset, Speed */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-control bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors cursor-pointer"
             >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-black border border-line text-[9px] font-mono text-ink-3">
-                000°
-              </div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 px-2 py-0.5 rounded bg-black border border-line text-[9px] font-mono text-ink-3">
-                180°
-              </div>
-            </div>
+              {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+              <span>{isPlaying ? "Pause Simulation" : "Run Live Simulation"}</span>
+            </button>
 
-            {/* Mechanical Articulation Arena */}
-            <div className="relative w-full max-w-[460px] h-[460px] flex items-center justify-center">
-              {/* Hydraulic Piston Vectors (Visible during assembly) */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 460 460">
-                <line
-                  x1="230"
-                  y1={80 + (1 - p) * -30}
-                  x2="230"
-                  y2={230}
-                  stroke="rgba(56, 189, 248, 0.35)"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                />
-                <line
-                  x1={80 + (1 - p) * -30}
-                  y1="230"
-                  x2="230"
-                  y2="230"
-                  stroke="rgba(168, 85, 247, 0.35)"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                />
-                <line
-                  x1={380 + (1 - p) * 30}
-                  y1="230"
-                  x2="230"
-                  y2="230"
-                  stroke="rgba(16, 185, 129, 0.35)"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                />
-                <line
-                  x1="230"
-                  y1={380 + (1 - p) * 30}
-                  x2="230"
-                  y2="230"
-                  stroke="rgba(245, 158, 11, 0.35)"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                />
-              </svg>
+            <button
+              onClick={handleStepForward}
+              title="Advance one stage"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-control bg-elev border border-line hover:border-line-strong text-xs font-medium text-ink transition-colors cursor-pointer"
+            >
+              <FastForward size={14} />
+              <span className="hidden sm:inline">Step Stage</span>
+            </button>
 
-              {/* Central Shield Logo Assembly Target */}
-              <div className="relative size-[280px] sm:size-[320px] flex items-center justify-center">
-                {/* 1. TOP CHASSIS (Forensic Optic Crown) */}
-                <div
-                  onClick={() => setActiveChassisId("chassis-ingest")}
-                  className={`absolute top-0 left-1/2 -translate-x-1/2 z-20 cursor-pointer transition-all duration-300 group ${
-                    activeChassisId === "chassis-ingest" ? "scale-105" : ""
+            <button
+              onClick={handleReset}
+              title="Reset simulation"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-control bg-elev border border-line hover:border-line-strong text-xs font-medium text-ink transition-colors cursor-pointer"
+            >
+              <RotateCcw size={14} />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+
+            {/* Speed Selector */}
+            <div className="flex items-center gap-1 ml-2 border-l border-line pl-3">
+              {[0.5, 1, 2].map((spd) => (
+                <button
+                  key={spd}
+                  onClick={() => setSimSpeed(spd)}
+                  className={`px-2 py-1 rounded text-xs font-mono transition-colors cursor-pointer ${
+                    simSpeed === spd
+                      ? "bg-accent/20 text-accent font-semibold border border-accent/40"
+                      : "text-ink-3 hover:text-white"
                   }`}
-                  style={{
-                    transform: `translate(-50%, ${(1 - p) * -95}px)`,
-                  }}
                 >
-                  <div
-                    className="relative px-4 py-2.5 rounded-t-2xl rounded-b-md border shadow-lg flex flex-col items-center bg-[#0d0f14]"
-                    style={{
-                      borderColor: activeChassisId === "chassis-ingest" ? "#38bdf8" : "rgba(255,255,255,0.15)",
-                      boxShadow: activeChassisId === "chassis-ingest" ? "0 0 25px rgba(56, 189, 248, 0.4)" : "none",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-sky-400">
-                      <Radio size={14} />
-                      <span>INGESTION CROWN</span>
-                    </div>
-                    {p < 0.6 && (
-                      <span className="text-[10px] font-mono text-ink-3 mt-0.5">
-                        C2PA & Spectral FFT
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* 2. LEFT CHASSIS (Decomposition Flange) */}
-                <div
-                  onClick={() => setActiveChassisId("chassis-decompose")}
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 cursor-pointer transition-all duration-300 group ${
-                    activeChassisId === "chassis-decompose" ? "scale-105" : ""
-                  }`}
-                  style={{
-                    transform: `translate(${(1 - p) * -95}px, -50%)`,
-                  }}
-                >
-                  <div
-                    className="relative px-3.5 py-3 rounded-l-2xl rounded-r-md border shadow-lg flex flex-col items-center bg-[#0d0f14]"
-                    style={{
-                      borderColor: activeChassisId === "chassis-decompose" ? "#a855f7" : "rgba(255,255,255,0.15)",
-                      boxShadow: activeChassisId === "chassis-decompose" ? "0 0 25px rgba(168, 85, 247, 0.4)" : "none",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-purple-400">
-                      <Cpu size={14} />
-                      <span>CLAIMS</span>
-                    </div>
-                    {p < 0.6 && (
-                      <span className="text-[10px] font-mono text-ink-3 mt-0.5 whitespace-nowrap">
-                        Gemini JSON
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* 3. RIGHT CHASSIS (Triangulation Flange) */}
-                <div
-                  onClick={() => setActiveChassisId("chassis-triangulate")}
-                  className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 cursor-pointer transition-all duration-300 group ${
-                    activeChassisId === "chassis-triangulate" ? "scale-105" : ""
-                  }`}
-                  style={{
-                    transform: `translate(${(1 - p) * 95}px, -50%)`,
-                  }}
-                >
-                  <div
-                    className="relative px-3.5 py-3 rounded-r-2xl rounded-l-md border shadow-lg flex flex-col items-center bg-[#0d0f14]"
-                    style={{
-                      borderColor: activeChassisId === "chassis-triangulate" ? "#10b981" : "rgba(255,255,255,0.15)",
-                      boxShadow: activeChassisId === "chassis-triangulate" ? "0 0 25px rgba(16, 185, 129, 0.4)" : "none",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-emerald-400">
-                      <Search size={14} />
-                      <span>WIRES</span>
-                    </div>
-                    {p < 0.6 && (
-                      <span className="text-[10px] font-mono text-ink-3 mt-0.5 whitespace-nowrap">
-                        Reuters & AP
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* 4. BOTTOM CHASSIS (Bayesian Keel) */}
-                <div
-                  onClick={() => setActiveChassisId("chassis-synthesis")}
-                  className={`absolute bottom-0 left-1/2 -translate-x-1/2 z-20 cursor-pointer transition-all duration-300 group ${
-                    activeChassisId === "chassis-synthesis" ? "scale-105" : ""
-                  }`}
-                  style={{
-                    transform: `translate(-50%, ${(1 - p) * 95}px)`,
-                  }}
-                >
-                  <div
-                    className="relative px-4 py-2.5 rounded-b-2xl rounded-t-md border shadow-lg flex flex-col items-center bg-[#0d0f14]"
-                    style={{
-                      borderColor: activeChassisId === "chassis-synthesis" ? "#f59e0b" : "rgba(255,255,255,0.15)",
-                      boxShadow: activeChassisId === "chassis-synthesis" ? "0 0 25px rgba(245, 158, 11, 0.4)" : "none",
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-amber-400">
-                      <Shield size={14} />
-                      <span>SYNTHESIS KEEL</span>
-                    </div>
-                    {p < 0.6 && (
-                      <span className="text-[10px] font-mono text-ink-3 mt-0.5">
-                        Bayesian & SHA-256
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* CENTER PIECE: THE VERITAS SHIELD LOGO */}
-                <div
-                  className="relative z-10 flex items-center justify-center transition-all duration-500"
-                  style={{
-                    transform: `scale(${0.65 + p * 0.45}) rotate(${(1 - p) * 180}deg)`,
-                    opacity: 0.35 + p * 0.65,
-                  }}
-                >
-                  {/* Glowing Core Halo behind shield */}
-                  <div
-                    className="absolute inset-0 rounded-full blur-2xl transition-opacity duration-500 pointer-events-none"
-                    style={{
-                      opacity: p >= 0.7 ? 0.8 : 0.2,
-                      background: "radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(56, 189, 248, 0.25) 50%, transparent 80%)",
-                    }}
-                  />
-
-                  {/* Veritas Shield Mark Logo */}
-                  <Image
-                    src="/veritas-mark.png"
-                    alt="Veritas Shield Mark"
-                    width={180}
-                    height={180}
-                    priority
-                    className="relative z-10 object-contain drop-shadow-[0_4px_24px_rgba(255,255,255,0.25)] select-none"
-                  />
-
-                  {/* Central Aperture Iris Ring */}
-                  <div
-                    className="absolute size-14 rounded-full border-2 border-white/60 pointer-events-none"
-                    style={{
-                      transform: `rotate(${p * 360}deg) scale(${0.7 + p * 0.3})`,
-                      boxShadow: p >= 0.8 ? "0 0 20px #38bdf8" : "none",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Status Ticker */}
-            <div className="w-full flex items-center justify-between pt-4 mt-4 border-t border-line/70 text-xs text-ink-3 font-mono">
-              <div className="flex items-center gap-2">
-                <span
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: isFullyAssembled ? "#22c55e" : "#38bdf8" }}
-                />
-                <span>
-                  {isFullyAssembled
-                    ? "VERITAS SHIELD FULLY LOCKED — ALL SUBSYSTEMS INTEGRATED"
-                    : "SCROLL DOWN OR DRAG SCRUBBER TO INTERLOCK COMPONENTS INTO VERITAS LOGO"}
-                </span>
-              </div>
-              <div className="hidden sm:flex items-center gap-2 text-ink-2">
-                <Lock size={13} className={isFullyAssembled ? "text-real" : "text-ink-3"} />
-                <span>{isFullyAssembled ? "CRYPTOGRAPHIC SEAL ENGAGED" : "UNLOCKED ASSEMBLY"}</span>
-              </div>
+                  {spd}x
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Right: Chassis Blueprint Dossier & Telemetry Inspector */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            {/* Quick Chassis Selector Tabs */}
-            <div className="grid grid-cols-4 gap-2">
-              {CHASSIS_MODULES.map((chassis) => {
-                const isSelected = activeChassisId === chassis.id;
-                return (
-                  <button
-                    key={chassis.id}
-                    onClick={() => setActiveChassisId(chassis.id)}
-                    className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-control border text-center transition-all cursor-pointer ${
-                      isSelected
-                        ? "border-accent bg-elev shadow-sm"
-                        : "border-line bg-elev/40 hover:bg-elev text-ink-3 hover:text-ink"
-                    }`}
-                  >
-                    <span className="text-[10px] font-mono tracking-widest text-ink-3">
-                      {chassis.quadrant.toUpperCase()}
-                    </span>
-                    <span
-                      className="text-xs font-mono font-semibold"
-                      style={{ color: isSelected ? chassis.accentColor : undefined }}
-                    >
-                      {chassis.name.split(" ")[0]}
-                    </span>
-                  </button>
-                );
-              })}
+          {/* Real-time Telemetry Metrics Readout */}
+          <div className="flex items-center gap-5 text-xs font-mono text-ink-2">
+            <div className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-real animate-pulse" />
+              <span>
+                ACTIVE STAGE: <strong className="text-white">{PIPELINE_STAGES[currentStage].title}</strong>
+              </span>
             </div>
+            <div className="hidden md:flex items-center gap-1.5 text-ink-3">
+              <Cpu size={13} className="text-accent" />
+              <span>
+                TOTAL LATENCY: <strong className="text-white font-mono">{totalLatency}ms</strong>
+              </span>
+            </div>
+            <div className="hidden lg:flex items-center gap-1.5 text-ink-3">
+              <Shield size={13} className="text-real" />
+              <span>ENCLAVE: ZERO RETENTION</span>
+            </div>
+          </div>
+        </div>
 
-            {/* Active Chassis Dossier Card */}
-            <div
-              className="rounded-2xl border border-line bg-elev/70 p-6 space-y-6 backdrop-blur-md relative overflow-hidden"
-              style={{
-                boxShadow: `0 8px 30px -10px ${activeChassis.glowColor}`,
-              }}
-            >
-              {/* Header */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span
-                    className="text-xs font-mono font-medium px-2.5 py-1 rounded border"
-                    style={{
-                      color: activeChassis.accentColor,
-                      backgroundColor: "rgba(10,12,18,0.8)",
-                      borderColor: activeChassis.glowColor,
-                    }}
-                  >
-                    {activeChassis.mechanicalTag}
-                  </span>
-                  <span className="text-xs font-mono text-ink-3 flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-real" />
-                    Latency: {activeChassis.latencyMs}ms p95
-                  </span>
-                </div>
-
-                <h3 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
-                  {activeChassis.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-ink-2 leading-relaxed">
-                  {activeChassis.purpose}
-                </p>
-              </div>
-
-              {/* Repo Service Path & Data Contracts */}
-              <div className="space-y-3 rounded-xl border border-line bg-black/60 p-4 font-mono text-xs">
-                <div className="flex items-center gap-2 text-ink-3 pb-2 border-b border-line">
-                  <Terminal size={14} className="text-accent" />
-                  <span>ACTIVE REPO SERVICE IMPLEMENTATION:</span>
-                </div>
-                <div className="text-ink-2 flex items-center justify-between">
-                  <code className="text-accent">{activeChassis.codePath}</code>
-                  <span className="text-[10px] text-ink-3">PYTHON 3.12</span>
-                </div>
-
-                <div className="pt-2 border-t border-line/60 space-y-1.5 text-[11px]">
-                  <div>
-                    <span className="text-ink-3">INPUT CONTRACT: </span>
-                    <span className="text-ink-2">{activeChassis.inputContract}</span>
-                  </div>
-                  <div>
-                    <span className="text-ink-3">OUTPUT CONTRACT: </span>
-                    <span className="text-ink-2">{activeChassis.outputContract}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Submodules Checklist */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-mono tracking-wider text-ink-3 uppercase flex items-center gap-2">
-                  <Cpu size={14} className="text-accent" />
-                  Mechanical Submodules
-                </h4>
-                <div className="grid grid-cols-1 gap-2.5">
-                  {activeChassis.submodules.map((sub, i) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-3 p-3 rounded-control bg-elev/60 border border-line/80 hover:border-line-strong transition-colors"
+        {/* Dynamic Live Pipeline Chart Canvas & Nodes */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left: The Dynamic Interactive Flow Topology */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="rounded-2xl border border-line bg-elev/50 p-6 relative overflow-hidden">
+              {/* Stage Progress Tracker Header */}
+              <div className="grid grid-cols-5 gap-2 pb-6 border-b border-line/60">
+                {PIPELINE_STAGES.map((stg, i) => {
+                  const isActive = currentStage === i;
+                  const isPassed = currentStage > i;
+                  return (
+                    <button
+                      key={stg.id}
+                      onClick={() => {
+                        setIsPlaying(false);
+                        setCurrentStage(i);
+                        setPacketProgress(0);
+                      }}
+                      className="flex flex-col text-left group cursor-pointer"
                     >
-                      <CheckCircle2 size={16} className="text-real shrink-0 mt-0.5" />
-                      <div>
-                        <div className="text-sm font-medium text-white">{sub.name}</div>
-                        <div className="text-xs text-ink-3 mt-0.5">{sub.desc}</div>
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span
+                          className={`size-2 rounded-full transition-colors ${
+                            isActive
+                              ? "bg-accent shadow-[0_0_8px_#38bdf8]"
+                              : isPassed
+                              ? "bg-real"
+                              : "bg-line-strong"
+                          }`}
+                        />
+                        <span className="text-[10px] font-mono uppercase text-ink-3 group-hover:text-ink">
+                          0{i + 1}
+                        </span>
                       </div>
+                      <span
+                        className={`text-xs font-medium truncate transition-colors ${
+                          isActive ? "text-white font-semibold" : "text-ink-2 group-hover:text-white"
+                        }`}
+                      >
+                        {stg.title}
+                      </span>
+                      {/* Active progress bar indicator */}
+                      <div className="w-full h-1 bg-line/60 rounded-full mt-2 overflow-hidden">
+                        <div
+                          className="h-full transition-all duration-100"
+                          style={{
+                            width: isActive ? `${packetProgress}%` : isPassed ? "100%" : "0%",
+                            backgroundColor: stg.color,
+                          }}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Dynamic Interactive Node Grid with SVG Circuit Bus */}
+              <div className="py-8 relative">
+                {/* SVG Circuit Bus Lines with Dynamic Pulsing Data Packets */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none z-0"
+                  viewBox="0 0 800 480"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="none"
+                >
+                  {/* Circuit Wire Traces */}
+                  <path
+                    d="M 120 70 L 260 70 L 260 160 L 400 160"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+                  <path
+                    d="M 120 160 L 400 160"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M 400 160 L 540 160 L 540 260 L 680 260"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+                  <path
+                    d="M 400 260 L 540 260"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth="2"
+                  />
+
+                  {/* Active Glowing Packet traveling along the current active stage wire */}
+                  {isPlaying && (
+                    <circle
+                      r="4"
+                      fill={PIPELINE_STAGES[currentStage].color}
+                      filter="drop-shadow(0 0 6px currentColor)"
+                      cx={100 + currentStage * 140 + packetProgress * 1.3}
+                      cy={currentStage % 2 === 0 ? 160 : 180}
+                      className="transition-all duration-75"
+                    />
+                  )}
+                </svg>
+
+                {/* Pipeline Nodes Layout */}
+                <div className="space-y-8 relative z-10">
+                  {PIPELINE_STAGES.map((stg) => {
+                    const stageNodes = PIPELINE_NODES.filter((n) => n.stageId === stg.id);
+                    const isStageActive = currentStage === stg.id;
+
+                    return (
+                      <div
+                        key={stg.id}
+                        className={`p-4 rounded-xl border transition-all duration-300 ${
+                          isStageActive
+                            ? "bg-elev border-accent/60 shadow-[0_0_25px_-5px_rgba(56,189,248,0.15)]"
+                            : "bg-elev/30 border-line/60 opacity-80"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="size-2 rounded-full"
+                              style={{ backgroundColor: isStageActive ? stg.color : "#64748b" }}
+                            />
+                            <h4 className="text-xs font-mono font-semibold uppercase tracking-wider text-white">
+                              {stg.title}
+                            </h4>
+                            <span className="text-[11px] font-mono text-ink-3">
+                              ({stageLatencies[stg.id]}ms p95)
+                            </span>
+                          </div>
+
+                          <span className="text-[11px] text-ink-3 hidden sm:inline">{stg.subtitle}</span>
+                        </div>
+
+                        {/* Nodes in this stage */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                          {stageNodes.map((node) => {
+                            const isSelected = selectedNodeId === node.id;
+                            const res = node.testPayloads[activePreset];
+
+                            return (
+                              <button
+                                key={node.id}
+                                onClick={() => setSelectedNodeId(node.id)}
+                                className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer relative group ${
+                                  isSelected
+                                    ? "bg-elev border-white shadow-md"
+                                    : "bg-elev/60 border-line hover:border-line-strong hover:bg-elev"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-line/60 text-ink-2">
+                                    {node.latencyMs}ms
+                                  </span>
+                                  {/* Result status icon for this test preset */}
+                                  <span
+                                    className={`inline-flex items-center gap-1 text-[10px] font-mono font-medium ${
+                                      res.status === "verified"
+                                        ? "text-real"
+                                        : res.status === "flagged"
+                                        ? "text-fake"
+                                        : res.status === "contradicted"
+                                        ? "text-warn"
+                                        : "text-ink-3"
+                                    }`}
+                                  >
+                                    {res.status === "verified" ? (
+                                      <CheckCircle2 size={12} />
+                                    ) : res.status === "flagged" ? (
+                                      <AlertTriangle size={12} />
+                                    ) : (
+                                      <Zap size={12} />
+                                    )}
+                                    <span className="uppercase">{res.status}</span>
+                                  </span>
+                                </div>
+
+                                <div className="font-semibold text-xs sm:text-sm text-white group-hover:text-accent transition-colors flex items-center justify-between">
+                                  <span>{node.name}</span>
+                                  <ChevronRight
+                                    size={13}
+                                    className={`transition-transform ${isSelected ? "text-accent translate-x-0.5" : "text-ink-3"}`}
+                                  />
+                                </div>
+
+                                <p className="text-[11px] text-ink-2 mt-1 line-clamp-1">{node.role}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dynamic Oscilloscope: Real-Time Latency Breakdown Chart */}
+              <div className="pt-6 mt-6 border-t border-line/70 space-y-3">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-ink-2 flex items-center gap-2">
+                    <Activity size={14} className="text-real" />
+                    <span>REAL-TIME PIPELINE LATENCY OSCILLOSCOPE</span>
+                  </span>
+                  <span className="text-white font-semibold">Total: {totalLatency}ms</span>
+                </div>
+
+                {/* Horizontal Multi-Stage Latency Distribution Bar */}
+                <div className="w-full h-3 rounded-full bg-elev border border-line flex overflow-hidden">
+                  {PIPELINE_STAGES.map((stg, i) => {
+                    const widthPct = (stageLatencies[i] / totalLatency) * 100;
+                    return (
+                      <div
+                        key={stg.id}
+                        style={{
+                          width: `${widthPct}%`,
+                          backgroundColor: stg.color,
+                        }}
+                        title={`${stg.title}: ${stageLatencies[i]}ms (${Math.round(widthPct)}%)`}
+                        className="h-full transition-all duration-300 relative group cursor-pointer"
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-ink-3">
+                  {PIPELINE_STAGES.map((stg, i) => (
+                    <div key={stg.id} className="flex items-center gap-1.5">
+                      <span className="size-2 rounded-full" style={{ backgroundColor: stg.color }} />
+                      <span>
+                        {stg.title}: <strong className="text-ink">{stageLatencies[i]}ms</strong>
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Specifications List */}
+          {/* Right: Technical Inspector Dossier for Selected Node */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <div className="rounded-2xl border border-line bg-elev/70 p-6 flex flex-col justify-between h-full shadow-panel space-y-6">
+              {/* Header & Category */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-line/60 border border-line text-ink-2">
+                    {selectedNode.category}
+                  </span>
+                  <span className="text-xs font-mono text-real flex items-center gap-1">
+                    <span className="size-1.5 rounded-full bg-real" />
+                    <span>{selectedNode.latencyMs}ms p95</span>
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold text-white tracking-tight">{selectedNode.name}</h3>
+                <p className="text-xs font-mono text-accent mt-0.5">{selectedNode.role}</p>
+                <p className="text-xs text-ink-2 leading-relaxed mt-3">{selectedNode.description}</p>
+              </div>
+
+              {/* Active Repository Source Link */}
+              <div className="p-3.5 rounded-xl bg-black/40 border border-line text-xs font-mono space-y-1.5">
+                <div className="text-ink-3 flex items-center gap-1.5 text-[11px]">
+                  <Terminal size={12} className="text-accent" />
+                  <span>ACTIVE REPO SERVICE IMPLEMENTATION</span>
+                </div>
+                <div className="text-real truncate">{selectedNode.codePath}</div>
+              </div>
+
+              {/* Live Payload Execution Telemetry for the active preset */}
               <div className="space-y-2">
-                <h4 className="text-xs font-mono tracking-wider text-ink-3 uppercase flex items-center gap-2">
-                  <Database size={14} className="text-accent" />
-                  Technical Specifications
-                </h4>
-                <ul className="space-y-1.5 text-xs text-ink-2 font-mono">
-                  {activeChassis.specifications.map((spec, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-accent">›</span>
+                <div className="text-xs font-mono text-ink-3 flex items-center gap-1.5">
+                  <Zap size={13} className="text-warn" />
+                  <span>LIVE EXECUTION TELEMETRY (SELECTED PRESET)</span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-elev border border-line space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-ink-2">Status Outcome:</span>
+                    <span
+                      className={`font-semibold uppercase ${
+                        payloadData.status === "verified"
+                          ? "text-real"
+                          : payloadData.status === "flagged"
+                          ? "text-fake"
+                          : payloadData.status === "contradicted"
+                          ? "text-warn"
+                          : "text-ink"
+                      }`}
+                    >
+                      {payloadData.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink leading-relaxed font-sans">{payloadData.readout}</p>
+                  <div className="text-[11px] font-mono text-ink-3 pt-2 border-t border-line/60">
+                    &gt; {payloadData.telemetry}
+                  </div>
+                </div>
+              </div>
+
+              {/* Input / Output Contracts */}
+              <div className="space-y-2 text-xs font-mono">
+                <div className="text-ink-3">DATA CONTRACT SCHEMAS</div>
+                <div className="space-y-1.5">
+                  <div className="p-2.5 rounded bg-black/30 border border-line/70">
+                    <span className="text-ink-3 text-[10px] block mb-0.5">INPUT CONTRACT:</span>
+                    <code className="text-ink text-[11px] break-all">{selectedNode.inputContract}</code>
+                  </div>
+                  <div className="p-2.5 rounded bg-black/30 border border-line/70">
+                    <span className="text-ink-3 text-[10px] block mb-0.5">OUTPUT CONTRACT:</span>
+                    <code className="text-accent text-[11px] break-all">{selectedNode.outputContract}</code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Technical Specifications */}
+              <div className="space-y-2 pt-2 border-t border-line/60">
+                <div className="text-xs font-mono text-ink-3">TECHNICAL SPECIFICATIONS</div>
+                <ul className="space-y-1 text-xs text-ink-2">
+                  {selectedNode.specs.map((spec, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="size-1 rounded-full bg-accent" />
                       <span>{spec}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Actions */}
-              <div className="pt-2 flex items-center gap-3">
+              {/* Action Links */}
+              <div className="flex items-center gap-3 pt-2">
                 <Link
                   href="/demo/workspace"
                   className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-control bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors"
@@ -641,10 +804,10 @@ export function Architecture3D() {
                   <ExternalLink size={14} />
                 </Link>
                 <Link
-                  href="/about"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-control bg-elev border border-line hover:border-line-strong text-ink text-xs sm:text-sm transition-colors"
+                  href="/tech-stack"
+                  className="px-4 py-2.5 rounded-control bg-elev border border-line hover:border-line-strong text-ink text-xs sm:text-sm transition-colors"
                 >
-                  <span>Whitepaper</span>
+                  <span>Tech Stack</span>
                 </Link>
               </div>
             </div>

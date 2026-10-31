@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Architecture3D } from "@/components/Architecture3D";
 
 export const metadata: Metadata = {
-  title: "System Architecture (3D Model) — Veritas",
+  title: "Live Forensic Pipeline Architecture — Veritas",
   description:
-    "Interactive 3D model of the Veritas multi-signal forensic verification pipeline rendered with Anime.js. Monolithic and exploded views with deep contract telemetry.",
+    "Interactive dynamic execution chart demonstrating Veritas's multi-stage forensic analysis lifecycle from raw multimodal ingestion to calibrated Bayesian synthesis.",
 };
 
 export default function ArchitecturePage() {

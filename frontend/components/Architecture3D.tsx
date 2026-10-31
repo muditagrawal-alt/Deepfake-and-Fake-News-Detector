@@ -7,10 +7,8 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
-  FileCode2,
   ExternalLink,
   BookOpen,
-  Zap,
 } from "lucide-react";
 
 export type PayloadPreset = "deepfake_image" | "satire_news" | "verified_dispatch";
@@ -955,7 +953,6 @@ const CANVAS_WIDTH = 1180;
 const CANVAS_HEIGHT = 580;
 
 export function Architecture3D() {
-  const [activePreset, setActivePreset] = useState<PayloadPreset>("verified_dispatch");
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-gemini-claims");
   const [zoom, setZoom] = useState<number>(1.0);
   const [activeStep, setActiveStep] = useState<number>(0);
@@ -988,9 +985,6 @@ export function Architecture3D() {
     return () => clearInterval(interval);
   }, []);
 
-  const selectedNode = FLOW_NODES.find((n) => n.id === selectedNodeId) || FLOW_NODES[0];
-  const payloadData = selectedNode.testPayloads[activePreset];
-
   const totalPipelineLatency = FLOW_NODES.reduce((acc, n) => acc + n.latencyMs, 0);
 
   const handleZoomIn = () => setZoom((z) => Math.min(1.4, z + 0.1));
@@ -1008,38 +1002,24 @@ export function Architecture3D() {
           <div className="space-y-2 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-cyan-400">
               <Activity size={13} className="text-emerald-400 animate-pulse" />
-              <span>LIVE SYSTEM ARCHITECTURE · MULTIMODAL DAG FLOW</span>
+              <span>SYSTEM ARCHITECTURE · CAUSAL DATAFLOW PIPELINE</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
               System Architecture Flowchart
             </h2>
             <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              Real-time causal DAG showing continuous small data nodes flowing across multimodal ingestion, sensor forensics,
+              Causal DAG illustrating the end-to-end multimodal pipeline: parallel sensor forensics,
               central claim decomposition, independent wire triangulation, and calibrated Bayesian synthesis.
             </p>
           </div>
 
-          {/* Test Payload Preset Picker */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Test Payload:</span>
-            <div className="inline-flex p-1 rounded-xl bg-white/5 border border-white/10">
-              {[
-                { id: "deepfake_image", label: "Synthetic AI Image" },
-                { id: "satire_news", label: "Satirical Onion Wire" },
-                { id: "verified_dispatch", label: "AP Wire Dispatch" },
-              ].map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => setActivePreset(preset.id as PayloadPreset)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    activePreset === preset.id
-                      ? "bg-white text-black font-semibold shadow-sm"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
+              <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>12 Active Pipeline Nodes</span>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-800/40 text-xs font-mono text-cyan-400">
+              <span>Bayesian Directed Acyclic Graph</span>
             </div>
           </div>
         </div>
@@ -1185,30 +1165,9 @@ export function Architecture3D() {
                   const cx2 = edge.x2 - dx * 0.5;
                   const pathD = `M ${edge.x1} ${edge.y1} C ${cx1} ${edge.y1}, ${cx2} ${edge.y2}, ${edge.x2} ${edge.y2}`;
 
-                  const isFlaggedEdge =
-                    activePreset === "deepfake_image" &&
-                    (edge.id === "edge-synthid-gemini" ||
-                      edge.id === "edge-fft-gemini" ||
-                      edge.id === "edge-gemini-retrieval");
-
-                  const strokeColor = isFlaggedEdge
-                    ? "rgba(239, 68, 68, 0.45)"
-                    : activePreset === "verified_dispatch"
-                    ? "rgba(16, 185, 129, 0.4)"
-                    : "rgba(56, 189, 248, 0.3)";
-
-                  const particleColor = isFlaggedEdge
-                    ? "#ef4444"
-                    : activePreset === "verified_dispatch"
-                    ? "#10b981"
-                    : "#38bdf8";
-
-                  const particleFilter = isFlaggedEdge
-                    ? "url(#glow-red)"
-                    : activePreset === "verified_dispatch"
-                    ? "url(#glow-green)"
-                    : "url(#glow-cyan)";
-
+                  const strokeColor = "rgba(56, 189, 248, 0.35)";
+                  const particleColor = "#38bdf8";
+                  const particleFilter = "url(#glow-cyan)";
                   const durSec = 2.4 + (idx % 3) * 0.4;
 
                   return (
@@ -1262,13 +1221,8 @@ export function Architecture3D() {
                 const posX = edge.badgeX ?? (edge.x1 + edge.x2) / 2;
                 const posY = edge.badgeY ?? (edge.y1 + edge.y2) / 2;
                 const badge = edge.pillBadge!;
-
-                const isRedBadge =
-                  badge.type === "red" ||
-                  (activePreset === "deepfake_image" &&
-                    (edge.id === "edge-synthid-gemini" || edge.id === "edge-fft-gemini"));
-
-                const textVal = isRedBadge ? "-0.644" : badge.text;
+                const isRedBadge = badge.type === "red";
+                const textVal = badge.text;
 
                 return (
                   <div
@@ -1293,9 +1247,6 @@ export function Architecture3D() {
               {FLOW_NODES.map((node) => {
                 const isSelected = selectedNodeId === node.id;
                 const isCenterHub = node.id === "node-gemini-claims";
-                const payload = node.testPayloads[activePreset];
-
-                const isFlagged = payload.status === "flagged" || payload.status === "contradicted";
                 const isStepActive = node.column === (activeStep % 5) + 1;
 
                 return (
@@ -1331,35 +1282,18 @@ export function Architecture3D() {
                         </div>
                       </div>
 
-                      {/* Sub-tag row matching reference: Metric (Input) · Sum */}
+                      {/* Sub-tag row: Modality/Role tag & Active status pill */}
                       <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 mb-2">
                         <span className={isCenterHub ? "text-cyan-400 font-semibold" : "text-zinc-400"}>
                           {node.typeTag}
                         </span>
-                        {activePreset === "verified_dispatch" ? (
-                          <span className="text-emerald-400 font-medium flex items-center gap-1">
-                            <CheckCircle2 size={10} />
-                            Verified
-                          </span>
-                        ) : activePreset === "satire_news" ? (
-                          <span className="text-amber-400 font-medium flex items-center gap-1">
-                            <CheckCircle2 size={10} />
-                            Satire Match
-                          </span>
-                        ) : isFlagged ? (
-                          <span className="text-cyan-400 font-medium flex items-center gap-1">
-                            <Zap size={10} className="text-amber-400" />
-                            Anomaly Caught
-                          </span>
-                        ) : (
-                          <span className="text-emerald-400 font-medium flex items-center gap-1">
-                            <CheckCircle2 size={10} />
-                            Pass
-                          </span>
-                        )}
+                        <span className="text-emerald-400 font-medium flex items-center gap-1">
+                          <CheckCircle2 size={10} />
+                          Active
+                        </span>
                       </div>
 
-                      {/* Progress Bar matching reference design: colorful execution status */}
+                      {/* Progress Bar matching reference design: architectural status */}
                       <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-2">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
@@ -1445,87 +1379,6 @@ export function Architecture3D() {
             </button>
             <div className="text-[9px] font-mono text-zinc-400 pb-1 border-t border-white/10 pt-1 w-full text-center">
               {Math.round(zoom * 100)}%
-            </div>
-          </div>
-        </div>
-
-        {/* Selected Node Technical Telemetry & Enclave Inspector */}
-        <div className="rounded-2xl border border-white/10 bg-[#0d0e14] p-6 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="size-3 rounded-full"
-                style={{ backgroundColor: selectedNode.accentColor }}
-              />
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>{selectedNode.title}</span>
-                  <span className="text-xs font-mono font-normal text-zinc-400 px-2 py-0.5 rounded bg-white/5 border border-white/10">
-                    {selectedNode.typeTag}
-                  </span>
-                </h3>
-                <p className="text-xs text-zinc-400 font-mono mt-0.5">{selectedNode.subtitle}</p>
-              </div>
-            </div>
-
-            {/* Clickable repository source code path */}
-            <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-950/30 border border-cyan-800/40 px-3 py-1.5 rounded-lg">
-              <FileCode2 size={13} />
-              <span>{selectedNode.codePath}</span>
-            </div>
-          </div>
-
-          {/* Test Payload Live Execution Telemetry */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-              <span className="text-[10px] font-mono uppercase text-zinc-500">Payload Forensic Signal</span>
-              <div className="flex items-center gap-2">
-                {payloadData.status === "verified" ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                    <CheckCircle2 size={14} /> Verified Genuine Dispatch
-                  </span>
-                ) : payloadData.status === "flagged" ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400">
-                    <Zap size={14} className="text-amber-400" /> Synthetic Anomaly Isolated (Caught)
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400">
-                    <CheckCircle2 size={14} /> Satirical Assertion Identified
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-zinc-300 leading-relaxed pt-1">{payloadData.readout}</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-              <span className="text-[10px] font-mono uppercase text-zinc-500">Hardware & Telemetry Log</span>
-              <div className="font-mono text-xs text-zinc-300 bg-black/40 p-2.5 rounded-lg border border-white/5">
-                {payloadData.telemetry}
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5">
-              <span className="text-[10px] font-mono uppercase text-zinc-500">Service Architecture Health</span>
-              <div className="space-y-1 text-xs font-mono">
-                <div className="flex justify-between text-zinc-400">
-                  <span>Engine:</span>
-                  <span className="text-white">{selectedNode.engine}</span>
-                </div>
-                <div className="flex justify-between text-zinc-400">
-                  <span>Service SLA:</span>
-                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                    <CheckCircle2 size={11} /> 100% Operational
-                  </span>
-                </div>
-                <div className="flex justify-between text-zinc-400">
-                  <span>Latency:</span>
-                  <span className="text-cyan-400 font-semibold">{selectedNode.latencyMs}ms</span>
-                </div>
-                <div className="flex justify-between text-zinc-400">
-                  <span>Enclave:</span>
-                  <span className="text-emerald-400 font-semibold">Zero Data Retention</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -33,10 +33,14 @@ async def analyze_news(url: str, services: Services, *, progress=None) -> Analys
                 f"PUBLISHED: {extraction.published or '(unknown)'}\n\n"
                 f"ARTICLE TEXT:\n{text}")
     else:
+        inferred_headline = extraction.title or slug_from_url(url)
         body = (f"ARTICLE URL: {url}\n"
-                f"URL SLUG: {slug_from_url(url)}\n"
-                "The article body could not be extracted (paywall, bot block or unsupported page); "
-                "only the URL is available.")
+                f"HEADLINE / TOPIC INFERRED FROM URL: {inferred_headline}\n"
+                f"PUBLISHER: {extraction.site or urlparse(url).netloc}\n\n"
+                "NOTE: The raw article body could not be directly extracted from the publisher "
+                "(due to a paywall, WAF bot protection, or dynamic page structure).\n"
+                f"Extract the central story claims from the headline/topic ('{inferred_headline}') "
+                "and verify whether the event actually occurred by checking independent reporting in the retrieved evidence.")
 
     stage = await run_stages(
         services, modality="news", parts=[TextPart(body)], facts=facts,

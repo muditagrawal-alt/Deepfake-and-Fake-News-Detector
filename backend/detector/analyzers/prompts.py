@@ -12,9 +12,12 @@ TASK = """
 TASK DEFINITION
 Decide whether the item is authentic and accurate, or is misinformation or synthetic media.
 - LIKELY_FAKE: the media is AI-generated or manipulated, or the central factual claims are false,
-  fabricated or materially misleading (including real media presented with a false context, and
-  satire or parody presented as if it were news).
-- LIKELY_REAL: the media is authentic and its central claims are supported by independent evidence.
+  fabricated or materially misleading. This explicitly includes:
+  * Satire and parody (such as The Onion, Babylon Bee, ClickHole): even though authentically published
+    by a satire outlet, the underlying news stories are fictional inventions. For a misinformation detector,
+    satire must ALWAYS be classified as LIKELY_FAKE (never LIKELY_REAL).
+  * Real media or authentic events presented with false context, altered colors, or fabricated quotes.
+- LIKELY_REAL: the media is authentic and its central factual claims are supported by independent evidence.
 - UNCERTAIN: the available evidence does not support either conclusion.
 `confidence` is your probability that your verdict is correct.
 """
@@ -38,12 +41,13 @@ EVIDENCE RULES
 
 # ---------------------------------------------------------------- stage 1
 ANALYSE = {
-    "news": """You analyse a news article or a public statement for a misinformation-research system.
+    "news": """You analyse a news article, online video claim, or public statement for a misinformation-research system.
 Report what it claims. Do not judge whether it is true yet.
-- Identify the genre and language.
-- Extract 2-4 atomic factual claims that carry the story (who, what, when, where, how many),
-  each checkable against independent sources.
-- Write 1-3 web search queries that would find independent reporting on those claims.
+- Identify the genre and language. If the source is a satire/parody outlet (e.g. The Onion, Babylon Bee) or has humorous fictional framing, classify the genre as 'satire'.
+- Extract 2-4 atomic factual claims that carry the story (who, what, when, where, how many), each checkable against independent sources.
+- For online video claims (e.g., YouTube Shorts/videos, TikTok), isolate the core narrative assertion, specifically controversial modifiers (colors, numbers, quotes, scandalous actions).
+- If the article body could not be retrieved directly (due to paywall or bot protection), extract the central event claims from the headline/URL slug.
+- Write 1-3 targeted web search queries that would find independent reporting on those claims. When claims involve sensational controversies, miracle cures, or political accusations, formulate queries that search for fact-checks and debunking (e.g. "<subject> <specific claim> fact check OR debunk").
 - If an image was published with the article, describe it and state what the article implies it shows.
 """,
     "image": """You analyse an image for a misinformation-research system.
@@ -77,10 +81,15 @@ Report what the video shows and says, and what could be checked. Do not give a v
 
 # ---------------------------------------------------------------- stage 3
 VERIFY = {
-    "news": """You verify a news article or a public statement for a misinformation-research system.
+    "news": """You verify a news article, online video claim, or public statement for a misinformation-research system.
 You receive the article (and its image, if one was published with it), the claims extracted from
 it, and evidence retrieved from sources other than the original publisher. Judge each claim as
 corroborated, contradicted, misleading or unverifiable against that evidence, then decide the verdict.
+
+SPECIAL GUIDANCE FOR NEWS & ONLINE CLAIMS:
+- Satire & Parody: Content from satirical publications (e.g., The Onion, The Babylon Bee, ClickHole, Waterford Whispers) is fictional satire. Even though the piece was authentically created by that publication, the news event is fictional. You must ALWAYS classify satire as LIKELY_FAKE. Never classify satire as LIKELY_REAL.
+- False Context & Distorted Narratives: Misinformation frequently takes genuine events (such as a press conference, speech, or wedding) and attaches false context, incorrect colors (e.g., claiming a red turban is saffron), or fabricated quotes. If the underlying event occurred but the specific controversial claim or narrative is false, misleading, or contradicted by fact-checkers, the verdict must be LIKELY_FAKE.
+- Paywalled or Bot-Protected Headlines: If the article body could not be extracted directly from the publisher due to bot protection or paywalls, but multiple reputable independent news organizations in search results confirm that the event described in the headline occurred, classify the event as LIKELY_REAL with appropriate caveats noting the paywall.
 """ + TASK + EVIDENCE_RULES,
     "image": """You verify an image for a misinformation-research system.
 You receive the image, any text published with it, forensic facts about the file (including metadata

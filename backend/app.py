@@ -17,4 +17,5 @@ import uvicorn
 from detector.main import app
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 7860)), workers=1)
+    workers = int(os.environ.get("WEB_CONCURRENCY", os.environ.get("UVICORN_WORKERS", "1")))
+    uvicorn.run("detector.main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 7860)), workers=workers)

@@ -119,11 +119,16 @@ class Settings(BaseSettings):
     image_max_side: int = 1024           # downscale before sending to the LLM
 
     # ------------------------------------------------------------------
-    # HTTP / limits
+    # HTTP / limits & Traffic Scaling
     # ------------------------------------------------------------------
     allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     allowed_origin_regex: str = r"https://.*\.vercel\.app"   # preview + production deployments
-    rate_limit_per_ip: str = "10/hour"
+    rate_limit_per_ip: str = "120/minute"
+    enable_response_cache: bool = True
+    cache_ttl_seconds: int = 3600
+    cache_max_items: int = 1000
+    enable_gzip: bool = True
+    gzip_min_bytes: int = 1000
     max_image_mb: float = 10.0
     max_image_pixels: int = Field(default=40_000_000, gt=0)
     max_video_mb: float = 50.0

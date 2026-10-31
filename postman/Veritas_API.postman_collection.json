@@ -1,0 +1,506 @@
+{
+  "info": {
+    "_postman_id": "veritas-api-v2-collection",
+    "name": "Veritas API - Comprehensive Test Suite",
+    "description": "Production Postman test collection for Veritas Fake Content & Deepfake Detector API.\nIncludes whitebox validation, authentication flows, and high-traffic telemetry.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Dynamically generate a valid HMAC-SHA256 bearer token for authenticated requests",
+          "function base64url(str) {",
+          "    return CryptoJS.enc.Base64.stringify(str)",
+          "        .replace(/=+$/, '')",
+          "        .replace(/\\+/g, '-')",
+          "        .replace(/\\//g, '_');",
+          "}",
+          "",
+          "const secret = pm.environment.get('secret') || '0123456789abcdef0123456789abcdef0123456789abcdef';",
+          "const sub = pm.environment.get('user_sub') || 'a'.repeat(64);",
+          "const email = pm.environment.get('user_email') || 'tester@veritas.test';",
+          "const now = Math.floor(Date.now() / 1000);",
+          "",
+          "const header = { alg: 'HS256', typ: 'JWT' };",
+          "const payload = {",
+          "    iss: 'veritas-web',",
+          "    aud: 'veritas-api',",
+          "    sub: sub,",
+          "    auth_iat: now * 1000,",
+          "    email: email,",
+          "    name: 'Postman Runner',",
+          "    picture: '',",
+          "    iat: now,",
+          "    exp: now + 300",
+          "};",
+          "",
+          "const encodedHeader = base64url(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));",
+          "const encodedPayload = base64url(CryptoJS.enc.Utf8.parse(JSON.stringify(payload)));",
+          "const signatureInput = `${encodedHeader}.${encodedPayload}`;",
+          "const signature = base64url(CryptoJS.HmacSHA256(signatureInput, secret));",
+          "",
+          "const jwt = `${signatureInput}.${signature}`;",
+          "pm.variables.set('bearer_token', jwt);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. System & Telemetry",
+      "item": [
+        {
+          "name": "GET / (Service Discovery Card)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response is service card JSON', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.service).to.eql('Veritas API');",
+                  "    pm.expect(json.endpoints).to.be.an('array');",
+                  "});",
+                  "pm.test('Latency is under 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /health (Services & Engine Health)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Health status is ok', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('ok');",
+                  "    pm.expect(json).to.have.property('engine');",
+                  "    pm.expect(json).to.have.property('quota');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /metrics (Traffic & Cache Telemetry)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Encoding",
+                "value": "gzip"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Telemetry has cache stats', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('healthy');",
+                  "    pm.expect(json.cache).to.have.property('items_count');",
+                  "    pm.expect(json.cache).to.have.property('hits');",
+                  "    pm.expect(json.traffic_concurrency.response_cache_enabled).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Authentication & Account Management",
+      "item": [
+        {
+          "name": "GET /account (Account Status)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/account",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Account details match session', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('free_limit');",
+                  "    pm.expect(json).to.have.property('free_remaining');",
+                  "    pm.expect(json).to.have.property('history_enabled');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /account/history (Detection History)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/account/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "history"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('History is an array', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /account/preferences/history (Enable History)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/preferences/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "preferences",
+                "history"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('History preference updated', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.history_enabled).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /account/keys (Register BYOK Key)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"provider\": \"gemini\",\n    \"key\": \"AIzaSyB_dummy_test_key_for_postman_long_string\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account/keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "keys"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Key saved successfully', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.saved).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /account/keys/gemini (Remove BYOK Key)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/account/keys/gemini",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "keys",
+                "gemini"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Key deleted successfully', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.deleted).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Security & Validation Edge Cases",
+      "item": [
+        {
+          "name": "Unauthenticated Request (401 Verification)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Malformed URL Validation (400 Verification)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"url\": \"invalid-protocol-without-http\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analyze/news",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analyze",
+                "news"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error message points to missing protocol', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.detail).to.include('URL must start with http:// or https://');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown Job ID (404 Verification)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/non_existent_job_id_xyz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                "non_existent_job_id_xyz"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

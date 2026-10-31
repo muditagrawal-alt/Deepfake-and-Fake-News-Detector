@@ -17,8 +17,9 @@ import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -28,6 +29,7 @@ from pydantic import BaseModel, Field
 
 from detector import accounts
 from detector.auth import require_user
+from detector.cache import response_cache
 from detector.config import get_settings
 from detector.forensics.video_meta import ffprobe_json
 from detector.jobs import JobStore
@@ -71,6 +73,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Fake Content Detector API", version="2.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+if settings.enable_gzip:
+    app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_min_bytes)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.origins,
@@ -119,12 +125,52 @@ async def health():
     return {"status": "ok", **get_services().status()}
 
 
+@app.get("/metrics")
+async def metrics():
+    """System health, cache efficiency, and concurrency telemetry."""
+    import resource
+    # ru_maxrss is in bytes on macOS, kilobytes on Linux
+    raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    rss_mb = raw_rss / (1024 * 1024) if raw_rss > 100_000_000 else raw_rss / 1024
+    return {
+        "status": "healthy",
+        "cache": await response_cache.stats(),
+        "active_jobs": len(jobs._jobs),
+        "memory_rss_mb": round(rss_mb, 2),
+        "traffic_concurrency": {
+            "gemini_rpm": settings.gemini_rpm,
+            "rate_limit_per_ip": settings.rate_limit_per_ip,
+            "response_cache_enabled": settings.enable_response_cache,
+            "gzip_enabled": settings.enable_gzip,
+        },
+    }
+
+
 @app.post("/analyze/news", response_model=AnalysisResult)
 @limiter.limit(settings.rate_limit_per_ip)
-async def analyze_news_endpoint(request: Request, body: NewsRequest, user: dict = Depends(require_user)):
+async def analyze_news_endpoint(
+    request: Request,
+    response: Response,
+    body: NewsRequest,
+    user: dict = Depends(require_user),
+):
     if not body.url.lower().startswith(("http://", "https://")):
         raise HTTPException(400, "URL must start with http:// or https://")
-    return await _run_detection(user, body.url, url=body.url)
+
+    if not settings.enable_response_cache:
+        return await _run_detection(user, body.url, url=body.url)
+
+    cache_key = f"news:{body.url.strip().lower()}"
+
+    async def compute():
+        return await _run_detection(user, body.url, url=body.url)
+
+    result, was_hit = await response_cache.get_or_compute(
+        cache_key, compute, ttl=settings.cache_ttl_seconds
+    )
+    response.headers["X-Cache"] = "HIT" if was_hit else "MISS"
+    response.headers["Server-Timing"] = f"cache;desc={'hit' if was_hit else 'miss'}"
+    return result
 
 
 @app.post("/analyze/image", response_model=AnalysisResult)

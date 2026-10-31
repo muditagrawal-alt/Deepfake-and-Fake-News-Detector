@@ -29,6 +29,7 @@ import Analyzer from "@/components/Analyzer";
 import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
 import BlurText from "@/components/BlurText";
+import Feedback1 from "@/components/Feedback1";
 
 const Topography = dynamic(() => import("@/components/Topography"), {
   ssr: false,
@@ -1359,6 +1360,21 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
               Start an inspection <ArrowUpRight size={18} aria-hidden />
             </motion.button>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/*  FEEDBACK & CALIBRATION SECTION (React Bits Pro Feedback 1)       */}
+      {/* ------------------------------------------------------------------ */}
+      <section
+        id="feedback-section"
+        className="relative px-4 py-20 sm:px-8 sm:py-28 lg:px-12 border-t border-white/5 bg-[#030305]"
+      >
+        <ScanGrid className="absolute inset-0 opacity-15 pointer-events-none" />
+        <div className="relative mx-auto max-w-[1120px]">
+          <ScrollReveal reduceMotion={shouldReduceMotion}>
+            <Feedback1 recipientEmail="muditagrawal03@gmail.com" />
+          </ScrollReveal>
         </div>
       </section>
     </div>

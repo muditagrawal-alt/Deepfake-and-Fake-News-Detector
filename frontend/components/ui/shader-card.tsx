@@ -103,10 +103,13 @@ const FRAGMENT_SHADER_SOURCE = `
     float chimneyDist = abs(uv.x - mouseUV.x) * aspect;
     float upwardDraft = exp(-chimneyDist * 3.4) * smoothstep(0.0, mouseUV.y + 0.30, uv.y) * u_hover;
 
-    // Full-card dynamic reach: flames climb all the way across the full card (up to 1.20)
-    float baseReach = 0.74;
-    float cursorLift = max(mouseUV.y * 1.12, 0.48) * u_hover;
-    float targetHeight = mix(baseReach, 1.20, cursorLift) * u_flameHeight;
+    // Smooth flame growth on hover:
+    // In ambient resting state (u_hover = 0), flames burn at base reach (0.42).
+    // As u_hover smoothly grows to 1.0, flames grow gracefully up towards cursor position (up to 1.22).
+    float baseReach = 0.42;
+    float cursorLift = max(mouseUV.y * 1.15, 0.45);
+    float activeReach = mix(0.72, 1.22, cursorLift);
+    float targetHeight = mix(baseReach, activeReach, u_hover) * u_flameHeight;
 
     // 4. Multi-octave domain-warped flame simulation (buoyant licking fire tongues)
     float buoyTime = t * 1.35;
@@ -214,9 +217,11 @@ export function ShaderCard({
   const reduceMotion = useReducedMotion();
   const shouldReduceMotion = Boolean(reduceMotion);
 
-  // Mouse / Pointer kinetic tracking
+  // Mouse / Pointer kinetic tracking with critically damped fluid physics
   const mouseStateRef = useRef({ x: 0.5, y: 0.5, vx: 0, vy: 0, hover: 0 });
+  const targetMouseRef = useRef({ x: 0.5, y: 0.5 });
   const isHoveredRef = useRef(false);
+  const lastTimeRef = useRef<number>(0);
   const [tilt, setTilt] = useState<{ rotateX: number; rotateY: number }>({ rotateX: 0, rotateY: 0 });
 
   const rgbColor = parseColorToRgb(color);
@@ -229,16 +234,11 @@ export function ShaderCard({
       const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
-      const prevX = mouseStateRef.current.x;
-      const prevY = mouseStateRef.current.y;
-      mouseStateRef.current.vx = (x - prevX) * 28.0;
-      mouseStateRef.current.vy = (y - prevY) * 28.0;
-      mouseStateRef.current.x = x;
-      mouseStateRef.current.y = y;
-      mouseStateRef.current.hover = 1.0;
+      targetMouseRef.current.x = x;
+      targetMouseRef.current.y = y;
 
-      const tiltX = (0.5 - y) * 8.5;
-      const tiltY = (x - 0.5) * 8.5;
+      const tiltX = (0.5 - y) * 7.5;
+      const tiltY = (x - 0.5) * 7.5;
       setTilt({ rotateX: tiltX, rotateY: tiltY });
     },
     [interactive, shouldReduceMotion]
@@ -250,16 +250,19 @@ export function ShaderCard({
       const rect = cardRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-      mouseStateRef.current.x = x;
-      mouseStateRef.current.y = y;
-      mouseStateRef.current.vx = 0;
-      mouseStateRef.current.vy = 0;
-      mouseStateRef.current.hover = 1.0;
+      targetMouseRef.current.x = x;
+      targetMouseRef.current.y = y;
+      if (mouseStateRef.current.hover < 0.05) {
+        mouseStateRef.current.x = x;
+        mouseStateRef.current.y = y;
+      }
     }
   };
 
   const handleMouseLeave = () => {
     isHoveredRef.current = false;
+    targetMouseRef.current.x = 0.5;
+    targetMouseRef.current.y = 0.5;
     setTilt({ rotateX: 0, rotateY: 0 });
   };
 
@@ -354,14 +357,33 @@ export function ShaderCard({
     const render = (time: number) => {
       resize();
 
+      const nowSec = time * 0.001;
+      const lastSec = lastTimeRef.current > 0 ? lastTimeRef.current : nowSec - 0.016;
+      lastTimeRef.current = nowSec;
+      const dt = Math.max(0.001, Math.min(nowSec - lastSec, 0.06));
+
       const elapsed = (time - startTime) * 0.001 * speed;
 
-      // Smooth decay of kinetic velocity and hover factor
+      // Smooth exponential growth on hover (gentle ~450ms physical swelling)
       const m = mouseStateRef.current;
-      m.vx *= 0.94;
-      m.vy *= 0.94;
       const targetHover = isHoveredRef.current ? 1.0 : 0.0;
-      m.hover += (targetHover - m.hover) * 0.12;
+      m.hover += (targetHover - m.hover) * (1.0 - Math.exp(-dt * 4.5));
+
+      // Critically damped spring tracking for smooth cursor motion without sudden jumps
+      const targetX = targetMouseRef.current.x;
+      const targetY = targetMouseRef.current.y;
+      const posLerp = 1.0 - Math.exp(-dt * 8.0);
+      const prevX = m.x;
+      const prevY = m.y;
+      m.x += (targetX - m.x) * posLerp;
+      m.y += (targetY - m.y) * posLerp;
+
+      // Organic fluid velocity tracking
+      const rawVx = (m.x - prevX) / dt * 0.14;
+      const rawVy = (m.y - prevY) / dt * 0.14;
+      const velLerp = 1.0 - Math.exp(-dt * 7.5);
+      m.vx += (rawVx - m.vx) * velLerp;
+      m.vy += (rawVy - m.vy) * velLerp;
 
       gl.useProgram(program);
       gl.uniform2f(uResolution, canvas.width, canvas.height);

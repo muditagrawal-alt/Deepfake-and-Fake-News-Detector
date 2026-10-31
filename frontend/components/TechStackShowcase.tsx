@@ -281,6 +281,8 @@ export function TechStackShowcase() {
           <ParallaxCards
             key={filter}
             items={filteredItems}
+            cardWidth={380}
+            cardHeight={300}
             perspective={2500}
             mouseSensitivity={3.0}
             enableDepthFog={true}

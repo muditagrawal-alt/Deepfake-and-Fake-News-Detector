@@ -31,22 +31,22 @@ export interface ParallaxCardsProps {
   onCardClick?: (index: number, item: ParallaxCardItem) => void;
 }
 
-// 14 distinct 3D field coordinates matching React Bits Pro Parallax Cards specification
+// 14 distinct 3D field coordinates: compressed depth and balanced scale for maximum legibility
 const CARD_LAYOUT_PRESETS = [
-  { x: -260, y: -120, z: -100, rotY: 4, rotX: -4, scale: 0.95, zIndex: 140 },
-  { x: 260, y: -140, z: -180, rotY: -4, rotX: -3, scale: 0.90, zIndex: 130 },
-  { x: -380, y: 160, z: -260, rotY: 5, rotX: 3, scale: 0.85, zIndex: 120 },
-  { x: 380, y: 180, z: -340, rotY: -5, rotX: 4, scale: 0.80, zIndex: 110 },
-  { x: 0, y: -260, z: -420, rotY: 0, rotX: -6, scale: 0.78, zIndex: 100 },
-  { x: -520, y: 20, z: -500, rotY: 8, rotX: 0, scale: 0.74, zIndex: 90 },
-  { x: 520, y: 20, z: -580, rotY: -8, rotX: 0, scale: 0.70, zIndex: 80 },
-  { x: 0, y: 260, z: -660, rotY: 0, rotX: 6, scale: 0.66, zIndex: 70 },
-  { x: -320, y: -190, z: -760, rotY: 4, rotX: -4, scale: 0.62, zIndex: 60 },
-  { x: 320, y: -190, z: -860, rotY: -4, rotX: -4, scale: 0.58, zIndex: 50 },
-  { x: -320, y: 190, z: -960, rotY: 4, rotX: 4, scale: 0.54, zIndex: 40 },
-  { x: 320, y: 190, z: -1060, rotY: -4, rotX: 4, scale: 0.50, zIndex: 30 },
-  { x: -200, y: 0, z: -1180, rotY: 2, rotX: 0, scale: 0.46, zIndex: 20 },
-  { x: 200, y: 0, z: -1280, rotY: -2, rotX: 0, scale: 0.42, zIndex: 10 },
+  { x: -280, y: -110, z: -40, rotY: 5, rotX: -3, scale: 0.96, zIndex: 140 },
+  { x: 280, y: -120, z: -80, rotY: -5, rotX: -3, scale: 0.94, zIndex: 130 },
+  { x: -380, y: 140, z: -120, rotY: 6, rotX: 3, scale: 0.92, zIndex: 120 },
+  { x: 380, y: 150, z: -160, rotY: -6, rotX: 3, scale: 0.90, zIndex: 110 },
+  { x: -150, y: -235, z: -200, rotY: 2, rotX: -5, scale: 0.88, zIndex: 100 },
+  { x: 150, y: -235, z: -220, rotY: -2, rotX: -5, scale: 0.87, zIndex: 95 },
+  { x: -490, y: 15, z: -250, rotY: 9, rotX: 0, scale: 0.85, zIndex: 90 },
+  { x: 490, y: 15, z: -270, rotY: -9, rotX: 0, scale: 0.84, zIndex: 85 },
+  { x: -150, y: 240, z: -300, rotY: 2, rotX: 5, scale: 0.83, zIndex: 80 },
+  { x: 150, y: 240, z: -320, rotY: -2, rotX: 5, scale: 0.82, zIndex: 75 },
+  { x: -330, y: -175, z: -350, rotY: 5, rotX: -3, scale: 0.81, zIndex: 70 },
+  { x: 330, y: -175, z: -370, rotY: -5, rotX: -3, scale: 0.80, zIndex: 65 },
+  { x: -330, y: 175, z: -390, rotY: 5, rotX: 3, scale: 0.79, zIndex: 60 },
+  { x: 330, y: 175, z: -410, rotY: -5, rotX: 3, scale: 0.78, zIndex: 55 },
 ];
 
 export function ParallaxCards({
@@ -113,6 +113,7 @@ export function ParallaxCards({
       {/* Expansive 3D Stage Viewport (min 720px tall to accommodate full 3D depth field) */}
       <div
         ref={containerRef}
+        onClick={() => setSelectedCardId(null)}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -161,7 +162,7 @@ export function ParallaxCards({
             const isSelected = activeIndex === idx;
             const layout = CARD_LAYOUT_PRESETS[idx % CARD_LAYOUT_PRESETS.length];
 
-            // When selected, bring directly into central focused foreground
+            // Base 3D coordinates from layout presets
             let posX = layout.x;
             let posY = layout.y;
             let posZ = layout.z;
@@ -170,41 +171,58 @@ export function ParallaxCards({
             let scale = layout.scale;
             let zIndex = layout.zIndex;
             let opacity = 1;
-            let blur = 0;
+            let blur = 0; // Keep all cards crisp and legible with zero muddy blur
 
             if (isSelected) {
+              // Focused card glides smoothly forward into prominent center stage
               posX = 0;
               posY = 0;
-              posZ = 120; // Float forward above everything
+              posZ = 160;
               rotX = 0;
               rotY = 0;
-              scale = 1.05;
-              zIndex = 1000;
+              scale = 1.04;
+              zIndex = 800;
               opacity = 1;
               blur = 0;
             } else if (activeIndex !== -1) {
-              // Dim and push back non-selected cards slightly
-              posZ -= 200;
-              opacity = 0.35;
-              blur = 4;
+              // Cards behind/around the enlarged card part sideways to left and right wings
+              // so there is ZERO obstruction of any card's content or buttons!
+              const partDistance = 220;
+              if (layout.x <= 0) {
+                // Part to the left flank with ample clearance
+                posX = Math.min(layout.x - partDistance, -380);
+                rotY = 12; // Fanned inward towards center spotlight
+              } else {
+                // Part to the right flank with ample clearance
+                posX = Math.max(layout.x + partDistance, 380);
+                rotY = -12; // Fanned inward towards center spotlight
+              }
+              posY = layout.y * 0.85;
+              posZ = Math.min(layout.z, -50);
+              rotX = layout.rotX * 0.4;
+              scale = Math.max(layout.scale * 0.94, 0.78);
+              zIndex = layout.zIndex;
+              // Remain crisp, clear, and prominently readable so the user can easily inspect and click them!
+              opacity = 0.94;
+              blur = 0;
             } else {
               // Standard 3D scattered layout with cursor parallax offset
-              const depthFactor = (1500 + posZ) / 1500; // 0 to 1
+              const depthFactor = (800 + posZ) / 800;
               const parallaxX = enableMagneticAttraction
-                ? smoothCursor.normX * magneticStrength * (1.2 - depthFactor * 0.8)
+                ? smoothCursor.normX * magneticStrength * (1.1 - depthFactor * 0.6)
                 : 0;
               const parallaxY = enableMagneticAttraction
-                ? smoothCursor.normY * magneticStrength * (1.2 - depthFactor * 0.8)
+                ? smoothCursor.normY * magneticStrength * (1.1 - depthFactor * 0.6)
                 : 0;
               posX += parallaxX;
               posY += parallaxY;
 
-              if (enableDepthFog) {
-                // Deeper cards get subtle atmospheric blur and opacity falloff
-                const depthRatio = Math.abs(posZ) / 1500;
-                blur = depthRatio * 3.5 * fogIntensity;
-                opacity = Math.max(0.4, 1 - depthRatio * 0.5);
-              }
+              // Crisp depth falloff without muddy blur
+              const depthRatio = Math.abs(posZ) / 800;
+              opacity = enableDepthFog
+                ? Math.max(0.80, 1 - depthRatio * 0.25 * fogIntensity)
+                : 1.0;
+              blur = 0;
             }
 
             return (
@@ -240,8 +258,8 @@ export function ParallaxCards({
                 className={cn(
                   "rounded-2xl border p-6 flex flex-col justify-between shadow-2xl transition-colors cursor-pointer group will-change-transform",
                   isSelected
-                    ? "bg-elev border-white shadow-[0_30px_90px_-15px_rgba(0,0,0,0.95)] ring-1 ring-white/20"
-                    : "bg-elev/85 border-line/80 hover:border-line-strong hover:bg-elev shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)]"
+                    ? "bg-elev border-white shadow-[0_30px_90px_-15px_rgba(0,0,0,0.95)] ring-2 ring-cyan-400/40"
+                    : "bg-elev/90 border-line hover:border-cyan-400/70 hover:bg-elev hover:shadow-[0_20px_50px_-10px_rgba(56,189,248,0.25)] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)]"
                 )}
               >
                 {/* Specular Radial Glare Reflection */}

@@ -67,3 +67,4 @@ export function SpotlightCard({
     </div>
   );
 }
+

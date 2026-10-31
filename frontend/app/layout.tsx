@@ -33,14 +33,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </p>
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <Link
-                href="/architecture"
+                href="/#architecture"
                 className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 transition-colors hover:border-line-strong hover:text-white"
               >
                 <span>3D Architecture</span>
               </Link>
 
               <Link
-                href="/tech-stack"
+                href="/#tech-stack"
                 className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 transition-colors hover:border-line-strong hover:text-white"
               >
                 <span>Tech Stack</span>

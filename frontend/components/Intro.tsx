@@ -30,6 +30,8 @@ import dynamic from "next/dynamic";
 import Analyzer from "@/components/Analyzer";
 import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
+import { Architecture3D } from "@/components/Architecture3D";
+import { TechStackShowcase } from "@/components/TechStackShowcase";
 import BlurText from "@/components/BlurText";
 import Feedback1 from "@/components/Feedback1";
 import ShaderCard from "@/components/ui/shader-card";
@@ -406,9 +408,10 @@ function ScrollyPipelineCard({
             {/* Header: Clean engineering index & Stage Icon */}
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-semibold tracking-widest text-zinc-500">
-                  {`${stage.stageNum} //`}
+                <span className="font-mono text-xs font-semibold tracking-wider text-zinc-500">
+                  {`STAGE ${stage.stageNum}`}
                 </span>
+                <span className="text-zinc-600 font-mono text-xs">·</span>
                 <span
                   className="font-mono text-xs font-medium uppercase tracking-wider"
                   style={{ color: stage.flameHighlight }}
@@ -940,7 +943,7 @@ function FolderFloatSection({
                 <div className="flex items-center gap-2">
                   <span className="size-2 rounded-full bg-white/70" />
                   <span className="text-xs uppercase tracking-wider text-white/50">
-                    EVIDENTIARY ANALYSIS // {selectedDetail?.category ?? "INTERACTIVE DISCOVERY"}
+                    EVIDENTIARY ANALYSIS · {selectedDetail?.category ?? "INTERACTIVE DISCOVERY"}
                   </span>
                 </div>
                 {selectedNote && (
@@ -1355,6 +1358,26 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       <SectionScrollConnector />
 
       {/* ------------------------------------------------------------------ */}
+      {/*  SYSTEM ARCHITECTURE & 3D NETWORK TOPOLOGY                         */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="landing-section relative border-t border-white/5 scroll-mt-16">
+        <Architecture3D />
+      </section>
+
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
+      {/* ------------------------------------------------------------------ */}
+      {/*  DYNAMIC PRODUCTION TECH STACK SHOWCASE                            */}
+      {/* ------------------------------------------------------------------ */}
+      <section className="landing-section relative border-t border-white/5 scroll-mt-16">
+        <TechStackShowcase />
+      </section>
+
+      {/* Inter-Section Animated Connector */}
+      <SectionScrollConnector />
+
+      {/* ------------------------------------------------------------------ */}
       {/*  TRANSITION 6: EMPIRICAL BENCHMARKS (Academic Ground Truth)        */}
       {/* ------------------------------------------------------------------ */}
       <section
@@ -1373,7 +1396,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
           <ScrollReveal reduceMotion={shouldReduceMotion}>
             <div className="text-center max-w-[70ch] mx-auto mb-6 sm:mb-8">
               <span className="font-mono text-xs font-medium tracking-[0.16em] text-white/40 uppercase">
-                Empirical Evaluation // Controlled Runs
+                Empirical Evaluation · Controlled Runs
               </span>
               <h2 className="mt-3 text-[clamp(2rem,3.8vw,3.2rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
                 <BlurText

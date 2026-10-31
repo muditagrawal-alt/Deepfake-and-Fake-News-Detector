@@ -195,7 +195,10 @@ export function TechStackShowcase() {
     filter === "all" ? TECH_STACK : TECH_STACK.filter((item) => item.category === filter);
 
   return (
-    <div className="w-full min-h-[calc(100vh-68px)] bg-bg text-ink relative py-12 px-4 sm:px-8 lg:px-12 selection:bg-accent/20">
+    <div
+      id="tech-stack"
+      className="w-full bg-bg text-ink relative py-12 px-4 sm:px-8 lg:px-12 selection:bg-accent/20 scroll-mt-16"
+    >
       {/* Background Architectural Grid */}
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(#1f1f1f_1px,transparent_1px)] [background-size:24px_24px] opacity-40"
@@ -208,7 +211,7 @@ export function TechStackShowcase() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-accent-soft border border-line text-xs font-mono tracking-wider text-ink-2">
               <Boxes size={14} className="text-accent" />
-              <span>CORE ARCHITECTURAL STACK // PRODUCTION MANIFEST</span>
+              <span>Architectural Stack · Production Manifest</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-white">
               Technologies Powering Veritas

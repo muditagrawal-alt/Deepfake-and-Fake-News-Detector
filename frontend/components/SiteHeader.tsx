@@ -51,6 +51,26 @@ export default function SiteHeader() {
     window.dispatchEvent(new Event("veritas:start"));
   }
 
+  function handleArchitecture(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (window.location.pathname !== "/") return;
+    const target = document.getElementById("architecture");
+    if (target) {
+      event.preventDefault();
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      target.scrollIntoView({ behavior, block: "start" });
+    }
+  }
+
+  function handleTechStack(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (window.location.pathname !== "/") return;
+    const target = document.getElementById("tech-stack");
+    if (target) {
+      event.preventDefault();
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      target.scrollIntoView({ behavior, block: "start" });
+    }
+  }
+
   return (
     <header className="site-header sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
@@ -145,13 +165,15 @@ export default function SiteHeader() {
             <MenuItem setActive={setActive} active={active} item="Architecture">
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[300px]">
                 <HoveredLink
-                  href="/architecture"
-                  description="Interactive 3D collapsible model rendered with Anime.js."
+                  href="/#architecture"
+                  onClick={handleArchitecture}
+                  description="Interactive 3D network topology rendered with Anime.js."
                 >
                   3D System Architecture
                 </HoveredLink>
                 <HoveredLink
-                  href="/tech-stack"
+                  href="/#tech-stack"
+                  onClick={handleTechStack}
                   description="Dynamic production manifest with React Bits Spotlight cards."
                 >
                   Production Tech Stack
@@ -194,8 +216,8 @@ export default function SiteHeader() {
         {/* Streamlined Fallback for Mobile Viewports */}
         <nav aria-label="Main Mobile" className="hidden sm:flex md:hidden shrink-0 items-center gap-1">
           <Link href="/#product-check" onClick={handleProduct} className="site-nav-link text-xs">Product</Link>
-          <Link href="/architecture" className="site-nav-link text-xs">3D Arch</Link>
-          <Link href="/tech-stack" className="site-nav-link text-xs">Stack</Link>
+          <Link href="/#architecture" onClick={handleArchitecture} className="site-nav-link text-xs">Topology</Link>
+          <Link href="/#tech-stack" onClick={handleTechStack} className="site-nav-link text-xs">Stack</Link>
           <Link href="/about" className="site-nav-link text-xs">Method</Link>
         </nav>
 

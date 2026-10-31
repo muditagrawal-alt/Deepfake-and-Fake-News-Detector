@@ -187,7 +187,7 @@ export default function InteractiveForensicDemo() {
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-real animate-pulse" />
             <span className="font-mono text-xs uppercase tracking-wider text-white/50">
-              Interactive Case Explorer // Live Forensic Decomposition
+              Interactive Case Explorer · Live Forensic Decomposition
             </span>
           </div>
           <h3 className="mt-1 text-lg font-semibold tracking-tight text-white">

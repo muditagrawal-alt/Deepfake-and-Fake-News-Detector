@@ -58,7 +58,7 @@ export default function BenchmarkComparison() {
           <div className="flex items-center gap-2">
             <ChartBar size={16} className="text-white/60" aria-hidden />
             <span className="font-mono text-xs uppercase tracking-wider text-white/50">
-              Enterprise Accuracy Advantage // Benchmark Results
+              Enterprise Accuracy Advantage · Benchmark Results
             </span>
           </div>
           <h3 className="mt-1 text-lg font-semibold text-white tracking-tight">

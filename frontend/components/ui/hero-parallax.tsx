@@ -143,7 +143,7 @@ export const Header = () => {
     <div className="max-w-7xl relative mx-auto pt-4 pb-8 md:pt-8 md:pb-10 px-4 w-full left-0 top-0 z-20">
       <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1 text-[11px] font-mono text-white/70 mb-4 backdrop-blur-md">
         <span className="size-1.5 rounded-full bg-accent animate-pulse" />
-        <span>MULTIMODAL FORENSIC DOSSIERS // 15 EVIDENCE CHANNELS</span>
+        <span>MULTIMODAL FORENSIC DOSSIERS · 15 EVIDENCE CHANNELS</span>
       </div>
 
       <h2 className="text-2xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.04em] text-white max-w-4xl leading-[1.08]">
@@ -224,7 +224,7 @@ function CardTelemetryGraphic({ type }: { type?: ParallaxProduct["visualType"] }
         <div className="w-full h-full p-6 font-mono text-xs flex flex-col justify-between">
           <div className="flex items-center justify-between text-[10px] text-white/40 pb-2 border-b border-white/10">
             <span>PRESS WIRE AGGREGATOR</span>
-            <span className="text-sky-400 font-semibold">LIVE REUTERS // AP</span>
+            <span className="text-sky-400 font-semibold">LIVE REUTERS & AP</span>
           </div>
           <div className="my-auto space-y-2">
             <div className="p-2 rounded bg-white/[0.03] border border-white/5">

@@ -222,7 +222,7 @@ export default function Feedback1({
               <div className="flex items-center gap-2">
                 <span className="flex size-2 rounded-full bg-blue-500 animate-pulse" />
                 <span className="font-mono text-xs font-semibold tracking-wider uppercase text-blue-400">
-                  Direct Channel // Mudit Agrawal
+                  Direct Channel · Mudit Agrawal
                 </span>
               </div>
               <h3 className="mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white">

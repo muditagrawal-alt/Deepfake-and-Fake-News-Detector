@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   Play,
   Pause,
@@ -13,7 +12,6 @@ import {
   Shield,
   Activity,
   Terminal,
-  ExternalLink,
   ChevronRight,
   Zap,
 } from "lucide-react";
@@ -792,23 +790,6 @@ export function Architecture3D() {
                     </li>
                   ))}
                 </ul>
-              </div>
-
-              {/* Action Links */}
-              <div className="flex items-center gap-3 pt-2">
-                <Link
-                  href="/demo/workspace"
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-control bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors"
-                >
-                  <span>Test in Workspace</span>
-                  <ExternalLink size={14} />
-                </Link>
-                <Link
-                  href="/tech-stack"
-                  className="px-4 py-2.5 rounded-control bg-elev border border-line hover:border-line-strong text-ink text-xs sm:text-sm transition-colors"
-                >
-                  <span>Tech Stack</span>
-                </Link>
               </div>
             </div>
           </div>

@@ -174,7 +174,7 @@ export default function SiteHeader() {
                 <HoveredLink
                   href="/#tech-stack"
                   onClick={handleTechStack}
-                  description="Dynamic production manifest with React Bits Spotlight cards."
+                  description="Dynamic production manifest with 3D Parallax cards."
                 >
                   Production Tech Stack
                 </HoveredLink>

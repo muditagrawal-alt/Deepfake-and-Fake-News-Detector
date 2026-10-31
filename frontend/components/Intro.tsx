@@ -1215,7 +1215,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             initial={shouldReduceMotion ? false : "hidden"}
             animate="visible"
           >
-            {/* Tagline — Perfectly Centered with React Bits BlurText */}
+            {/* Tagline — Centered BlurText */}
             <motion.h1
               variants={heroChildVariants}
               transition={{
@@ -1613,7 +1613,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       <SectionScrollConnector />
 
       {/* ------------------------------------------------------------------ */}
-      {/*  FEEDBACK & CALIBRATION SECTION (React Bits Pro Feedback 1)       */}
+      {/*  FEEDBACK & CALIBRATION SECTION                                    */}
       {/* ------------------------------------------------------------------ */}
       <section
         ref={feedbackSectionRef}

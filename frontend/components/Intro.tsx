@@ -46,6 +46,15 @@ const FolderFloat = dynamic(() => import("@/components/FolderFloat"), {
   ),
 });
 
+const HeroParallaxDemo = dynamic(() => import("@/components/hero-parallax-demo"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] bg-[#060608] flex items-center justify-center font-mono text-xs text-white/30">
+      INITIALIZING 3D PARALLAX MANIFOLD...
+    </div>
+  ),
+});
+
 const INPUT_TYPES = [
   { label: "News links", Icon: Newspaper },
   { label: "Images", Icon: ImageIcon },
@@ -1241,6 +1250,13 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
             Choose an input type to inspect the review parameters. Ephemeral processing active.
           </p>
         </motion.section>
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/*  ACETERNITY UI HERO-PARALLAX: 3D FORENSIC TELEMETRY FLYBY         */}
+      {/* ------------------------------------------------------------------ */}
+      <section id="parallax-evidence" className="border-t border-white/5 relative bg-[#030303]">
+        <HeroParallaxDemo />
       </section>
 
       {/* ------------------------------------------------------------------ */}

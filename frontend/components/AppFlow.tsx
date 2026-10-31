@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowSquareOut,
-  CaretDown,
   CaretLeft,
   ClockCounterClockwise,
   FilmStrip,
@@ -22,6 +21,7 @@ import {
 import { signOut } from "next-auth/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import Intro from "@/components/Intro";
 import Authentication1 from "@/components/Authentication1";
 import Analyzer, { type AnalyzerMode } from "@/components/Analyzer";
@@ -357,9 +357,7 @@ function Workspace({ user }: { user: User }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [byokOpen, setByokOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
   const [workspaceReady, setWorkspaceReady] = useState(false);
@@ -406,7 +404,7 @@ function Workspace({ user }: { user: User }) {
     setActive("check");
     setDetectionMode("news");
     setSelected(null);
-    setMobileMenuOpen(window.matchMedia("(max-width: 767px)").matches);
+    setSidebarExpanded(window.matchMedia("(max-width: 767px)").matches);
     setProfileMenuOpen(false);
     setGuideOpen(true);
     window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
@@ -427,7 +425,7 @@ function Workspace({ user }: { user: User }) {
       setActive("check");
       setDetectionMode("news");
       setSelected(null);
-      setMobileMenuOpen(false);
+      setSidebarExpanded(false);
       setProfileMenuOpen(false);
       window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
     }
@@ -468,7 +466,7 @@ function Workspace({ user }: { user: User }) {
       const section = sectionFromHash();
       setActive(section);
       setSelected(null);
-      setMobileMenuOpen(false);
+      setSidebarExpanded(false);
       setProfileMenuOpen(false);
       window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
     }
@@ -582,14 +580,10 @@ function Workspace({ user }: { user: User }) {
     }
   }
 
-  const moreItems: { id: string; label: string; Icon: typeof Plus; section: Section }[] = [
-    { id: "method", label: "How it works", Icon: Info, section: "method" },
-    { id: "capabilities", label: "Backend status", Icon: ShieldCheck, section: "capabilities" },
-  ];
   function navigate(section: Section) {
     if (section === "guide") {
       setGuideOpen(true);
-      setMobileMenuOpen(false);
+      setSidebarExpanded(false);
       setProfileMenuOpen(false);
       return;
     }
@@ -599,7 +593,7 @@ function Workspace({ user }: { user: User }) {
       window.history.pushState({ ...window.history.state, workspaceSection: section }, "", nextUrl);
     }
     setActive(section);
-    setMobileMenuOpen(false);
+    setSidebarExpanded(false);
     setProfileMenuOpen(false);
     if (section !== "history") setSelected(null);
     window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
@@ -619,118 +613,308 @@ function Workspace({ user }: { user: User }) {
   return (
     <div data-app-stage="workspace" className="workspace-shell min-h-[calc(100dvh-4.25rem)]">
       <div className="mx-auto flex max-w-[1440px]">
-        <aside className={`workspace-sidebar ${mobileMenuOpen ? "fixed inset-x-0 bottom-0 top-[68px] z-40 block" : "hidden"} h-[calc(100dvh-68px)] w-full shrink-0 border-r border-line bg-bg transition-[width] duration-200 md:sticky md:top-[68px] md:block ${sidebarExpanded ? "md:w-64" : "md:w-[76px]"}`}>
-          <div className={`flex h-full min-h-0 flex-col overflow-y-auto p-4 ${sidebarExpanded ? "" : "md:p-2"}`}>
-            <div className="flex items-center justify-end gap-2 px-2 py-2 md:py-3">
-              <button type="button" aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"} title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-                onClick={() => setSidebarExpanded((value) => !value)} className="hidden size-9 shrink-0 items-center justify-center bg-transparent p-0 transition-[transform,filter] duration-150 hover:scale-105 hover:drop-shadow-md focus-visible:outline md:flex">
-                <Image src="/veritas-mark.png" width={36} height={36} alt="" aria-hidden className="site-brand-mark size-full object-contain" />
-              </button>
-              <div className="flex items-center justify-end md:hidden">
-                <button type="button" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} className="rounded-control p-2 text-ink-2 hover:bg-elev"><X size={20} /></button>
+        <Sidebar open={sidebarExpanded} setOpen={setSidebarExpanded}>
+          <SidebarBody className="justify-between gap-6 border-r border-line bg-bg dark:bg-[#070709] h-[calc(100dvh-68px)] md:sticky md:top-[68px]">
+            <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+              <div
+                className="flex items-center gap-3 py-2 px-1 cursor-pointer select-none"
+                onClick={() => setSidebarExpanded((prev) => !prev)}
+                title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                <Image
+                  src="/veritas-mark.png"
+                  width={32}
+                  height={32}
+                  alt="Veritas"
+                  className="size-8 object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(255,255,255,0.12)]"
+                />
+                <motion.span
+                  animate={{
+                    display: sidebarExpanded ? "inline-block" : "none",
+                    opacity: sidebarExpanded ? 1 : 0,
+                  }}
+                  transition={reduceMotion ? { duration: 0 } : undefined}
+                  className="font-semibold text-sm tracking-tight text-ink whitespace-pre"
+                >
+                  Veritas Workspace
+                </motion.span>
               </div>
-            </div>
-            <nav aria-label="Workspace" className="space-y-1">
-              <button type="button" title={!sidebarExpanded ? "New review" : undefined} aria-current={active === "check" ? "page" : undefined} onClick={() => navigate("check")}
-                className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "check" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                <Plus size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>New review</span>
-              </button>
-              <button type="button" title={!sidebarExpanded ? "Review history" : undefined} aria-current={active === "history" ? "page" : undefined} onClick={() => navigate("history")}
-                className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "history" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                <ClockCounterClockwise size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>Review history</span>
-              </button>
-              <button type="button" data-tour="api-keys" title={!sidebarExpanded ? "API keys" : undefined} aria-current={active === "keys" ? "page" : undefined} onClick={() => navigate("keys")}
-                className={`flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "keys" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                <Key size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>API keys</span>
-              </button>
-              <div>
-                <button type="button" title={!sidebarExpanded ? "More" : undefined} aria-label="More" aria-expanded={capabilitiesOpen} aria-controls="more-submenu"
-                  onClick={() => setCapabilitiesOpen((value) => !value)}
-                  className={`group flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${active === "method" || active === "capabilities" ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                  <Info size={18} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>More</span>
-                  <CaretDown size={15} aria-hidden className={`ml-auto shrink-0 text-ink-3 transition-all ${capabilitiesOpen ? "rotate-180 opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"} ${sidebarExpanded ? "" : "md:hidden"}`} />
-                </button>
-                <AnimatePresence initial={false}>
-                  {capabilitiesOpen && <motion.div id="more-submenu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2 }}
-                    className={`overflow-hidden ${sidebarExpanded ? "ml-3 border-l border-line pl-2" : "md:ml-0 md:border-l-0 md:pl-0"}`}>
-                    <div className="space-y-1 py-1">
-                      {moreItems.map((item) => {
-                        const Icon = item.Icon;
-                        const current = active === item.section;
-                        return <button key={item.id} type="button" title={!sidebarExpanded ? item.label : undefined} aria-label={item.label} aria-current={current ? "page" : undefined}
-                          onClick={() => item.section === "method" ? openWalkthrough() : navigate(item.section)}
-                          className={`flex w-full items-center gap-3 rounded-control px-3 py-2 text-left text-xs transition-colors ${current ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-elev hover:text-ink"}`}>
-                          <Icon size={16} className={sidebarExpanded ? "" : "md:mx-auto"} aria-hidden /><span className={sidebarExpanded ? "" : "md:sr-only"}>{item.label}</span>
-                        </button>;
-                      })}
+
+              <div className="mt-6 flex flex-col gap-1.5">
+                <SidebarLink
+                  link={{
+                    label: "New review",
+                    href: "#check",
+                    icon: (
+                      <Plus
+                        size={19}
+                        className={
+                          active === "check"
+                            ? "shrink-0 text-accent"
+                            : "shrink-0 text-ink-3 group-hover/sidebar:text-ink"
+                        }
+                      />
+                    ),
+                    onClick: (e) => {
+                      e.preventDefault();
+                      navigate("check");
+                    },
+                  }}
+                  className={
+                    active === "check"
+                      ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
+                      : "rounded-control px-2.5 hover:bg-elev text-ink-2"
+                  }
+                />
+                <SidebarLink
+                  link={{
+                    label: "Review history",
+                    href: "#history",
+                    icon: (
+                      <ClockCounterClockwise
+                        size={19}
+                        className={
+                          active === "history"
+                            ? "shrink-0 text-accent"
+                            : "shrink-0 text-ink-3 group-hover/sidebar:text-ink"
+                        }
+                      />
+                    ),
+                    onClick: (e) => {
+                      e.preventDefault();
+                      navigate("history");
+                    },
+                  }}
+                  className={
+                    active === "history"
+                      ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
+                      : "rounded-control px-2.5 hover:bg-elev text-ink-2"
+                  }
+                />
+                <SidebarLink
+                  link={{
+                    label: "API keys",
+                    href: "#keys",
+                    icon: (
+                      <Key
+                        size={19}
+                        className={
+                          active === "keys"
+                            ? "shrink-0 text-accent"
+                            : "shrink-0 text-ink-3 group-hover/sidebar:text-ink"
+                        }
+                      />
+                    ),
+                    onClick: (e) => {
+                      e.preventDefault();
+                      navigate("keys");
+                    },
+                  }}
+                  data-tour="api-keys"
+                  className={
+                    active === "keys"
+                      ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
+                      : "rounded-control px-2.5 hover:bg-elev text-ink-2"
+                  }
+                />
+                <SidebarLink
+                  link={{
+                    label: "How it works",
+                    href: "#method",
+                    icon: (
+                      <Info
+                        size={19}
+                        className={
+                          active === "method"
+                            ? "shrink-0 text-accent"
+                            : "shrink-0 text-ink-3 group-hover/sidebar:text-ink"
+                        }
+                      />
+                    ),
+                    onClick: (e) => {
+                      e.preventDefault();
+                      openWalkthrough();
+                    },
+                  }}
+                  className={
+                    active === "method"
+                      ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
+                      : "rounded-control px-2.5 hover:bg-elev text-ink-2"
+                  }
+                />
+                <SidebarLink
+                  link={{
+                    label: "Backend status",
+                    href: "#capabilities",
+                    icon: (
+                      <ShieldCheck
+                        size={19}
+                        className={
+                          active === "capabilities"
+                            ? "shrink-0 text-accent"
+                            : "shrink-0 text-ink-3 group-hover/sidebar:text-ink"
+                        }
+                      />
+                    ),
+                    onClick: (e) => {
+                      e.preventDefault();
+                      navigate("capabilities");
+                    },
+                  }}
+                  className={
+                    active === "capabilities"
+                      ? "bg-accent-soft text-accent rounded-control px-2.5 font-medium"
+                      : "rounded-control px-2.5 hover:bg-elev text-ink-2"
+                  }
+                />
+              </div>
+
+              {/* Quota & Settings */}
+              {sidebarExpanded ? (
+                <div className="mt-6 flex flex-col gap-3">
+                  <div className="rounded-panel border border-line bg-elev p-3">
+                    <div className="flex items-center justify-between text-xs text-ink-2">
+                      <span>Free detections</span>
+                      <span className="tabular-nums">
+                        {account ? `${account.free_used}/${account.free_limit}` : "…"}
+                      </span>
                     </div>
-                  </motion.div>}
-                </AnimatePresence>
-              </div>
-            </nav>
-
-            {sidebarExpanded ? <div className="mt-7 rounded-panel border border-line bg-elev p-4">
-                <div className="flex items-center justify-between text-xs text-ink-2">
-                  <span>Free detections</span><span className="tabular-nums">{account ? `${account.free_used}/${account.free_limit}` : "…"}</span>
-                </div>
-                <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-line">
-                  <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${account ? (account.free_used / account.free_limit) * 100 : 0}%` }} />
-                </div>
-                <p className="mt-2 text-[11px] leading-relaxed text-ink-3">One allowance for every check.</p>
-                {account?.free_remaining === 0 && (
-                  <button type="button" onClick={() => setByokOpen(true)} className="mt-3 text-xs font-medium text-accent underline underline-offset-2">Add your API key</button>
-                )}
-              </div> : <button type="button" title={`Free detections: ${account ? `${account.free_used}/${account.free_limit}` : "loading"}`} aria-label={`Free detections: ${account ? `${account.free_used} of ${account.free_limit} used` : "loading"}`}
-                onClick={() => { if (account?.free_remaining === 0) setByokOpen(true); }}
-                className="mt-5 flex items-center justify-center gap-2 rounded-control border border-line p-2 text-xs text-ink-2 hover:bg-elev">
-                <ShieldCheck size={18} aria-hidden /><span className="md:sr-only">{account ? `${account.free_used}/${account.free_limit}` : "…"}</span>
-              </button>}
-
-            {sidebarExpanded ? <div className="mt-3 rounded-panel border border-line bg-elev p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium">Save detection history</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-ink-3">Results only. Media is never stored.</p>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+                      <div
+                        className="h-full rounded-full bg-accent transition-[width]"
+                        style={{
+                          width: `${account ? (account.free_used / account.free_limit) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-ink-3">One allowance for every check.</p>
+                    {account?.free_remaining === 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setByokOpen(true)}
+                        className="mt-2 text-xs font-medium text-accent underline underline-offset-2"
+                      >
+                        Add your API key
+                      </button>
+                    )}
                   </div>
-                  <HistorySwitch enabled={!!account?.history_enabled} busy={historyPreferenceBusy} disabled={!account}
-                    onChange={() => void changeHistoryPreference(!account?.history_enabled)} />
-                </div>
-                {account?.history_enabled && <p className="mt-2 text-[10px] text-ink-3">Turning this off deletes saved results.</p>}
-                {historyPreferenceError && <p role="alert" className="mt-2 text-[11px] leading-relaxed text-fake">{historyPreferenceError}</p>}
-              </div> : <div className="mt-3 flex justify-center" title={`Save detection history ${account?.history_enabled ? "on" : "off"}`}>
-                  <HistorySwitch enabled={!!account?.history_enabled} busy={historyPreferenceBusy} disabled={!account}
-                  onChange={() => void changeHistoryPreference(!account?.history_enabled)} />
-              </div>}
 
-            <div className="relative mt-auto border-t border-line pt-3">
-              <AnimatePresence>
-                {profileMenuOpen && <motion.div key="profile-menu" initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 5 }} transition={{ duration: reduceMotion ? 0 : 0.16 }}
-                  className={`absolute bottom-[calc(100%+0.5rem)] z-50 rounded-panel border border-line bg-elev p-3 shadow-panel ${sidebarExpanded ? "left-0 right-0" : "left-0 w-60"}`}>
-                  <div className="border-b border-line px-2 pb-3">
-                    <p className="truncate text-sm font-semibold">{user.name || "Veritas user"}</p>
-                    <p className="mt-0.5 truncate text-xs text-ink-3">{user.email}</p>
+                  <div className="rounded-panel border border-line bg-elev p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium">Save history</p>
+                        <p className="mt-0.5 text-[10px] text-ink-3">Results only. No media.</p>
+                      </div>
+                      <HistorySwitch
+                        enabled={!!account?.history_enabled}
+                        busy={historyPreferenceBusy}
+                        disabled={!account}
+                        onChange={() => void changeHistoryPreference(!account?.history_enabled)}
+                      />
+                    </div>
+                    {account?.history_enabled && (
+                      <p className="mt-1.5 text-[10px] text-ink-3">Turning this off deletes saved results.</p>
+                    )}
+                    {historyPreferenceError && (
+                      <p role="alert" className="mt-1.5 text-[11px] text-fake">
+                        {historyPreferenceError}
+                      </p>
+                    )}
                   </div>
-                  <button type="button" onClick={() => void signOut({ redirectTo: "/" })} className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-ink-2 hover:bg-bg"><SignOut size={17} aria-hidden /> Sign out</button>
-                  <button type="button" disabled={accountDeleting} onClick={() => void removeAccount()} className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-fake hover:bg-fake-soft disabled:opacity-50"><Trash size={17} aria-hidden /> {accountDeleting ? "Deleting account…" : "Delete account"}</button>
-                </motion.div>}
-              </AnimatePresence>
-              <button type="button" aria-label={profileMenuOpen ? "Close profile menu" : "Open profile menu"} aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((value) => !value)}
-                className={`flex w-full items-center gap-3 rounded-control px-2 py-2 text-left transition-colors hover:bg-elev ${sidebarExpanded ? "" : "md:justify-center"}`}>
-                {user.image ? <Image src={user.image} unoptimized width={36} height={36} alt="" referrerPolicy="no-referrer" className="size-9 shrink-0 rounded-full object-cover" />
-                  : <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">{(user.name || user.email || "V").slice(0, 1).toUpperCase()}</span>}
-                <span className={`min-w-0 flex-1 ${sidebarExpanded ? "" : "md:sr-only"}`}>
-                  <span className="block truncate text-sm font-medium">{user.name || "Veritas user"}</span>
-                  <span className="block truncate text-xs text-ink-3">{user.email}</span>
-                </span>
-                <CaretDown size={16} className={`text-ink-3 ${sidebarExpanded ? "" : "md:hidden"}`} aria-hidden />
-              </button>
+                </div>
+              ) : (
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <button
+                    type="button"
+                    title={`Free detections: ${account ? `${account.free_used}/${account.free_limit}` : "loading"}`}
+                    onClick={() => {
+                      if (account?.free_remaining === 0) setByokOpen(true);
+                    }}
+                    className="flex items-center justify-center size-9 rounded-control border border-line text-ink-2 hover:bg-elev"
+                  >
+                    <ShieldCheck size={18} aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    title={`Save detection history: ${account?.history_enabled ? "Enabled" : "Disabled"}`}
+                    onClick={() => void changeHistoryPreference(!account?.history_enabled)}
+                    className="relative flex items-center justify-center size-9 rounded-control border border-line text-ink-2 hover:bg-elev"
+                  >
+                    <ClockCounterClockwise size={18} aria-hidden />
+                    <span className={`absolute top-1.5 right-1.5 size-1.5 rounded-full ${account?.history_enabled ? "bg-real" : "bg-ink-3"}`} />
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        </aside>
+
+            {/* Profile User at bottom */}
+            <div className="relative border-t border-line pt-3">
+              <AnimatePresence>
+                {profileMenuOpen && (
+                  <motion.div
+                    key="profile-menu"
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.16 }}
+                    className={`absolute bottom-[calc(100%+0.5rem)] z-50 rounded-panel border border-line bg-elev p-3 shadow-panel ${sidebarExpanded ? "left-0 right-0" : "left-0 w-60"}`}
+                  >
+                    <div className="border-b border-line px-2 pb-3">
+                      <p className="truncate text-sm font-semibold">{user.name || "Veritas user"}</p>
+                      <p className="mt-0.5 truncate text-xs text-ink-3">{user.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void signOut({ redirectTo: "/" })}
+                      className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-ink-2 hover:bg-bg mt-1"
+                    >
+                      <SignOut size={17} aria-hidden /> Sign out
+                    </button>
+                    <button
+                      type="button"
+                      disabled={accountDeleting}
+                      onClick={() => void removeAccount()}
+                      className="flex w-full items-center gap-3 rounded-control px-2.5 py-2 text-left text-sm text-fake hover:bg-fake-soft disabled:opacity-50"
+                    >
+                      <Trash size={17} aria-hidden /> {accountDeleting ? "Deleting account…" : "Delete account"}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <SidebarLink
+                link={{
+                  label: user.name || "Veritas user",
+                  href: "#profile",
+                  icon: user.image ? (
+                    <Image
+                      src={user.image}
+                      unoptimized
+                      width={32}
+                      height={32}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      className="size-8 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
+                      {(user.name || user.email || "V").slice(0, 1).toUpperCase()}
+                    </span>
+                  ),
+                  onClick: (e) => {
+                    e.preventDefault();
+                    setProfileMenuOpen((prev) => !prev);
+                  },
+                }}
+                className="rounded-control px-1 py-1 hover:bg-elev"
+              />
+            </div>
+          </SidebarBody>
+        </Sidebar>
 
         <section aria-label="Workspace content" className="workspace-content min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-8 sm:pt-7 lg:px-10">
           <div className="mb-6 flex items-center justify-between gap-3 md:hidden">
-            <button type="button" onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-sm"><Image src="/veritas-mark.png" width={20} height={20} alt="" aria-hidden className="site-brand-mark size-5 object-contain" /> Menu</button>
+            <button type="button" onClick={() => setSidebarExpanded(true)} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-sm"><Image src="/veritas-mark.png" width={20} height={20} alt="" aria-hidden className="site-brand-mark size-5 object-contain" /> Menu</button>
             <span className="truncate text-xs text-ink-3">{user.email}</span>
           </div>
           <div className="mx-auto max-w-[1120px]">
@@ -885,10 +1069,10 @@ function Workspace({ user }: { user: User }) {
 
       {byokOpen && <ByokDialog account={account} onClose={() => setByokOpen(false)} onChange={onKeyChange} />}
       <AnimatePresence>{guideOpen && <GuidedTour
-        onClose={() => { setGuideOpen(false); setMobileMenuOpen(false); }}
+        onClose={() => { setGuideOpen(false); setSidebarExpanded(false); }}
         onSelectMode={setDetectionMode}
         selectedMode={detectionMode}
-        onOpenApiKeys={() => { setGuideOpen(false); setMobileMenuOpen(false); navigate("keys"); }}
+        onOpenApiKeys={() => { setGuideOpen(false); setSidebarExpanded(false); navigate("keys"); }}
       />}</AnimatePresence>
     </div>
   );

@@ -26,6 +26,10 @@
   --warn: #e3b567;
   --warn-soft: #342a19;
   --shadow: 0 0 0;
+  --color-blue-300: #93c5fd;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-800: #1e40af;
 }
 
 @theme inline {

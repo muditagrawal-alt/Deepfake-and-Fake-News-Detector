@@ -99,3 +99,4 @@ export function C2paThumbnail() {
     </div>
   );
 }
+

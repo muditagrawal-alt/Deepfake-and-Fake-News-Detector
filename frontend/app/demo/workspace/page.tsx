@@ -15,3 +15,4 @@ export default function WorkspaceDemoPage() {
 
   return <AppFlow user={mockUser} providers={[]} startInWorkspace={true} />;
 }
+

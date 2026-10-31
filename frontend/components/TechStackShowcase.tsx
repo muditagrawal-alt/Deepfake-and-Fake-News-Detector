@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ScrollStack } from "@/components/ui/scroll-stack";
-import { Boxes, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 type CategoryFilter = "all" | "ai" | "backend" | "frontend" | "infra";
 
@@ -331,10 +331,6 @@ export function TechStackShowcase() {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-6">
           <div className="space-y-3 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-cyan-400">
-              <Boxes size={13} className="text-cyan-400" />
-              <span>PRODUCTION ARCHITECTURAL MANIFEST</span>
-            </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
               Technologies Powering Veritas
             </h2>

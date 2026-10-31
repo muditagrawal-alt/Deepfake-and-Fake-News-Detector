@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Activity,
   ExternalLink,
-  BookOpen,
 } from "lucide-react";
 
 export type PayloadPreset = "deepfake_image" | "satire_news" | "verified_dispatch";
@@ -953,7 +952,6 @@ export function Architecture3D() {
   const [selectedNodeId, setSelectedNodeId] = useState<string>("node-gemini-claims");
   const zoom = 1.0;
   const [activeStep, setActiveStep] = useState<number>(0);
-  const [isIslandExpanded, setIsIslandExpanded] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -983,8 +981,6 @@ export function Architecture3D() {
     return () => clearInterval(interval);
   }, []);
 
-  const totalPipelineLatency = FLOW_NODES.reduce((acc, n) => acc + n.latencyMs, 0);
-
   return (
     <div
       id="architecture"
@@ -1011,70 +1007,6 @@ export function Architecture3D() {
           ref={containerRef}
           className="rounded-3xl border border-white/15 bg-[#0b0c12] overflow-hidden shadow-2xl relative w-full"
         >
-          {/* Dynamic Island Floating Bar */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-            <div
-              onMouseEnter={() => setIsIslandExpanded(true)}
-              onMouseLeave={() => setIsIslandExpanded(false)}
-              onClick={() => setIsIslandExpanded((prev) => !prev)}
-              className={`group/island flex items-center gap-2.5 sm:gap-3 px-4 py-2 rounded-full
-                bg-[#07080d]/90 backdrop-blur-2xl border border-white/20
-                shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_20px_rgba(56,189,248,0.18)]
-                hover:border-cyan-500/60 hover:shadow-[0_12px_45px_rgba(56,189,248,0.35)]
-                transition-all duration-300 ease-out cursor-pointer select-none whitespace-nowrap
-                ${isIslandExpanded ? "ring-2 ring-cyan-400/40 bg-[#090b14]/95" : "ring-1 ring-white/10"}
-              `}
-            >
-              {/* Left: Glowing Beacon & Live Pulse */}
-              <div className="flex items-center gap-2">
-                <span className="relative flex size-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full size-2 bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-                </span>
-                <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase">
-                  LIVE DAG
-                </span>
-              </div>
-
-              <div className="w-px h-3 bg-white/20" />
-
-              {/* Center: System Title */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-white tracking-tight">
-                  Multimodal Pipeline
-                </span>
-                <div className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-cyan-400 text-[9px] font-mono">
-                  <BookOpen size={9} />
-                  <span>Canvas</span>
-                </div>
-              </div>
-
-              <div className="w-px h-3 bg-white/20" />
-
-              {/* Dynamic Island Morphing Content */}
-              {!isIslandExpanded ? (
-                <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-300">
-                  <span className="text-zinc-400">12 Nodes</span>
-                  <span className="text-zinc-600">·</span>
-                  <span className="text-cyan-400 font-semibold">{totalPipelineLatency}ms</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 transition-all duration-200">
-                  <CheckCircle2 size={11} className="text-emerald-400" />
-                  <span>Zero Data Retention</span>
-                </div>
-              )}
-
-              <div className="w-px h-3 bg-white/20" />
-
-              {/* Interactive View Pill */}
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-800/60 text-[9px] font-mono text-cyan-300 shadow-[0_0_8px_rgba(56,189,248,0.2)]">
-                <Activity size={9} className="text-cyan-400 animate-pulse" />
-                <span className="font-semibold">Causal Flow</span>
-              </div>
-            </div>
-          </div>
-
           {/* Canvas Viewport Area: Responsive auto-scaling with zero sideways scroll */}
           <div 
             className={`relative w-full ${zoom > 1.05 ? "overflow-x-auto" : "overflow-hidden"} overflow-y-hidden select-none`}

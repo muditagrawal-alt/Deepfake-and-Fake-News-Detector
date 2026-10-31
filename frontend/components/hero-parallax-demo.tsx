@@ -215,3 +215,4 @@ export const products: ParallaxProduct[] = [
     detail: "Phoneme-viseme alignment mismatch: acoustic bilabial plosive sounds precede lip closure by 82ms, indicative of dubbed audio.",
   },
 ];
+

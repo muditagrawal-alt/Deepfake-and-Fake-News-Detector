@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
   Veritas product palette: true black surfaces, forensic grid,
   and semantic colors reserved for assessment states.
@@ -145,7 +147,7 @@ button:not(:disabled):active {
 
 .site-header { color: var(--ink); }
 .site-brand-mark {
-  clip-path: polygon(48% 4.5%, 89% 18.5%, 89% 46%, 93% 51%, 87% 58%, 83% 68%, 74% 78%, 48% 98%, 23% 78%, 15% 68%, 10% 58%, 4% 51%, 7% 46%, 7% 18.5%);
+  display: block;
 }
 .site-nav-link {
   display: inline-flex;

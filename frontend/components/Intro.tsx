@@ -30,7 +30,6 @@ import InteractiveForensicDemo from "@/components/InteractiveForensicDemo";
 import BenchmarkComparison from "@/components/BenchmarkComparison";
 import BlurText from "@/components/BlurText";
 import Feedback1 from "@/components/Feedback1";
-import { cn } from "@/lib/utils";
 
 const Topography = dynamic(() => import("@/components/Topography"), {
   ssr: false,
@@ -960,65 +959,6 @@ const heroChildVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-const SECTIONS_NAV = [
-  { id: "platform", label: "Overview", num: "01" },
-  { id: "parallax-evidence", label: "Modalities", num: "02" },
-  { id: "pipeline", label: "Pipeline", num: "03" },
-  { id: "dossier", label: "Dossier", num: "04" },
-  { id: "case-notes", label: "Zero-G", num: "05" },
-  { id: "interactive-demo", label: "Case Study", num: "06" },
-  { id: "benchmarks", label: "Evaluation", num: "07" },
-  { id: "how-it-works", label: "Methodology", num: "08" },
-  { id: "cta-section", label: "Inspect", num: "09" },
-  { id: "feedback-section", label: "Feedback", num: "10" },
-];
-
-function PageScrollNavigator({
-  activeId,
-  onNavigate,
-}: {
-  activeId: string;
-  onNavigate: (id: string) => void;
-}) {
-  return (
-    <nav
-      aria-label="Section Page Navigator"
-      className="fixed right-3.5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col items-end gap-2.5 p-2 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.85)]"
-    >
-      <div className="text-[9px] font-mono text-white/40 tracking-widest px-1 pb-1 uppercase border-b border-white/5 w-full text-center">
-        Track
-      </div>
-      {SECTIONS_NAV.map((section) => {
-        const isActive = activeId === section.id;
-        return (
-          <button
-            key={section.id}
-            type="button"
-            onClick={() => onNavigate(section.id)}
-            aria-label={`Jump to Section ${section.num}: ${section.label}`}
-            className="group relative flex items-center gap-2 p-1 focus:outline-none"
-          >
-            {/* Tooltip on hover */}
-            <span className="pointer-events-none absolute right-7 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap rounded-md border border-white/10 bg-[#0a0a0c] px-2.5 py-1 font-mono text-[10px] text-white/90 shadow-xl">
-              <span className="text-blue-400 font-semibold">{section.num}</span> {section.label}
-            </span>
-
-            {/* Glowing pip indicator */}
-            <span
-              className={cn(
-                "rounded-full transition-all duration-300",
-                isActive
-                  ? "size-2.5 bg-blue-500 ring-4 ring-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.9)]"
-                  : "size-1.5 bg-white/20 group-hover:bg-white/60 group-hover:scale-125"
-              )}
-            />
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
 function SectionScrollConnector() {
   return (
     <div className="relative flex items-center justify-center -my-3 pointer-events-none z-20" aria-hidden="true">
@@ -1032,8 +972,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   const reduceMotion = useReducedMotion();
   const shouldReduceMotion = Boolean(reduceMotion);
   const evidenceHeadingRef = useRef<HTMLHeadingElement>(null);
-
-  const [activeSectionId, setActiveSectionId] = useState<string>("platform");
 
   // Section Scroll Transition 0: Hero Parallax Scale & Recede
   const heroRef = useRef<HTMLDivElement>(null);
@@ -1107,40 +1045,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
   });
   const feedbackBeamScaleX = useTransform(feedbackBeamProgress, [0.1, 0.7], [0, 1]);
 
-  // Scroll spy for section navigator
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length > 0) {
-          visible.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-          setActiveSectionId(visible[0].target.id);
-        }
-      },
-      { threshold: [0.1, 0.3, 0.6], rootMargin: "-10% 0px -40% 0px" }
-    );
-
-    SECTIONS_NAV.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const handleNavClick = useCallback(
-    (id: string) => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({
-          behavior: shouldReduceMotion ? "auto" : "smooth",
-          block: "start",
-        });
-      }
-    },
-    [shouldReduceMotion]
-  );
-
   const scrollToWorkflow = useCallback(() => {
     document.getElementById("how-it-works")?.scrollIntoView({
       behavior: reduceMotion ? "auto" : "smooth",
@@ -1156,9 +1060,6 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
 
   return (
     <div data-app-stage="landing" className="landing-shell relative">
-      {/* Floating Section Page Navigator */}
-      <PageScrollNavigator activeId={activeSectionId} onNavigate={handleNavClick} />
-
       {/* ------------------------------------------------------------------ */}
       {/*  HERO (TOPOGRAPHY BACKGROUND WITH CENTERED HEADLINE & TOOL)        */}
       {/* ------------------------------------------------------------------ */}

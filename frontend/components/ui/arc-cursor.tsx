@@ -79,14 +79,15 @@ function hexToRgb(hex: string): [number, number, number] {
     clean = clean.split("").map((c) => c + c).join("");
   }
   const num = parseInt(clean, 16);
-  if (isNaN(num)) return [56, 189, 248]; // default cyan
+  if (isNaN(num)) return [0, 229, 255]; // default electric cyan
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
 
-interface TrailPoint {
+interface ChainNode {
   x: number;
   y: number;
-  time: number;
+  vx: number;
+  vy: number;
 }
 
 interface Spark {
@@ -109,6 +110,26 @@ interface DischargeBranch {
 }
 
 const DEFAULT_COLORS: [string, string] = ["#00e5ff", "#818cf8"];
+const NUM_CHAIN_NODES = 28;
+
+// Catmull-Rom cubic interpolation between 4 control points
+function catmullRom(
+  p0: number,
+  p1: number,
+  p2: number,
+  p3: number,
+  t: number
+): number {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return (
+    0.5 *
+    (2 * p1 +
+      (-p0 + p2) * t +
+      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+      (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
+  );
+}
 
 export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCursor(
   {
@@ -159,11 +180,20 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
     else rgbSecondary.current = rgbPrimary.current;
   }, [activeColors]);
 
-  // Trail state
-  const trailRef = useRef<TrailPoint[]>([]);
-  const lastMousePos = useRef<{ x: number; y: number }>({ x: -100, y: -100 });
+  // Smooth chain of spring-damped nodes
+  const chainRef = useRef<ChainNode[]>(
+    Array.from({ length: NUM_CHAIN_NODES }, () => ({
+      x: -200,
+      y: -200,
+      vx: 0,
+      vy: 0,
+    }))
+  );
+
+  const targetPos = useRef<{ x: number; y: number }>({ x: -200, y: -200 });
   const mouseActive = useRef<boolean>(false);
   const lastMoveTime = useRef<number>(0);
+  const cursorVelocity = useRef<number>(0);
   const sparksRef = useRef<Spark[]>([]);
   const dischargesRef = useRef<DischargeBranch[]>([]);
 
@@ -172,22 +202,27 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
   const autoAngle = useRef<number>(0);
 
   const clear = useCallback(() => {
-    trailRef.current = [];
+    for (const node of chainRef.current) {
+      node.x = -200;
+      node.y = -200;
+      node.vx = 0;
+      node.vy = 0;
+    }
     sparksRef.current = [];
     dischargesRef.current = [];
   }, []);
 
   const discharge = useCallback((coords?: { x: number; y: number }) => {
-    const origin = coords || (mouseActive.current ? lastMousePos.current : autoPos.current);
+    const origin = coords || targetPos.current;
     if (origin.x < 0 || origin.y < 0) return;
 
-    // Create 6-12 branching lightning forks radiating from origin
-    const numForks = Math.floor(6 + Math.random() * 6);
+    // Create 8-14 radiating branching lightning forks
+    const numForks = Math.floor(8 + Math.random() * 6);
     const newDischarges: DischargeBranch[] = [];
 
     for (let f = 0; f < numForks; f++) {
       const baseAngle = (Math.PI * 2 * f) / numForks + (Math.random() - 0.5) * 0.4;
-      const forkLength = 40 + Math.random() * 90;
+      const forkLength = 50 + Math.random() * 90;
       const steps = Math.floor(forkLength / 8);
       const points: { x: number; y: number }[] = [{ x: origin.x, y: origin.y }];
 
@@ -195,7 +230,7 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
       let cy = origin.y;
       for (let s = 1; s <= steps; s++) {
         const stepDist = forkLength / steps;
-        const jitterAngle = baseAngle + (Math.random() - 0.5) * 0.9;
+        const jitterAngle = baseAngle + (Math.random() - 0.5) * 0.8;
         cx += Math.cos(jitterAngle) * stepDist;
         cy += Math.sin(jitterAngle) * stepDist;
         points.push({ x: cx, y: cy });
@@ -204,7 +239,7 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
       newDischarges.push({
         points,
         life: 0,
-        maxLife: 0.18 + Math.random() * 0.12,
+        maxLife: 0.2 + Math.random() * 0.12,
         color: Math.random() > 0.4 ? rgbPrimary.current : rgbSecondary.current,
         width: 1.2 + Math.random() * 1.6,
       });
@@ -212,17 +247,17 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
 
     dischargesRef.current.push(...newDischarges);
 
-    // Also spawn explosive sparks
-    for (let i = 0; i < 20; i++) {
+    // Spawn explosive kinetic sparks
+    for (let i = 0; i < 24; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speedP = 60 + Math.random() * 180;
+      const speedP = 60 + Math.random() * 200;
       sparksRef.current.push({
         x: origin.x,
         y: origin.y,
         vx: Math.cos(angle) * speedP,
         vy: Math.sin(angle) * speedP,
         life: 0,
-        maxLife: 0.2 + Math.random() * 0.3,
+        maxLife: 0.25 + Math.random() * 0.35,
         size: 1 + Math.random() * 2,
         color: Math.random() > 0.3 ? rgbPrimary.current : rgbSecondary.current,
       });
@@ -264,27 +299,36 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
     if (!interactive || isCoarse) return;
 
     const handlePointerMove = (e: PointerEvent) => {
-      lastMousePos.current = { x: e.clientX, y: e.clientY };
+      const px = e.clientX;
+      const py = e.clientY;
+
+      if (targetPos.current.x < 0) {
+        // Initialize chain at mouse position on first entrance
+        for (const node of chainRef.current) {
+          node.x = px;
+          node.y = py;
+        }
+      }
+
+      const dx = px - targetPos.current.x;
+      const dy = py - targetPos.current.y;
+      cursorVelocity.current = Math.hypot(dx, dy);
+
+      targetPos.current = { x: px, y: py };
       mouseActive.current = true;
       lastMoveTime.current = performance.now() / 1000;
 
-      trailRef.current.push({
-        x: e.clientX,
-        y: e.clientY,
-        time: performance.now() / 1000,
-      });
-
-      // Spawn subtle tip crackle sparks when moving
-      if (charge > 0 && Math.random() < 0.45 * charge && !reducedMotion) {
+      // Spawn soft plasma micro-sparks when moving fast
+      if (charge > 0 && Math.random() < 0.4 * charge && !reducedMotion) {
         const sparkAngle = Math.random() * Math.PI * 2;
         const sparkSpeed = 20 + Math.random() * 60;
         sparksRef.current.push({
-          x: e.clientX + (Math.random() - 0.5) * 6,
-          y: e.clientY + (Math.random() - 0.5) * 6,
+          x: px + (Math.random() - 0.5) * 6,
+          y: py + (Math.random() - 0.5) * 6,
           vx: Math.cos(sparkAngle) * sparkSpeed,
           vy: Math.sin(sparkAngle) * sparkSpeed,
           life: 0,
-          maxLife: 0.12 + Math.random() * 0.18,
+          maxLife: 0.14 + Math.random() * 0.16,
           size: 1 + Math.random() * 1.5,
           color: Math.random() > 0.5 ? rgbPrimary.current : rgbSecondary.current,
         });
@@ -328,7 +372,6 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // Handle pause
       if (paused) {
         animId = requestAnimationFrame(render);
         return;
@@ -353,164 +396,186 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
       }
       ctx.scale(pixelRatio, pixelRatio);
 
-      // Determine blending mode: "lighter" or "screen" for dark luminous glow, "source-over" for light ink
+      // Blending mode: screen/lighter for luminous neon glow on dark, source-over for ink on light
       ctx.globalCompositeOperation = isDarkTheme ? "screen" : "source-over";
 
-      // Autoplay idle motion
+      // Autoplay idle wandering motion
       const isIdle =
         autoplay && (!mouseActive.current || now - lastMoveTime.current > idleDelay);
 
       if (isIdle && !reducedMotion) {
-        autoAngle.current += dt * autoplaySpeed * 1.2;
+        autoAngle.current += dt * autoplaySpeed * 1.1;
         const centerX = w * 0.5;
         const centerY = h * 0.42;
         const rx = Math.min(w * 0.35, 420);
         const ry = Math.min(h * 0.28, 260);
 
-        // Figure-8 Lissajous smooth trajectory
+        // Smooth flowing Lissajous trajectory
         const nx = centerX + Math.sin(autoAngle.current) * rx;
         const ny = centerY + Math.sin(autoAngle.current * 2) * 0.5 * ry;
-        autoPos.current = { x: nx, y: ny };
+        targetPos.current = { x: nx, y: ny };
+        cursorVelocity.current = 40;
 
-        trailRef.current.push({
-          x: nx,
-          y: ny,
-          time: now,
-        });
-
-        // Spawn intermittent tip spark
-        if (charge > 0 && Math.random() < 0.25 * charge) {
-          const spAngle = Math.random() * Math.PI * 2;
-          sparksRef.current.push({
-            x: nx,
-            y: ny,
-            vx: Math.cos(spAngle) * 35,
-            vy: Math.sin(spAngle) * 35,
-            life: 0,
-            maxLife: 0.15 + Math.random() * 0.15,
-            size: 1.2,
-            color: Math.random() > 0.5 ? rgbPrimary.current : rgbSecondary.current,
-          });
+        if (chainRef.current[0].x < 0) {
+          for (const node of chainRef.current) {
+            node.x = nx;
+            node.y = ny;
+          }
         }
       }
 
-      // Filter out stale trail points
-      const maxAge = Math.max(0.1, length);
-      trailRef.current = trailRef.current.filter((p) => now - p.time <= maxAge);
+      // Smooth decay on velocity
+      cursorVelocity.current *= 0.94;
+
+      // Update chain nodes with spring-damping physics for flowing movement
+      const chain = chainRef.current;
+      const head = chain[0];
+      const target = targetPos.current;
+
+      if (target.x >= 0) {
+        // Head follows target smoothly
+        head.x += (target.x - head.x) * 0.65;
+        head.y += (target.y - head.y) * 0.65;
+
+        // Tail nodes follow previous nodes with spring lag (flowing whip effect)
+        const followRate = Math.min(0.65, 0.45 * (0.6 / Math.max(0.2, length)));
+        for (let i = 1; i < chain.length; i++) {
+          const prev = chain[i - 1];
+          const curr = chain[i];
+          curr.x += (prev.x - curr.x) * followRate;
+          curr.y += (prev.y - curr.y) * followRate;
+        }
+      }
+
+      // Calculate total span of chain to know if arc is moving
+      let totalSpan = 0;
+      for (let i = 1; i < chain.length; i++) {
+        totalSpan += Math.hypot(chain[i].x - chain[i - 1].x, chain[i].y - chain[i - 1].y);
+      }
 
       // Compute flicker intensity multiplier
       let currentFlicker = 1.0;
       if (!reducedMotion && flicker > 0) {
         currentFlicker =
-          1.0 + (Math.sin(now * 37.0 * speed) * 0.25 + (Math.random() - 0.5) * 0.35) * flicker;
-        currentFlicker = Math.max(0.4, Math.min(1.6, currentFlicker * intensity));
+          1.0 + (Math.sin(now * 32.0 * speed) * 0.18 + (Math.random() - 0.5) * 0.25) * flicker;
+        currentFlicker = Math.max(0.4, Math.min(1.5, currentFlicker * intensity));
       } else {
         currentFlicker = intensity;
       }
 
-      const trail = trailRef.current;
-
-      // Render the braided electric filaments
-      if (trail.length >= 2) {
+      // Render flowing braided electric filaments
+      if (head.x >= 0 && totalSpan > 3) {
         const numStrands = Math.max(1, Math.min(4, Math.round(strands)));
+        const totalSamples = 90; // Dense sampling along smooth Catmull-Rom spline
 
         for (let sIndex = 0; sIndex < numStrands; sIndex++) {
           const strandPhase = (sIndex * Math.PI * 2) / numStrands;
-          const isPrimaryStrand = sIndex === 0;
-          const strandWidthFactor = isPrimaryStrand ? 1.0 : 0.65;
-          const [cr1, cg1, cb1] = isPrimaryStrand ? rgbPrimary.current : rgbSecondary.current;
+          const isPrimary = sIndex === 0;
+          const strandFactor = isPrimary ? 1.0 : 0.65;
+          const [cr1, cg1, cb1] = isPrimary ? rgbPrimary.current : rgbSecondary.current;
 
-          // Generate crackling lightning segment points
-          const arcPoints: { x: number; y: number; alpha: number }[] = [];
+          const splinePoints: { x: number; y: number; alpha: number }[] = [];
 
-          for (let i = 0; i < trail.length - 1; i++) {
-            const p0 = trail[i];
-            const p1 = trail[i + 1];
-            const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-            const steps = Math.max(1, Math.ceil(dist / 9));
+          for (let s = 0; s <= totalSamples; s++) {
+            const u = s / totalSamples; // 0 at head (cursor), 1 at tail
+            // Map u to node index in chain
+            const rawIdx = u * (chain.length - 1);
+            const idx = Math.floor(rawIdx);
+            const t = rawIdx - idx;
 
-            const nx = -(p1.y - p0.y) / (dist || 1);
-            const ny = (p1.x - p0.x) / (dist || 1);
+            // 4 control points for Catmull-Rom
+            const p0 = chain[Math.max(0, idx - 1)];
+            const p1 = chain[idx];
+            const p2 = chain[Math.min(chain.length - 1, idx + 1)];
+            const p3 = chain[Math.min(chain.length - 1, idx + 2)];
 
-            for (let step = 0; step < steps; step++) {
-              const u = step / steps;
-              const bx = p0.x + (p1.x - p0.x) * u;
-              const by = p0.y + (p1.y - p0.y) * u;
-              const pointTime = p0.time + (p1.time - p0.time) * u;
-              const age = now - pointTime;
-              const lifeProgress = 1 - age / maxAge; // 1 at cursor head, 0 at tail
-              if (lifeProgress <= 0) continue;
+            // Interpolate smooth base position
+            const bx = catmullRom(p0.x, p1.x, p2.x, p3.x, t);
+            const by = catmullRom(p0.y, p1.y, p2.y, p3.y, t);
 
-              // Organic high-voltage fractal crackle & lateral writhing jitter
-              let jitter = 0;
-              if (!reducedMotion) {
-                const noiseVal = (fractalNoise(pointTime * 14.0 * speed + step * 0.45 + strandPhase * 1.5) - 0.5) * 2.0;
-                const lowFreq = Math.sin(pointTime * 6.0 * speed + strandPhase);
-                const envelope = Math.sin(Math.pow(lifeProgress, 0.75) * Math.PI);
-                jitter = (lowFreq * (bend * 0.4) + noiseVal * crackle * 3.5) * envelope;
-              }
+            // Compute tangent and normal vector
+            const nextT = Math.min(1, t + 0.05);
+            const tx = catmullRom(p0.x, p1.x, p2.x, p3.x, nextT) - bx;
+            const ty = catmullRom(p0.y, p1.y, p2.y, p3.y, nextT) - by;
+            const tLen = Math.hypot(tx, ty) || 1;
+            const nx = -ty / tLen;
+            const ny = tx / tLen;
 
-              arcPoints.push({
-                x: bx + nx * jitter,
-                y: by + ny * jitter,
-                alpha: Math.pow(Math.max(0, lifeProgress), 1.2) * currentFlicker,
-              });
+            // Flowing undulation & organic micro-crackle
+            let jitter = 0;
+            if (!reducedMotion) {
+              // Smooth traveling sine wave flowing down the ribbon
+              const travelingWave = Math.sin(u * 12.0 - now * 9.0 * speed + strandPhase) * (bend * 0.45);
+              // High-frequency fractal crackle
+              const microCrackle = (fractalNoise(u * 22.0 - now * 15.0 * speed + strandPhase) - 0.5) * (crackle * 3.2);
+              // Smooth envelope: 0 at head, maximum along mid-arc, smoothly tapers to 0 at tail
+              const envelope = Math.sin(Math.pow(1 - u, 0.65) * Math.PI);
+              jitter = (travelingWave + microCrackle) * envelope;
             }
+
+            // Alpha smoothly tapers off towards the tail
+            const alphaProgress = Math.pow(Math.max(0, 1 - u), 1.1);
+
+            splinePoints.push({
+              x: bx + nx * jitter,
+              y: by + ny * jitter,
+              alpha: alphaProgress * currentFlicker,
+            });
           }
 
-          if (arcPoints.length >= 2) {
-            // Layer 1: Outer colored bloom
+          if (splinePoints.length >= 2) {
+            // Layer 1: Outer soft luminous bloom
             if (glow > 0 && isDarkTheme) {
-              ctx.lineWidth = Math.max(1, thickness * 6.0 * glow * strandWidthFactor);
-              ctx.strokeStyle = `rgba(${cr1}, ${cg1}, ${cb1}, ${0.18 * glow * intensity})`;
+              ctx.lineWidth = Math.max(1.2, thickness * 5.5 * glow * strandFactor);
+              ctx.strokeStyle = `rgba(${cr1}, ${cg1}, ${cb1}, ${0.16 * glow * intensity})`;
               ctx.lineCap = "round";
               ctx.lineJoin = "round";
               ctx.beginPath();
-              ctx.moveTo(arcPoints[0].x, arcPoints[0].y);
-              for (let j = 1; j < arcPoints.length; j++) {
-                ctx.lineTo(arcPoints[j].x, arcPoints[j].y);
+              ctx.moveTo(splinePoints[0].x, splinePoints[0].y);
+              for (let j = 1; j < splinePoints.length; j++) {
+                ctx.lineTo(splinePoints[j].x, splinePoints[j].y);
               }
               ctx.stroke();
             }
 
             // Layer 2: Main vibrant electric body
-            ctx.lineWidth = Math.max(0.8, thickness * 2.2 * strandWidthFactor);
-            ctx.strokeStyle = `rgba(${cr1}, ${cg1}, ${cb1}, ${0.85 * intensity})`;
+            ctx.lineWidth = Math.max(0.8, thickness * 2.0 * strandFactor);
+            ctx.strokeStyle = `rgba(${cr1}, ${cg1}, ${cb1}, ${0.8 * intensity})`;
             ctx.beginPath();
-            ctx.moveTo(arcPoints[0].x, arcPoints[0].y);
-            for (let j = 1; j < arcPoints.length; j++) {
-              ctx.lineTo(arcPoints[j].x, arcPoints[j].y);
+            ctx.moveTo(splinePoints[0].x, splinePoints[0].y);
+            for (let j = 1; j < splinePoints.length; j++) {
+              ctx.lineTo(splinePoints[j].x, splinePoints[j].y);
             }
             ctx.stroke();
 
-            // Layer 3: White-hot inner core
-            ctx.lineWidth = Math.max(0.5, thickness * 0.9 * strandWidthFactor);
+            // Layer 3: Ultra-thin white-hot inner core
+            ctx.lineWidth = Math.max(0.5, thickness * 0.85 * strandFactor);
             ctx.strokeStyle = `rgba(255, 255, 255, ${0.95 * intensity})`;
             ctx.beginPath();
-            ctx.moveTo(arcPoints[0].x, arcPoints[0].y);
-            for (let j = 1; j < arcPoints.length; j++) {
-              ctx.lineTo(arcPoints[j].x, arcPoints[j].y);
+            ctx.moveTo(splinePoints[0].x, splinePoints[0].y);
+            for (let j = 1; j < splinePoints.length; j++) {
+              ctx.lineTo(splinePoints[j].x, splinePoints[j].y);
             }
             ctx.stroke();
 
-            // Random lightning branch splitting off
+            // Intermittent organic lightning branch splitting off
             if (
               branches > 0 &&
               !reducedMotion &&
-              isPrimaryStrand &&
-              Math.random() < branches * 0.25
+              isPrimary &&
+              Math.random() < branches * 0.22
             ) {
-              const randIdx = Math.floor(arcPoints.length * (0.3 + Math.random() * 0.5));
-              const bp = arcPoints[randIdx];
+              const randIdx = Math.floor(splinePoints.length * (0.25 + Math.random() * 0.5));
+              const bp = splinePoints[randIdx];
               if (bp) {
                 const branchAngle = Math.random() * Math.PI * 2;
-                const bLen = 14 + Math.random() * 22;
-                ctx.lineWidth = Math.max(0.6, thickness * 0.8);
-                ctx.strokeStyle = `rgba(${cr1}, ${cg1}, ${cb1}, 0.7)`;
+                const bLen = 12 + Math.random() * 20;
+                ctx.lineWidth = Math.max(0.5, thickness * 0.7);
+                ctx.strokeStyle = `rgba(${cr1}, ${cg1}, ${cb1}, 0.65)`;
                 ctx.beginPath();
                 ctx.moveTo(bp.x, bp.y);
-                const midX = bp.x + Math.cos(branchAngle + (Math.random() - 0.5) * 0.5) * (bLen * 0.5);
-                const midY = bp.y + Math.sin(branchAngle + (Math.random() - 0.5) * 0.5) * (bLen * 0.5);
+                const midX = bp.x + Math.cos(branchAngle + (Math.random() - 0.5) * 0.4) * (bLen * 0.5);
+                const midY = bp.y + Math.sin(branchAngle + (Math.random() - 0.5) * 0.4) * (bLen * 0.5);
                 const endX = bp.x + Math.cos(branchAngle) * bLen;
                 const endY = bp.y + Math.sin(branchAngle) * bLen;
                 ctx.lineTo(midX, midY);
@@ -521,34 +586,32 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
           }
         }
 
-        // Electric charge corona at cursor tip
-        const headPoint = trail[trail.length - 1];
-        if (headPoint && charge > 0) {
+        // Luminous electric charge corona at cursor tip
+        if (charge > 0) {
           const [pr, pg, pb] = rgbPrimary.current;
-          const tipRadius = 2.5 * thickness * (1 + 0.3 * Math.sin(now * 30));
+          const tipRadius = 2.4 * thickness * (1 + 0.25 * Math.sin(now * 25));
 
-          // Outer tip bloom
           const grad = ctx.createRadialGradient(
-            headPoint.x,
-            headPoint.y,
+            head.x,
+            head.y,
             0,
-            headPoint.x,
-            headPoint.y,
-            tipRadius * 4
+            head.x,
+            head.y,
+            tipRadius * 3.5
           );
-          grad.addColorStop(0, `rgba(255, 255, 255, ${0.9 * currentFlicker})`);
-          grad.addColorStop(0.3, `rgba(${pr}, ${pg}, ${pb}, ${0.7 * currentFlicker})`);
+          grad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * currentFlicker})`);
+          grad.addColorStop(0.35, `rgba(${pr}, ${pg}, ${pb}, ${0.7 * currentFlicker})`);
           grad.addColorStop(1, `rgba(${pr}, ${pg}, ${pb}, 0)`);
 
           ctx.fillStyle = grad;
           ctx.beginPath();
-          ctx.arc(headPoint.x, headPoint.y, tipRadius * 4, 0, Math.PI * 2);
+          ctx.arc(head.x, head.y, tipRadius * 3.5, 0, Math.PI * 2);
           ctx.fill();
 
           // White center spark
           ctx.fillStyle = `rgba(255, 255, 255, ${0.98 * currentFlicker})`;
           ctx.beginPath();
-          ctx.arc(headPoint.x, headPoint.y, tipRadius, 0, Math.PI * 2);
+          ctx.arc(head.x, head.y, tipRadius * 0.9, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -565,7 +628,6 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
         const alpha = Math.max(0, 1 - item.life / item.maxLife);
         const [dr, dg, db] = item.color;
 
-        // Outer glow
         ctx.lineWidth = item.width * 3.5;
         ctx.strokeStyle = `rgba(${dr}, ${dg}, ${db}, ${alpha * 0.35 * intensity})`;
         ctx.beginPath();
@@ -575,7 +637,6 @@ export const ArcCursor = forwardRef<ArcCursorRef, ArcCursorProps>(function ArcCu
         }
         ctx.stroke();
 
-        // White core
         ctx.lineWidth = Math.max(0.6, item.width);
         ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
         ctx.beginPath();

@@ -75,46 +75,47 @@ const FRAGMENT_SHADER_SOURCE = `
     vec2 mDiff = uv - mouseUV;
     mDiff.x *= aspect;
     float mDist = length(mDiff);
+    float velMag = length(u_mouseVel);
 
-    // Hover-influenced flow speed
-    float flowSpeed = 0.65 + u_hover * 0.45;
+    // Hover-influenced flow speed with vigorous velocity kick
+    float flowSpeed = 0.70 + u_hover * 0.65 + min(velMag * 0.85, 1.8);
     float t = u_time * flowSpeed;
 
-    // 1. Fluid swirl vortex around pointer
-    float swirl = exp(-mDist * 4.2) * u_hover;
-    float angle = swirl * 2.4;
+    // 1. Vigorous fluid swirl vortex around pointer responsive to cursor movement
+    float swirl = (exp(-mDist * 3.6) * 3.8 + velMag * 2.2 * exp(-mDist * 2.5)) * u_hover;
+    float angle = swirl * 2.8 * (u_mouseVel.x >= 0.0 ? 1.0 : -1.0);
     mat2 swirlRot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
 
     vec2 p = uv;
     p.x *= aspect;
     p = mouseUV + swirlRot * (p - mouseUV);
 
-    // 2. Wind push from cursor movement
-    float wind = u_mouseVel.x * exp(-mDist * 3.5) * 0.35;
+    // 2. Vigorous wind push and wake turbulence from cursor velocity
+    float wind = (u_mouseVel.x * 1.4 + u_mouseVel.y * 0.6) * exp(-mDist * 2.8);
 
     // 3. Multi-frequency harmonic wave foundation
-    float w1 = sin(p.x * 3.8 + t * 0.45 + wind) * 0.055;
-    float w2 = sin(p.x * 7.5 - t * 0.65) * 0.028;
-    float w3 = cos(p.x * 12.0 + t * 0.95) * 0.014;
+    float w1 = sin(p.x * 3.8 + t * 0.55 + wind) * 0.065;
+    float w2 = sin(p.x * 8.0 - t * 0.85 + wind * 0.5) * 0.035;
+    float w3 = cos(p.x * 14.0 + t * 1.2) * 0.018;
 
     // 4. Multi-octave organic rolling turbulence
-    vec2 nCoord1 = vec2(p.x * 2.4 - t * 0.18, uv.y * 2.0 - t * 0.4);
+    vec2 nCoord1 = vec2(p.x * 2.6 - t * 0.22 + wind * 0.3, uv.y * 2.2 - t * 0.5);
     float n1 = fbm(nCoord1);
 
-    vec2 nCoord2 = vec2(p.x * 4.6 + n1 * 0.6 + t * 0.14, uv.y * 3.2 - t * 0.55);
+    vec2 nCoord2 = vec2(p.x * 4.8 + n1 * 0.7 + t * 0.18, uv.y * 3.4 - t * 0.65);
     float n2 = fbm(nCoord2);
 
-    // 5. Suction & pointer attraction: flame billows dynamically towards cursor
-    float pointerLift = exp(-pow(mDist * 3.2, 2.0)) * 0.08 * u_hover;
+    // 5. Suction & pointer attraction: flame vigorously surges towards the cursor
+    float pointerLift = exp(-pow(mDist * 2.5, 2.0)) * (0.14 + min(velMag * 0.35, 0.28)) * u_hover;
 
-    // 6. Interactive harmonic ripple wave radiating from pointer
-    float pointerRipple = sin(mDist * 24.0 - t * 4.5) * exp(-mDist * 6.0) * 0.025 * u_hover;
+    // 6. Interactive harmonic ripple wave radiating vigorously from pointer
+    float pointerRipple = sin(mDist * 28.0 - t * 6.5 - velMag * 5.0) * exp(-mDist * 4.5) * (0.045 + min(velMag * 0.09, 0.12)) * u_hover;
 
     // Dynamic crest height
     float targetCrest = u_flameHeight * 0.25;
-    float waveCrest = targetCrest + w1 + w2 + w3 + (n1 - 0.5) * 0.08 + (n2 - 0.5) * 0.03 + pointerLift + pointerRipple;
+    float waveCrest = targetCrest + w1 + w2 + w3 + (n1 - 0.5) * 0.09 + (n2 - 0.5) * 0.04 + pointerLift + pointerRipple;
     // Strictly cap crest below the feature bullet items
-    waveCrest = min(waveCrest, 0.34);
+    waveCrest = min(waveCrest, 0.37);
 
     float dist = waveCrest - uv.y;
 
@@ -122,22 +123,22 @@ const FRAGMENT_SHADER_SOURCE = `
     float body = smoothstep(-0.03, 0.05, dist);
 
     // Soft luminous rim along the crest
-    float rim = exp(-abs(dist) * 26.0) * 0.65;
+    float rim = exp(-abs(dist) * 24.0) * (0.70 + min(velMag * 0.5, 0.45));
 
     // Volumetric diffuse glow extending slightly above the crest
-    float glowAbove = exp(-max(uv.y - waveCrest, 0.0) * 22.0) * 0.5;
+    float glowAbove = exp(-max(uv.y - waveCrest, 0.0) * 20.0) * (0.55 + min(velMag * 0.3, 0.3));
 
     // Luminous saturated base in the lower area
-    float baseGlow = pow(clamp((0.32 - uv.y) / 0.32, 0.0, 1.0), 1.5) * 0.95;
+    float baseGlow = pow(clamp((0.34 - uv.y) / 0.34, 0.0, 1.0), 1.5) * 0.95;
 
-    // Interactive cursor plasma heat bloom
-    float cursorHeat = exp(-pow(mDist * 5.0, 2.0)) * 0.65 * u_hover;
+    // Interactive cursor plasma heat bloom responsive to speed
+    float cursorHeat = exp(-pow(mDist * 3.8, 2.0)) * (0.75 + min(velMag * 0.7, 0.9)) * u_hover;
 
     // Organic density modulation for billowing cloud look
-    float internalTurbulence = 0.88 + (n1 * 0.12 + n2 * 0.08);
+    float internalTurbulence = 0.88 + (n1 * 0.14 + n2 * 0.09);
 
     // Rich saturated color:
-    vec3 col = u_color * (0.85 + 0.22 * internalTurbulence);
+    vec3 col = u_color * (0.85 + 0.25 * internalTurbulence);
 
     // Crest rim receives the luminous highlight accent
     col = mix(col, u_highlight, rim * 0.8);
@@ -205,14 +206,14 @@ export function ShaderCard({
 
       const prevX = mouseStateRef.current.x;
       const prevY = mouseStateRef.current.y;
-      mouseStateRef.current.vx = (x - prevX) * 10;
-      mouseStateRef.current.vy = (y - prevY) * 10;
+      mouseStateRef.current.vx = (x - prevX) * 26.0;
+      mouseStateRef.current.vy = (y - prevY) * 26.0;
       mouseStateRef.current.x = x;
       mouseStateRef.current.y = y;
       mouseStateRef.current.hover = 1.0;
 
-      const tiltX = (0.5 - y) * 8.5;
-      const tiltY = (x - 0.5) * 8.5;
+      const tiltX = (0.5 - y) * 9.5;
+      const tiltY = (x - 0.5) * 9.5;
       setTilt({ rotateX: tiltX, rotateY: tiltY });
     },
     [interactive, shouldReduceMotion]
@@ -322,10 +323,10 @@ export function ShaderCard({
 
       // Smooth decay of kinetic velocity and hover factor
       const m = mouseStateRef.current;
-      m.vx *= 0.91;
-      m.vy *= 0.91;
+      m.vx *= 0.94;
+      m.vy *= 0.94;
       const targetHover = isHoveredRef.current ? 1.0 : 0.0;
-      m.hover += (targetHover - m.hover) * 0.08;
+      m.hover += (targetHover - m.hover) * 0.12;
 
       gl.useProgram(program);
       gl.uniform2f(uResolution, canvas.width, canvas.height);

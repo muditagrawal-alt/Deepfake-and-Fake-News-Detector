@@ -35,6 +35,7 @@ import { TechStackShowcase } from "@/components/TechStackShowcase";
 import BlurText from "@/components/BlurText";
 import Feedback1 from "@/components/Feedback1";
 import ShaderCard from "@/components/ui/shader-card";
+import DitherWave from "@/components/ui/dither-wave";
 
 const Topography = dynamic(() => import("@/components/Topography"), {
   ssr: false,
@@ -553,9 +554,7 @@ function ScrollyPipelineSection({
               />
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-white/70 sm:text-base">
-              Veritas executes an enterprise-grade multi-stage pipeline. Every signal is
-              isolated, cross-checked against 14 global wire archives, and assembled into
-              an immutable verification dossier for newsrooms and security teams.
+              From raw media ingestion to calibrated Bayesian synthesis. Every disputed claim is decomposed, cross-checked against primary sources, and assembled into a transparent audit trail.
             </p>
           </div>
         </ScrollReveal>
@@ -599,7 +598,6 @@ function ParallaxDossierSection({
   });
 
   // Multi-layer parallax scroll transforms
-  const bgGridY = useTransform(smoothProgress, [0, 1], [-40, 40]);
   const cardScale = useTransform(smoothProgress, [0, 0.5, 1], [0.96, 1, 0.97]);
   const beamScaleX = useTransform(smoothProgress, [0.1, 0.7], [0, 1]);
 
@@ -632,92 +630,94 @@ function ParallaxDossierSection({
               />
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-white/55 sm:text-base">
-              Veritas produces an auditable chain-of-custody. We provide timestamped
-              cryptographic hashes, explicit evidentiary citations, and calibrated model
-              uncertainty boundaries.
+              Explore a completed inspection report. Every verdict is permanently bound to its cryptographic certificate, primary citations, and empirical confidence interval.
             </p>
           </div>
         </ScrollReveal>
 
-        {/* Parallax Depth Shell */}
-        <div className="parallax-dossier-shell p-4 sm:p-8 relative">
-          {/* Layer 1: Parallax Grid Background */}
-          <motion.div
-            className="parallax-grid-bg"
-            style={reduceMotion ? {} : { y: bgGridY }}
-          />
+        {/* Parallax Depth Shell with Retro Dither Wave background */}
+        <DitherWave
+          color="#38bdf8"
+          backgroundColor="#040407"
+          speed={0.85}
+          frequency={0.016}
+          amplitude={45.0}
+          ditherSize={3}
+          className="rounded-2xl border border-white/10 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.95)]"
+        >
+          <div className="p-4 sm:p-10 flex items-center justify-center relative w-full">
+            {/* Layer 2: Main Grounded Dossier Document */}
+            <motion.div
+              className="relative z-10 w-full max-w-[760px] rounded-xl border border-white/15 bg-[#08080c]/90 backdrop-blur-xl p-6 sm:p-8 shadow-2xl"
+              style={reduceMotion ? {} : { scale: cardScale }}
+            >
+              {/* Dossier Header */}
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-sm font-bold text-white tracking-tight">
+                      VERITAS VERIFICATION DOSSIER
+                    </span>
+                    <span className="font-mono text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      VERIFIED GENUINE
+                    </span>
+                  </div>
+                  <p className="mt-1 font-mono text-[11px] text-white/50">
+                    Certificate #VRT-2026-8812 • C2PA Hardware Provenance Authenticated
+                  </p>
+                </div>
+                <div className="text-[10px] font-semibold px-3 py-1.5 rounded-full border border-white/15 text-white/90 bg-white/5 backdrop-blur-sm">
+                  EDITORIAL GRADE
+                </div>
+              </div>
 
-          {/* Layer 2: Main Grounded Dossier Document */}
-          <motion.div
-            className="relative z-10 w-full max-w-[760px] rounded-xl border border-white/10 bg-[#08080a] p-6 sm:p-8 shadow-2xl"
-            style={reduceMotion ? {} : { scale: cardScale }}
-          >
-            {/* Dossier Header */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-bold text-white tracking-tight">
-                    VERITAS VERIFICATION DOSSIER
-                  </span>
-                  <span className="font-mono text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                    VERIFIED GENUINE
-                  </span>
+              {/* Dossier Content Grid */}
+              <div className="mt-6 grid gap-4 sm:grid-cols-3 text-xs">
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">Provenance Signal</div>
+                  <div className="mt-1.5 font-bold text-sm text-white">C2PA Manifest Validated</div>
+                  <div className="mt-1 text-[11px] text-white/50 leading-relaxed">Untampered hardware camera container</div>
                 </div>
-                <p className="mt-1 font-mono text-[11px] text-white/50">
-                  Certificate #VRT-2026-8812 • C2PA Hardware Provenance Authenticated
-                </p>
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="text-[10px] font-semibold text-purple-400 uppercase tracking-wider">Wire Corroboration</div>
+                  <div className="mt-1.5 font-bold text-sm text-white">Reuters & AP Matched</div>
+                  <div className="mt-1 text-[11px] text-white/50 leading-relaxed">Confirmed across breaking wire archives</div>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider">Confidence Index</div>
+                  <div className="mt-1.5 font-bold text-sm text-white">96.8% Authenticity Score</div>
+                  <div className="mt-1 text-[11px] text-white/50 leading-relaxed">95% CI: [94.2%, 98.4%] empirical band</div>
+                </div>
               </div>
-              <div className="text-[10px] font-semibold px-3 py-1.5 rounded-full border border-white/15 text-white/90 bg-white/5 backdrop-blur-sm">
-                EDITORIAL GRADE
-              </div>
-            </div>
 
-            {/* Dossier Content Grid */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-3 text-xs">
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <div className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">Provenance Signal</div>
-                <div className="mt-1.5 font-bold text-sm text-white">C2PA Manifest Validated</div>
-                <div className="mt-1 text-[11px] text-white/50 leading-relaxed">Untampered hardware camera container</div>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <div className="text-[10px] font-semibold text-purple-400 uppercase tracking-wider">Wire Corroboration</div>
-                <div className="mt-1.5 font-bold text-sm text-white">Reuters & AP Matched</div>
-                <div className="mt-1 text-[11px] text-white/50 leading-relaxed">Confirmed across breaking wire archives</div>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <div className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider">Confidence Index</div>
-                <div className="mt-1.5 font-bold text-sm text-white">96.8% Authenticity Score</div>
-                <div className="mt-1 text-[11px] text-white/50 leading-relaxed">95% CI: [94.2%, 98.4%] empirical band</div>
-              </div>
-            </div>
-
-            {/* Evidence Audit Trail */}
-            <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.015] p-5 text-xs">
-              <div className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-3 flex items-center justify-between">
-                <span>Auditable Verification Lifecycle</span>
-                <span className="text-[10px] font-mono text-emerald-400 font-normal">CERTIFIED • 07.91s</span>
-              </div>
-              <div className="space-y-2 text-[12px] text-white/70">
-                <div className="flex items-start gap-2.5">
-                  <span className="text-white/40 font-mono text-[11px] pt-0.5">01</span>
-                  <span><strong className="text-white">Zero-Retention Ingestion:</strong> Encrypted payload verified in volatile RAM enclave; zero customer media retained.</span>
+              {/* Evidence Audit Trail */}
+              <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.015] p-5 text-xs">
+                <div className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-3 flex items-center justify-between">
+                  <span>Auditable Verification Lifecycle</span>
+                  <span className="text-[10px] font-mono text-emerald-400 font-normal">CERTIFIED • 07.91s</span>
                 </div>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-white/40 font-mono text-[11px] pt-0.5">02</span>
-                  <span><strong className="text-white">Live Wire Triangulation:</strong> 4 atomic statements verified across Reuters, Associated Press & national registries in 1.4s.</span>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-white/40 font-mono text-[11px] pt-0.5">03</span>
-                  <span><strong className="text-white">Bio-Acoustic Audit:</strong> Vocal tract resonance & phoneme temporal sync confirmed natural human origin.</span>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-white/40 font-mono text-[11px] pt-0.5">04</span>
-                  <span><strong className="text-white">Certified Ledger:</strong> Immutable cryptographic verification certificate issued with C2PA digital seal.</span>
+                <div className="space-y-2 text-[12px] text-white/70">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-white/40 font-mono text-[11px] pt-0.5">01</span>
+                    <span><strong className="text-white">Zero-Retention Ingestion:</strong> Encrypted payload verified in volatile RAM enclave; zero customer media retained.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-white/40 font-mono text-[11px] pt-0.5">02</span>
+                    <span><strong className="text-white">Live Wire Triangulation:</strong> 4 atomic statements verified across Reuters, Associated Press & national registries in 1.4s.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-white/40 font-mono text-[11px] pt-0.5">03</span>
+                    <span><strong className="text-white">Bio-Acoustic Audit:</strong> Vocal tract resonance & phoneme temporal sync confirmed natural human origin.</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-white/40 font-mono text-[11px] pt-0.5">04</span>
+                    <span><strong className="text-white">Certified Ledger:</strong> Immutable cryptographic verification certificate issued with C2PA digital seal.</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
+            </motion.div>
+          </div>
+        </DitherWave>
       </div>
     </section>
   );
@@ -999,6 +999,71 @@ const heroChildVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+function WaveTiltCard({
+  children,
+  className,
+  reduceMotion,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  reduceMotion?: boolean;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, waveX: 50, waveY: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (reduceMotion || !cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      setTilt({
+        rotateX: (0.5 - y) * 7.5,
+        rotateY: (x - 0.5) * 7.5,
+        waveX: x * 100,
+        waveY: y * 100,
+      });
+    },
+    [reduceMotion]
+  );
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setTilt({ rotateX: 0, rotateY: 0, waveX: 50, waveY: 50 });
+      }}
+      style={{ perspective: "1200px" }}
+      className={className}
+    >
+      <div
+        className="relative transition-transform duration-200 ease-out"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: isHovered && !reduceMotion
+            ? `rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale3d(1.012, 1.012, 1.012)`
+            : "rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
+        }}
+      >
+        {/* Dynamic Specular Wave Glare */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-[inherit] transition-opacity duration-300 z-20"
+          style={{
+            opacity: isHovered ? 0.6 : 0,
+            background: `radial-gradient(circle 500px at ${tilt.waveX}% ${tilt.waveY}%, rgba(255,255,255,0.08), transparent 70%)`,
+          }}
+        />
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function SectionScrollConnector() {
   return (
     <div className="relative flex items-center justify-center -my-3 pointer-events-none z-20" aria-hidden="true">
@@ -1240,37 +1305,39 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
           </motion.div>
         </motion.div>
 
-        {/* Centered Interactive Review Terminal */}
-        <motion.section
-          id="product-check"
-          aria-labelledby="preview-title"
-          className="landing-tool-card relative z-10 mx-auto max-w-4xl w-full mb-6 sm:mb-8"
-          initial={
-            shouldReduceMotion
-              ? false
-              : { opacity: 0, y: 32, scale: 0.985 }
-          }
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{
-            duration: shouldReduceMotion ? 0 : 0.85,
-            delay: shouldReduceMotion ? 0 : 0.28,
-            ease: [0.16, 1, 0.3, 1],
-          }}
-        >
-          <div className="landing-tool-card-scan" aria-hidden="true" />
-          <div className="landing-preview-heading">
-            <h2
-              id="preview-title"
-              className="text-base font-semibold tracking-tight text-white"
-            >
-              Verify Any Media in Seconds
-            </h2>
-          </div>
-          <Analyzer preview />
-          <p className="landing-preview-note font-mono">
-            Instant multi-modal verification across web articles, photos, and video. Protected by ephemeral enclave isolation.
-          </p>
-        </motion.section>
+        {/* Centered Interactive Review Terminal with 3D Wave/Tilt Transition */}
+        <WaveTiltCard reduceMotion={shouldReduceMotion} className="relative z-10 mx-auto max-w-4xl w-full mb-6 sm:mb-8">
+          <motion.section
+            id="product-check"
+            aria-labelledby="preview-title"
+            className="landing-tool-card w-full"
+            initial={
+              shouldReduceMotion
+                ? false
+                : { opacity: 0, y: 32, scale: 0.985 }
+            }
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.85,
+              delay: shouldReduceMotion ? 0 : 0.28,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            <div className="landing-tool-card-scan" aria-hidden="true" />
+            <div className="landing-preview-heading">
+              <h2
+                id="preview-title"
+                className="text-base font-semibold tracking-tight text-white"
+              >
+                Verify Any Media in Seconds
+              </h2>
+            </div>
+            <Analyzer preview />
+            <p className="landing-preview-note font-mono">
+              Instant multi-modal verification across web articles, photos, and video. Protected by ephemeral enclave isolation.
+            </p>
+          </motion.section>
+        </WaveTiltCard>
       </section>
 
       {/* Inter-Section Animated Connector */}

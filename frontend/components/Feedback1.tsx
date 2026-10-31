@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   Bug,
   Sparkle,
@@ -98,6 +98,33 @@ export default function Feedback1({
   const [needsActivation, setNeedsActivation] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formCardRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState<{ rotateX: number; rotateY: number; glareX: number; glareY: number }>({
+    rotateX: 0,
+    rotateY: 0,
+    glareX: 50,
+    glareY: 50,
+  });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!formCardRef.current) return;
+    const rect = formCardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setTilt({
+      rotateX: (0.5 - y) * 8.0,
+      rotateY: (x - 0.5) * 8.0,
+      glareX: x * 100,
+      glareY: y * 100,
+    });
+  }, []);
+
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
+    setTilt({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50 });
+  }, []);
 
   // Handle direct paste of image from clipboard (Cmd+V / Ctrl+V)
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -193,20 +220,50 @@ export default function Feedback1({
 
   return (
     <div
-      id="feedback"
-      className={cn(
-        "relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-[#08080a]/90 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_24px_70px_-16px_rgba(0,0,0,0.85)]",
-        className
-      )}
-      onPaste={handlePaste}
+      ref={formCardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        perspective: "1200px",
+      }}
+      className={cn("mx-auto w-full max-w-2xl select-none", className)}
     >
-      {/* Specular Ambient Glow */}
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent"
-      />
+        id="feedback"
+        className="relative overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-b from-white/[0.08] via-white/[0.03] to-[#08080c]/95 backdrop-blur-3xl p-6 sm:p-9 transition-transform duration-200 ease-out shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9),0_0_40px_rgba(59,130,246,0.18)] ring-1 ring-white/10"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: isHovered
+            ? `rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale3d(1.015, 1.015, 1.015)`
+            : "rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
+        }}
+        onPaste={handlePaste}
+      >
+        {/* Glossy Diagonal Specular Sheen */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/[0.06] to-transparent rotate-45 transition-opacity duration-300"
+          style={{ opacity: isHovered ? 1 : 0.4 }}
+        />
 
-      <AnimatePresence mode="wait">
+        {/* Specular Radial Cursor Glare */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+          style={{
+            opacity: isHovered ? 0.8 : 0,
+            background: `radial-gradient(circle 420px at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.14), transparent 65%)`,
+          }}
+        />
+
+        {/* Specular Ambient Glow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"
+        />
+
+        <AnimatePresence mode="wait">
         {!submitted ? (
           <motion.form
             key="feedback-form"
@@ -478,6 +535,7 @@ export default function Feedback1({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

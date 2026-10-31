@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { ParallaxCard } from "@/components/ui/parallax-card";
 import { DecryptedText } from "@/components/ui/decrypted-text";
 import {
   Activity,
@@ -259,18 +259,19 @@ export function TechStackShowcase() {
           ))}
         </div>
 
-        {/* Interactive Grid of Spotlight Cards with React Bits Decrypted Text */}
+        {/* Interactive Grid of Parallax Depth Cards with React Bits Decrypted Text */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredItems.map((item) => (
-            <SpotlightCard
+            <ParallaxCard
               key={item.name}
-              spotlightColor={item.spotlightColor}
-              className="flex flex-col justify-between h-full bg-elev/50 border-line hover:border-line-strong transition-all duration-300 group"
+              glowColor={item.spotlightColor}
+              maxTilt={10}
+              className="flex flex-col justify-between h-full group"
             >
               {/* Card Top: Badges & Version */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono tracking-wider px-2.5 py-1 rounded bg-line/40 border border-line text-ink-2">
+                  <span className="text-[11px] font-mono tracking-wider px-2.5 py-1 rounded bg-line/60 border border-line text-ink-2">
                     {item.badge}
                   </span>
                   <span className="text-xs font-mono text-ink-3">{item.version}</span>
@@ -318,7 +319,7 @@ export function TechStackShowcase() {
                   {item.category}
                 </span>
               </div>
-            </SpotlightCard>
+            </ParallaxCard>
           ))}
         </div>
 

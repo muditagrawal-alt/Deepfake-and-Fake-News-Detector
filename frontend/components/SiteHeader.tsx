@@ -112,13 +112,7 @@ export default function SiteHeader() {
             priority
             className="size-[26px] sm:size-[28px] shrink-0 object-contain drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]"
           />
-          <div className="flex items-center gap-2">
-            <span className="text-[14px] sm:text-[15px] font-semibold tracking-[-0.03em] text-white">Veritas</span>
-            <span className="relative flex size-2 shrink-0" title="Veritas Engine: Live & Operational">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full size-2 bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-            </span>
-          </div>
+          <span className="text-[14px] sm:text-[15px] font-semibold tracking-[-0.03em] text-white">Veritas</span>
         </Link>
 
         {/* Dynamic Island Nav Menu Items (Desktop) */}

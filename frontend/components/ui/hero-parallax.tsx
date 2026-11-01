@@ -58,24 +58,22 @@ export const HeroParallax = ({
 
   const springConfig = { stiffness: 120, damping: 28, mass: 0.2, restDelta: 0.001 };
 
-  const rawTranslateX = useTransform(scrollYProgress, [0.05, 0.88], [0, 520]);
-  const rawTranslateXReverse = useTransform(scrollYProgress, [0.05, 0.88], [0, -520]);
-  const rawRotateX = useTransform(scrollYProgress, [0.02, 0.35], [14, 0]);
-  const rawOpacity = useTransform(scrollYProgress, [0.01, 0.2], [0.35, 1]);
-  const rawRotateZ = useTransform(scrollYProgress, [0.02, 0.35], [10, 0]);
-  const rawTranslateY = useTransform(scrollYProgress, [0.02, 0.35], [40, 0]);
+  const rawTranslateX = useTransform(scrollYProgress, [0.02, 0.9], [0, 560]);
+  const rawTranslateXReverse = useTransform(scrollYProgress, [0.02, 0.9], [0, -560]);
+  const rawRotateX = useTransform(scrollYProgress, [0.02, 0.3], [5, 0]);
+  const rawOpacity = useTransform(scrollYProgress, [0.01, 0.18], [0.4, 1]);
+  const rawTranslateY = useTransform(scrollYProgress, [0.02, 0.3], [24, 0]);
 
   const translateX = useSpring(rawTranslateX, springConfig);
   const translateXReverse = useSpring(rawTranslateXReverse, springConfig);
   const rotateX = useSpring(rawRotateX, springConfig);
-  const rotateZ = useSpring(rawRotateZ, springConfig);
   const translateY = useSpring(rawTranslateY, springConfig);
 
   return (
     <div
       ref={ref}
       className={cn(
-        "h-[135vh] sm:h-[150vh] py-8 sm:py-12 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]",
+        "min-h-[185vh] sm:min-h-[215vh] py-10 sm:py-16 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]",
         className
       )}
     >
@@ -93,15 +91,14 @@ export const HeroParallax = ({
             ? { opacity: 1 }
             : {
                 rotateX,
-                rotateZ,
                 translateY,
                 opacity: rawOpacity,
               }
         }
-        className="transform-gpu will-change-transform [transform-style:preserve-3d]"
+        className="transform-gpu will-change-transform [transform-style:preserve-3d] pt-4 sm:pt-8"
       >
         {/* Row 1: Glides forward (translateX) */}
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 mb-6 sm:mb-8">
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 mb-8 sm:mb-12">
           {firstRow.map((product) => (
             <ProductCard
               product={product}
@@ -112,7 +109,7 @@ export const HeroParallax = ({
         </motion.div>
 
         {/* Row 2: Glides opposite (translateXReverse) */}
-        <motion.div className="flex flex-row mb-6 sm:mb-8 space-x-8 sm:space-x-10">
+        <motion.div className="flex flex-row mb-8 sm:mb-12 space-x-8 sm:space-x-10">
           {secondRow.map((product) => (
             <ProductCard
               product={product}
@@ -122,8 +119,8 @@ export const HeroParallax = ({
           ))}
         </motion.div>
 
-        {/* Row 3: Glides forward (translateX) */}
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10">
+        {/* Row 3: Glides forward (translateX) - Ample vertical spacing ensures row 3 is never cut off */}
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 pb-12 sm:pb-16">
           {thirdRow.map((product) => (
             <ProductCard
               product={product}

@@ -20,6 +20,7 @@ export const MenuItem = ({
   item,
   href,
   onClick,
+  isHighlighted = false,
   children,
 }: {
   setActive: (item: string | null) => void;
@@ -27,6 +28,7 @@ export const MenuItem = ({
   item: string;
   href?: string;
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  isHighlighted?: boolean;
   children?: React.ReactNode;
 }) => {
   const reduceMotion = useReducedMotion();
@@ -39,24 +41,29 @@ export const MenuItem = ({
   };
 
   const label = (
-    <motion.p
-      transition={{ duration: 0.3 }}
-      className="cursor-pointer text-ink-2 hover:text-white dark:text-neutral-200 dark:hover:text-white text-sm font-medium transition-colors select-none"
+    <motion.span
+      transition={{ duration: 0.2 }}
+      className={cn(
+        "inline-block cursor-pointer text-sm font-medium transition-all select-none px-3 py-1 rounded-full",
+        isHighlighted
+          ? "text-white bg-white/15 shadow-[0_0_14px_rgba(56,189,248,0.35)] ring-1 ring-cyan-400/40 font-semibold"
+          : "text-zinc-400 hover:text-white hover:bg-white/[0.06]"
+      )}
     >
       {item}
-    </motion.p>
+    </motion.span>
   );
 
   return (
     <div onMouseEnter={() => setActive(item)} className="relative">
       {href ? (
-        <Link
+        <a
           href={href}
           onClick={handleClick}
-          className="block outline-none focus-visible:ring-1 focus-visible:ring-cyan-400 rounded-sm"
+          className="block outline-none focus-visible:ring-1 focus-visible:ring-cyan-400 rounded-full"
         >
           {label}
-        </Link>
+        </a>
       ) : (
         label
       )}
@@ -129,16 +136,19 @@ export const ProductItem = ({
   href,
   src,
   visual,
+  onClick,
 }: {
   title: string;
   description: string;
   href: string;
   src?: string;
   visual?: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }) => {
   return (
     <a
       href={href}
+      onClick={onClick}
       className="flex space-x-3 group/product rounded-xl p-2.5 transition-colors hover:bg-neutral-100 dark:hover:bg-white/[0.06] border border-transparent hover:border-white/10"
     >
       {visual ? (

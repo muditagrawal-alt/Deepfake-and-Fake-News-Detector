@@ -1340,7 +1340,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       {/* ------------------------------------------------------------------ */}
       {/*  ACETERNITY UI HERO-PARALLAX: 3D FORENSIC TELEMETRY FLYBY         */}
       {/* ------------------------------------------------------------------ */}
-      <section id="parallax-evidence" className="border-t border-white/5 relative bg-[#030303] scroll-mt-20">
+      <section id="parallax-evidence" className="border-t border-white/5 relative bg-[#030303] scroll-mt-24">
         <HeroParallaxDemo />
       </section>
 
@@ -1421,7 +1421,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       {/* ------------------------------------------------------------------ */}
       {/*  SYSTEM ARCHITECTURE & 3D NETWORK TOPOLOGY                         */}
       {/* ------------------------------------------------------------------ */}
-      <section className="landing-section relative border-t border-white/5 scroll-mt-16">
+      <section id="architecture" className="landing-section relative border-t border-white/5 scroll-mt-24">
         <Architecture3D />
       </section>
 
@@ -1431,7 +1431,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
       {/* ------------------------------------------------------------------ */}
       {/*  DYNAMIC PRODUCTION TECH STACK SHOWCASE                            */}
       {/* ------------------------------------------------------------------ */}
-      <section className="landing-section relative border-t border-white/5 scroll-mt-16">
+      <section id="tech-stack" className="landing-section relative border-t border-white/5 scroll-mt-24">
         <TechStackShowcase />
       </section>
 

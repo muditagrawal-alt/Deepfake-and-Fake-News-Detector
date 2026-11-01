@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useMemo, useCallback } from "react";
 import { useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -222,11 +222,12 @@ export function ShaderCard({
   const targetMouseRef = useRef({ x: 0.5, y: 0.5 });
   const isHoveredRef = useRef(false);
   const lastTimeRef = useRef<number>(0);
-  const [tilt, setTilt] = useState<{ rotateX: number; rotateY: number }>({ rotateX: 0, rotateY: 0 });
 
-  const rgbColor = parseColorToRgb(color);
-  const rgbHighlight = parseColorToRgb(highlightColor);
+  // Memoize RGB values so useEffect dependency references stay strictly stable across renders
+  const rgbColor = useMemo(() => parseColorToRgb(color), [color]);
+  const rgbHighlight = useMemo(() => parseColorToRgb(highlightColor), [highlightColor]);
 
+  // Direct CSS transform avoids triggering full React component re-renders on mousemove
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!interactive || !cardRef.current || shouldReduceMotion) return;
@@ -239,7 +240,7 @@ export function ShaderCard({
 
       const tiltX = (0.5 - y) * 7.5;
       const tiltY = (x - 0.5) * 7.5;
-      setTilt({ rotateX: tiltX, rotateY: tiltY });
+      cardRef.current.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg)`;
     },
     [interactive, shouldReduceMotion]
   );
@@ -263,7 +264,9 @@ export function ShaderCard({
     isHoveredRef.current = false;
     targetMouseRef.current.x = 0.5;
     targetMouseRef.current.y = 0.5;
-    setTilt({ rotateX: 0, rotateY: 0 });
+    if (cardRef.current && interactive && !shouldReduceMotion) {
+      cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+    }
   };
 
   useEffect(() => {
@@ -488,7 +491,6 @@ export function ShaderCard({
       style={
         interactive && !shouldReduceMotion
           ? {
-              transform: `perspective(1000px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`,
               transformStyle: "preserve-3d",
               transition: "transform 140ms ease-out, border-color 250ms ease, box-shadow 250ms ease",
             }

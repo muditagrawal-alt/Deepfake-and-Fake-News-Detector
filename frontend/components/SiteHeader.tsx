@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
@@ -20,6 +20,7 @@ function stage() {
 
 export default function SiteHeader() {
   const [active, setActive] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [isWorkspace, setIsWorkspace] = useState<boolean>(false);
 
@@ -30,6 +31,48 @@ export default function SiteHeader() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Scroll spy to highlight active section as user scrolls through the page
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const sectionIds: Record<string, string> = {
+      "parallax-evidence": "forensics",
+      "pipeline": "pipeline",
+      "architecture": "architecture",
+      "how-it-works": "methodology",
+    };
+
+    const handleScrollSpy = () => {
+      if (window.scrollY < 200) {
+        setActiveSection(null);
+        return;
+      }
+
+      const viewportCenter = window.scrollY + window.innerHeight * 0.35;
+      let matchedKey: string | null = null;
+
+      for (const [id, key] of Object.entries(sectionIds)) {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (viewportCenter >= top && viewportCenter < top + height) {
+            matchedKey = key;
+            break;
+          }
+        }
+      }
+
+      if (matchedKey) {
+        setActiveSection(matchedKey);
+      }
+    };
+
+    window.addEventListener("scroll", handleScrollSpy, { passive: true });
+    handleScrollSpy();
+    return () => window.removeEventListener("scroll", handleScrollSpy);
   }, []);
 
   useEffect(() => {
@@ -61,26 +104,53 @@ export default function SiteHeader() {
     };
   }, []);
 
-  function handleHome(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (window.location.pathname !== "/") return;
-    event.preventDefault();
-    window.dispatchEvent(new Event("veritas:home"));
-  }
+  // In-page fast-forward scroll handler
+  const scrollToSection = useCallback((targetId: string, sectionKey: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
+    setActive(null);
+    setActiveSection(sectionKey);
 
-  function handleProduct(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (window.location.pathname !== "/") return;
-    event.preventDefault();
-    if (stage() === "landing") {
-      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      document.getElementById("product-check")?.scrollIntoView({ behavior, block: "center" });
+    if (window.location.pathname !== "/") {
+      window.location.href = `/#${targetId}`;
       return;
     }
-    window.dispatchEvent(new Event("veritas:start"));
+
+    // If currently inside workspace, return home first
+    window.dispatchEvent(new Event("veritas:home"));
+
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
+  // Home logo click returns smoothly to top of landing page
+  function handleHome(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    setActive(null);
+    setActiveSection(null);
+
+    if (window.location.pathname !== "/") {
+      window.location.href = "/";
+      return;
+    }
+
+    window.dispatchEvent(new Event("veritas:home"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleStart(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (window.location.pathname !== "/") return;
     event.preventDefault();
+    if (window.location.pathname !== "/") {
+      window.location.href = "/";
+      return;
+    }
+    if (stage() === "landing") {
+      scrollToSection("product-check", "forensics");
+      return;
+    }
     window.dispatchEvent(new Event("veritas:start"));
   }
 
@@ -102,7 +172,7 @@ export default function SiteHeader() {
             : "py-2 sm:py-2.5 px-3.5 sm:px-6"
         )}
       >
-        {/* Brand Shield & Title & Status Beacon */}
+        {/* Brand Shield & Title & Status Beacon — Returns back to top/home */}
         <Link
           href="/"
           onClick={handleHome}
@@ -121,84 +191,114 @@ export default function SiteHeader() {
           <span className="text-[14px] sm:text-[15px] font-semibold tracking-[-0.03em] text-white">Veritas</span>
         </Link>
 
-        {/* Dynamic Island Nav Menu Items (Desktop) */}
+        {/* Dynamic Island Nav Menu Items (Desktop) — In-page fast scrolling & Active highlight */}
         <div className="hidden md:block">
           <Menu
             setActive={setActive}
-            className="bg-transparent border-none p-0 shadow-none space-x-6 lg:space-x-8"
+            className="bg-transparent border-none p-0 shadow-none space-x-2 lg:space-x-4"
           >
             {/* 1. Forensics / Detection Engines */}
-            <MenuItem setActive={setActive} active={active} item="Forensics" href="/forensics">
+            <MenuItem
+              setActive={setActive}
+              active={active}
+              item="Forensics"
+              href="/#parallax-evidence"
+              isHighlighted={activeSection === "forensics"}
+              onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
+            >
               <div className="grid grid-cols-2 gap-3 p-2 text-sm w-[580px]">
                 <ProductItem
                   title="Claim Triangulation"
-                  href="/#product-check"
+                  href="/#parallax-evidence"
                   visual={<TriangulationThumbnail />}
+                  onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
                   description="Cross-indexes disputed claims with Reuters, AP, and primary wire consensus."
                 />
                 <ProductItem
                   title="Spectral Voice Clone"
-                  href="/#product-check"
+                  href="/#parallax-evidence"
                   visual={<AudioSpectrogramThumbnail />}
+                  onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
                   description="Mel-frequency pitch jitter, synthetic voice timbre, and phoneme latency audit."
                 />
                 <ProductItem
                   title="Micro-Saccade Vision"
-                  href="/#product-check"
+                  href="/#parallax-evidence"
                   visual={<MicroSaccadeThumbnail />}
+                  onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
                   description="Pixel boundary blending, pupil micro-fixations, and facial landmark anomalies."
                 />
                 <ProductItem
                   title="C2PA Provenance"
-                  href="/#product-check"
+                  href="/#parallax-evidence"
                   visual={<C2paThumbnail />}
+                  onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
                   description="Hardware sensor manifests, cryptographically bound signatures, and edit trails."
                 />
               </div>
             </MenuItem>
 
             {/* 2. Verification Pipeline */}
-            <MenuItem setActive={setActive} active={active} item="Pipeline" href="/pipeline">
+            <MenuItem
+              setActive={setActive}
+              active={active}
+              item="Pipeline"
+              href="/#pipeline"
+              isHighlighted={activeSection === "pipeline"}
+              onClick={(e) => scrollToSection("pipeline", "pipeline", e)}
+            >
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
                 <HoveredLink
                   href="/#product-check"
-                  onClick={handleProduct}
+                  onClick={(e) => scrollToSection("product-check", "forensics", e)}
                   description="Media ingestion, hash generation, and claim extraction."
                 >
                   Direct Inspection Ingestion
                 </HoveredLink>
                 <HoveredLink
-                  href="/pipeline"
+                  href="/#pipeline"
+                  onClick={(e) => scrollToSection("pipeline", "pipeline", e)}
                   description="Primary wire reporting indexation and consensus scoring."
                 >
-                  Four-Stage Provenance Pipeline
+                  Three Pillars Verification Engine
                 </HoveredLink>
                 <HoveredLink
-                  href="/#case-notes"
-                  description="Audited deepfakes and manipulated reporting breakdowns."
+                  href="/#dossier"
+                  onClick={(e) => scrollToSection("dossier", "pipeline", e)}
+                  description="Chain-of-custody cryptographic inspection dossier."
                 >
                   Investigative Case Dossiers
                 </HoveredLink>
                 <HoveredLink
-                  href="/#parallax-evidence"
-                  description="Real-time sensor signals, EXIF data, and telemetry stream."
+                  href="/#interactive-demo"
+                  onClick={(e) => scrollToSection("interactive-demo", "pipeline", e)}
+                  description="Real-time multi-modal case study walkthrough."
                 >
-                  Forensic Evidence Stream
+                  Interactive Forensic Demo
                 </HoveredLink>
               </div>
             </MenuItem>
 
             {/* 3. Architecture & Tech Stack */}
-            <MenuItem setActive={setActive} active={active} item="Architecture" href="/architecture">
+            <MenuItem
+              setActive={setActive}
+              active={active}
+              item="Architecture"
+              href="/#architecture"
+              isHighlighted={activeSection === "architecture"}
+              onClick={(e) => scrollToSection("architecture", "architecture", e)}
+            >
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[300px]">
                 <HoveredLink
-                  href="/architecture"
+                  href="/#architecture"
+                  onClick={(e) => scrollToSection("architecture", "architecture", e)}
                   description="Interactive 3D network topology rendered with Anime.js."
                 >
                   3D System Architecture
                 </HoveredLink>
                 <HoveredLink
-                  href="/tech-stack"
+                  href="/#tech-stack"
+                  onClick={(e) => scrollToSection("tech-stack", "architecture", e)}
                   description="Dynamic production manifest with 3D Parallax cards."
                 >
                   Production Tech Stack
@@ -207,43 +307,91 @@ export default function SiteHeader() {
             </MenuItem>
 
             {/* 4. Methodology */}
-            <MenuItem setActive={setActive} active={active} item="Methodology" href="/methodology">
+            <MenuItem
+              setActive={setActive}
+              active={active}
+              item="Methodology"
+              href="/#how-it-works"
+              isHighlighted={activeSection === "methodology"}
+              onClick={(e) => scrollToSection("how-it-works", "methodology", e)}
+            >
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
                 <HoveredLink
-                  href="/methodology"
-                  description="Full architectural review of the multi-signal forensic approach."
+                  href="/#how-it-works"
+                  onClick={(e) => scrollToSection("how-it-works", "methodology", e)}
+                  description="Word-by-word scroll scrubbing of the verification lifecycle."
                 >
-                  Technical Whitepaper
+                  Verification Methodology
                 </HoveredLink>
                 <HoveredLink
-                  href="/methodology#signals"
-                  description="Taxonomy of spectral, metadata, and neural forensic models."
+                  href="/#benchmarks"
+                  onClick={(e) => scrollToSection("benchmarks", "methodology", e)}
+                  description="Academic ground truth benchmarks and empirical metrics."
                 >
-                  Sensor Signal Directory
+                  Benchmark Comparison
                 </HoveredLink>
                 <HoveredLink
-                  href="/methodology#consensus"
-                  description="Weighted Bayesian consensus scoring across independent sources."
+                  href="/#feedback"
+                  onClick={(e) => scrollToSection("feedback", "methodology", e)}
+                  description="Send feedback or submit forensic audit requests."
                 >
-                  Consensus Triangulation
-                </HoveredLink>
-                <HoveredLink
-                  href="/methodology#zero-persistence"
-                  description="Zero media retention: inputs are purged immediately upon review."
-                >
-                  Zero-Persistence Privacy
+                  Feedback & Audit Inquiries
                 </HoveredLink>
               </div>
             </MenuItem>
           </Menu>
         </div>
 
-        {/* Streamlined Fallback for Mobile Viewports */}
-        <nav aria-label="Main Mobile" className="flex md:hidden items-center gap-1.5 sm:gap-2 text-[11px] font-mono text-zinc-400">
-          <Link href="/forensics" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Forensics</Link>
-          <Link href="/pipeline" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Pipeline</Link>
-          <Link href="/architecture" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Architecture</Link>
-          <Link href="/methodology" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Method</Link>
+        {/* Streamlined Fallback for Mobile Viewports with in-page smooth navigation */}
+        <nav aria-label="Main Mobile" className="flex md:hidden items-center gap-1 sm:gap-1.5 text-[11px] font-mono">
+          <a
+            href="/#parallax-evidence"
+            onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
+            className={cn(
+              "px-2 py-0.5 rounded-full transition-all",
+              activeSection === "forensics"
+                ? "text-white bg-white/20 ring-1 ring-cyan-400/40 font-semibold shadow-[0_0_8px_rgba(56,189,248,0.3)]"
+                : "text-zinc-400 hover:text-white"
+            )}
+          >
+            Forensics
+          </a>
+          <a
+            href="/#pipeline"
+            onClick={(e) => scrollToSection("pipeline", "pipeline", e)}
+            className={cn(
+              "px-2 py-0.5 rounded-full transition-all",
+              activeSection === "pipeline"
+                ? "text-white bg-white/20 ring-1 ring-cyan-400/40 font-semibold shadow-[0_0_8px_rgba(56,189,248,0.3)]"
+                : "text-zinc-400 hover:text-white"
+            )}
+          >
+            Pipeline
+          </a>
+          <a
+            href="/#architecture"
+            onClick={(e) => scrollToSection("architecture", "architecture", e)}
+            className={cn(
+              "px-2 py-0.5 rounded-full transition-all",
+              activeSection === "architecture"
+                ? "text-white bg-white/20 ring-1 ring-cyan-400/40 font-semibold shadow-[0_0_8px_rgba(56,189,248,0.3)]"
+                : "text-zinc-400 hover:text-white"
+            )}
+          >
+            Arch
+          </a>
+          <a
+            href="/#how-it-works"
+            onClick={(e) => scrollToSection("how-it-works", "methodology", e)}
+            className={cn(
+              "px-2 py-0.5 rounded-full transition-all",
+              activeSection === "methodology"
+                ? "text-white bg-white/20 ring-1 ring-cyan-400/40 font-semibold shadow-[0_0_8px_rgba(56,189,248,0.3)]"
+                : "text-zinc-400 hover:text-white"
+            )}
+          >
+            Method
+          </a>
         </nav>
 
         {/* CTA Button */}

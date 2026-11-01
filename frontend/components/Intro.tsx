@@ -393,7 +393,7 @@ function ScrollyPipelineCard({
   return (
     <motion.div
       style={reduceMotion ? {} : { y: cardY, opacity: cardOpacity }}
-      className="h-full"
+      className="h-full transform-gpu will-change-transform"
     >
       <ShaderCard
         color={stage.flameColor}
@@ -514,8 +514,9 @@ function ScrollyPipelineSection({
   });
 
   const smoothProgress = useSpring(sectionProgress, {
-    stiffness: 90,
-    damping: 24,
+    stiffness: 140,
+    damping: 28,
+    mass: 0.3,
     restDelta: 0.001,
   });
 
@@ -591,8 +592,9 @@ function ParallaxDossierSection({
   });
 
   const smoothProgress = useSpring(sectionProgress, {
-    stiffness: 90,
-    damping: 24,
+    stiffness: 140,
+    damping: 28,
+    mass: 0.3,
     restDelta: 0.001,
   });
 
@@ -738,8 +740,9 @@ function FolderFloatSection({
   });
 
   const smoothProgress = useSpring(sectionProgress, {
-    stiffness: 90,
-    damping: 24,
+    stiffness: 140,
+    damping: 28,
+    mass: 0.3,
     restDelta: 0.001,
   });
 
@@ -1198,7 +1201,7 @@ export default function Intro({ onContinue }: { onContinue?: () => void }) {
         {/* Hero Content with Scroll-driven Parallax Recession */}
         <motion.div
           style={shouldReduceMotion ? {} : { scale: heroScale, opacity: heroOpacity, y: heroY }}
-          className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-24 sm:pt-28 pb-4"
+          className="relative z-10 mx-auto max-w-4xl text-center flex flex-col items-center pt-24 sm:pt-28 pb-4 transform-gpu will-change-transform"
         >
           <motion.div
             className="flex flex-col items-center text-center w-full"

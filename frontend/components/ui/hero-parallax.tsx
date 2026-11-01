@@ -56,7 +56,7 @@ export const HeroParallax = ({
     offset: ["start end", "end start"],
   });
 
-  const springConfig = { stiffness: 220, damping: 30, bounce: 0 };
+  const springConfig = { stiffness: 120, damping: 28, mass: 0.2, restDelta: 0.001 };
 
   const rawTranslateX = useTransform(scrollYProgress, [0.05, 0.88], [0, 520]);
   const rawTranslateXReverse = useTransform(scrollYProgress, [0.05, 0.88], [0, -520]);
@@ -68,7 +68,6 @@ export const HeroParallax = ({
   const translateX = useSpring(rawTranslateX, springConfig);
   const translateXReverse = useSpring(rawTranslateXReverse, springConfig);
   const rotateX = useSpring(rawRotateX, springConfig);
-  const opacity = useSpring(rawOpacity, springConfig);
   const rotateZ = useSpring(rawRotateZ, springConfig);
   const translateY = useSpring(rawTranslateY, springConfig);
 
@@ -96,10 +95,10 @@ export const HeroParallax = ({
                 rotateX,
                 rotateZ,
                 translateY,
-                opacity,
+                opacity: rawOpacity,
               }
         }
-        className="will-change-transform"
+        className="transform-gpu will-change-transform [transform-style:preserve-3d]"
       >
         {/* Row 1: Glides forward (translateX) */}
         <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 mb-6 sm:mb-8">
@@ -309,11 +308,11 @@ export const ProductCard = ({
     <motion.div
       style={translate ? { x: translate } : undefined}
       whileHover={{
-        y: -16,
-        transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+        y: -12,
+        transition: { duration: 0.25, ease: "easeOut" },
       }}
       key={product.title}
-      className="group/product h-[18rem] sm:h-[21rem] w-[20rem] sm:w-[25rem] md:w-[28rem] relative shrink-0 rounded-2xl border border-white/10 bg-[#090a0d] p-0.5 shadow-2xl transition-all duration-300 hover:border-white/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden"
+      className="group/product h-[18rem] sm:h-[21rem] w-[20rem] sm:w-[25rem] md:w-[28rem] relative shrink-0 rounded-2xl border border-white/10 bg-[#090a0d] p-0.5 shadow-2xl transition-[border-color,box-shadow] duration-200 hover:border-white/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden transform-gpu will-change-transform [backface-visibility:hidden] [contain:paint_layout]"
     >
       <Link
         href={product.link || "#"}
@@ -347,17 +346,17 @@ export const ProductCard = ({
         {/* Top Header Strip */}
         <div className="absolute top-4 inset-x-4 flex items-center justify-between gap-2 z-10 font-mono text-[10px]">
           {product.category ? (
-            <span className="px-2.5 py-1 rounded border border-white/10 bg-black/60 text-white/70 backdrop-blur-md">
+            <span className="px-2.5 py-1 rounded border border-white/10 bg-black/80 text-white/70">
               {product.category}
             </span>
           ) : (
-            <span className="px-2.5 py-1 rounded border border-white/10 bg-black/60 text-white/50 backdrop-blur-md">
+            <span className="px-2.5 py-1 rounded border border-white/10 bg-black/80 text-white/50">
               VERITAS DOSSIER
             </span>
           )}
 
           {product.status && (
-            <span className={cn("px-2.5 py-1 rounded border font-semibold backdrop-blur-md", statusColor)}>
+            <span className={cn("px-2.5 py-1 rounded border font-semibold", statusColor)}>
               {product.status}
             </span>
           )}

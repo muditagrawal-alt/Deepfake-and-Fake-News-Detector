@@ -335,12 +335,16 @@ export function ShaderCard({
     const uHover = gl.getUniformLocation(program, "u_hover");
 
     let animationFrameId: number;
+    let isVisible = true;
     const startTime = performance.now();
 
     const resize = () => {
+      if (!canvas) return;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (width === 0 || height === 0) return;
+      // Cap DPR to 1.25 for procedural shader cards to eliminate GPU fill rate bottlenecks
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       const displayWidth = Math.floor(width * dpr);
       const displayHeight = Math.floor(height * dpr);
 
@@ -352,10 +356,20 @@ export function ShaderCard({
     };
 
     resize();
-    window.addEventListener("resize", resize);
+
+    // Use ResizeObserver instead of polling canvas dimensions in every RAF frame
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        resize();
+      });
+      resizeObserver.observe(canvas);
+    } else {
+      window.addEventListener("resize", resize);
+    }
 
     const render = (time: number) => {
-      resize();
+      if (!isVisible) return;
 
       const nowSec = time * 0.001;
       const lastSec = lastTimeRef.current > 0 ? lastTimeRef.current : nowSec - 0.016;
@@ -400,10 +414,34 @@ export function ShaderCard({
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      if (!shouldReduceMotion) {
+      if (!shouldReduceMotion && isVisible) {
         animationFrameId = requestAnimationFrame(render);
       }
     };
+
+    // IntersectionObserver to completely sleep shader execution when out of viewport
+    let intersectionObserver: IntersectionObserver | null = null;
+    const targetEl = cardRef.current ?? canvas;
+    if (typeof IntersectionObserver !== "undefined" && targetEl) {
+      intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          const visible = entry?.isIntersecting ?? false;
+          if (visible !== isVisible) {
+            isVisible = visible;
+            if (isVisible && !shouldReduceMotion) {
+              lastTimeRef.current = performance.now() * 0.001;
+              cancelAnimationFrame(animationFrameId);
+              animationFrameId = requestAnimationFrame(render);
+            } else if (!isVisible) {
+              cancelAnimationFrame(animationFrameId);
+            }
+          }
+        },
+        { rootMargin: "150px" }
+      );
+      intersectionObserver.observe(targetEl);
+    }
 
     if (shouldReduceMotion) {
       render(startTime);
@@ -412,7 +450,14 @@ export function ShaderCard({
     }
 
     return () => {
-      window.removeEventListener("resize", resize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener("resize", resize);
+      }
+      if (intersectionObserver) {
+        intersectionObserver.disconnect();
+      }
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       if (positionBuffer) gl.deleteBuffer(positionBuffer);
       if (program) gl.deleteProgram(program);
@@ -436,7 +481,7 @@ export function ShaderCard({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        "group/shader-card relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0c0d12] transition-all duration-300 hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col justify-between",
+        "group/shader-card relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0c0d12] transition-[border-color,box-shadow] duration-200 hover:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col justify-between transform-gpu will-change-transform [backface-visibility:hidden]",
         containerClassName,
         className
       )}

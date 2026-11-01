@@ -60,33 +60,56 @@ export function DitherWave({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     let animId: number;
     let width = 0;
     let height = 0;
+    let isVisible = false;
+    let lastDrawTime = 0;
 
     const waveRgb = hexToRgb(color);
     const bgRgb = hexToRgb(backgroundColor);
 
+    // Render at 0.5 scale for authentic chunky pixel dithering & 4x performance boost
+    const scaleFactor = 0.5;
+
     const resize = () => {
-      const parent = canvas.parentElement;
-      if (!parent) return;
-      const rect = parent.getBoundingClientRect();
-      width = Math.floor(rect.width);
-      height = Math.floor(rect.height);
+      const rect = container.getBoundingClientRect();
+      const rawWidth = Math.floor(rect.width);
+      const rawHeight = Math.floor(rect.height);
+      width = Math.floor(rawWidth * scaleFactor);
+      height = Math.floor(rawHeight * scaleFactor);
+      if (width === 0 || height === 0) return;
       canvas.width = width;
       canvas.height = height;
     };
 
     resize();
-    window.addEventListener("resize", resize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(container);
+    } else {
+      window.addEventListener("resize", resize);
+    }
 
     const startTime = performance.now();
 
     const draw = (now: number) => {
+      if (!isVisible) return;
+
+      // Throttle dither wave rendering to ~30 FPS (every 33ms) to leave main thread 100% free for scroll
+      if (now - lastDrawTime < 32) {
+        animId = requestAnimationFrame(draw);
+        return;
+      }
+      lastDrawTime = now;
+
       if (width === 0 || height === 0) {
         animId = requestAnimationFrame(draw);
         return;
@@ -109,14 +132,15 @@ export function DitherWave({
 
       // Center horizon
       const horizonY = height * 0.55;
+      const stepSize = Math.max(2, Math.floor(ditherSize * scaleFactor));
 
-      for (let py = 0; py < height; py += ditherSize) {
+      for (let py = 0; py < height; py += stepSize) {
         const normY = py / height;
-        const bayerY = Math.floor(py / ditherSize) % 4;
+        const bayerY = Math.floor(py / stepSize) % 4;
 
-        for (let px = 0; px < width; px += ditherSize) {
+        for (let px = 0; px < width; px += stepSize) {
           const normX = px / width;
-          const bayerX = Math.floor(px / ditherSize) % 4;
+          const bayerX = Math.floor(px / stepSize) % 4;
           const bayerThreshold = BAYER_4X4[bayerY * 4 + bayerX];
 
           // Mouse displacement wave
@@ -125,17 +149,17 @@ export function DitherWave({
             const dx = normX - m.x;
             const dy = normY - m.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            mouseDisplacement = Math.sin(dist * 24.0 - elapsed * 4.0) * Math.exp(-dist * 4.0) * 22.0;
+            mouseDisplacement = Math.sin(dist * 24.0 - elapsed * 4.0) * Math.exp(-dist * 4.0) * 16.0;
           }
 
           // Undulating multi-harmonic wave function
-          const wave1 = Math.sin(px * frequency + elapsed * 1.8) * amplitude;
-          const wave2 = Math.cos(px * frequency * 2.1 - elapsed * 1.2) * (amplitude * 0.45);
-          const wave3 = Math.sin((px * 0.6 + py * 0.4) * frequency + elapsed * 0.9) * (amplitude * 0.35);
+          const wave1 = Math.sin((px / scaleFactor) * frequency + elapsed * 1.8) * (amplitude * scaleFactor);
+          const wave2 = Math.cos((px / scaleFactor) * frequency * 2.1 - elapsed * 1.2) * (amplitude * scaleFactor * 0.45);
+          const wave3 = Math.sin(((px * 0.6 + py * 0.4) / scaleFactor) * frequency + elapsed * 0.9) * (amplitude * scaleFactor * 0.35);
 
           // Perspective depth calculation
           const waveY = horizonY + wave1 + wave2 + wave3 + mouseDisplacement;
-          const distToWave = (py - waveY) / (amplitude * 1.8);
+          const distToWave = (py - waveY) / (amplitude * scaleFactor * 1.8);
 
           // Compute raw wave intensity
           let intensity = 0;
@@ -152,8 +176,8 @@ export function DitherWave({
           const isLit = intensity > bayerThreshold;
 
           // Block fill
-          for (let dy = 0; dy < ditherSize && py + dy < height; dy++) {
-            for (let dx = 0; dx < ditherSize && px + dx < width; dx++) {
+          for (let dy = 0; dy < stepSize && py + dy < height; dy++) {
+            for (let dx = 0; dx < stepSize && px + dx < width; dx++) {
               const idx = ((py + dy) * width + (px + dx)) * 4;
               if (isLit) {
                 // Modulate color based on depth
@@ -175,14 +199,46 @@ export function DitherWave({
 
       ctx.putImageData(imgData, 0, 0);
 
-      animId = requestAnimationFrame(draw);
+      if (isVisible) {
+        animId = requestAnimationFrame(draw);
+      }
     };
 
-    animId = requestAnimationFrame(draw);
+    let intersectionObserver: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== "undefined") {
+      intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          const visible = entry?.isIntersecting ?? false;
+          if (visible !== isVisible) {
+            isVisible = visible;
+            if (isVisible) {
+              lastDrawTime = 0;
+              cancelAnimationFrame(animId);
+              animId = requestAnimationFrame(draw);
+            } else {
+              cancelAnimationFrame(animId);
+            }
+          }
+        },
+        { rootMargin: "150px" }
+      );
+      intersectionObserver.observe(container);
+    } else {
+      isVisible = true;
+      animId = requestAnimationFrame(draw);
+    }
 
     return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener("resize", resize);
+      }
+      if (intersectionObserver) {
+        intersectionObserver.disconnect();
+      }
       cancelAnimationFrame(animId);
-      window.removeEventListener("resize", resize);
     };
   }, [color, backgroundColor, speed, frequency, amplitude, ditherSize]);
 

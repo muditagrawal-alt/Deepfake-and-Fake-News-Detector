@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import { auth } from "@/auth";
+import { getClientIp, rateLimiter } from "@/lib/rateLimit";
 
 function encode(value: unknown): string {
   const serialized = JSON.stringify(value);
@@ -7,11 +8,21 @@ function encode(value: unknown): string {
   return Buffer.from(serialized).toString("base64url");
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   const user = session?.user;
   if (!user?.id || !user.email) {
     return Response.json({ error: "unauthorized", message: "Sign in to continue." }, { status: 401 });
+  }
+
+  // Rate limit token minting per user identity / IP
+  const ip = getClientIp(req);
+  const limitResult = rateLimiter.check(`token:${user.id}:${ip}`, 60, 300);
+  if (!limitResult.allowed) {
+    return Response.json(
+      { error: "rate_limited", message: "Too many token requests. Please wait." },
+      { status: 429, headers: { "Retry-After": limitResult.resetInSeconds.toString() } }
+    );
   }
 
   const secret = process.env.BACKEND_TOKEN_SECRET;

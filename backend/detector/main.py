@@ -12,6 +12,7 @@ import asyncio
 import logging
 import math
 import os
+import re
 import shutil
 import tempfile
 from contextlib import asynccontextmanager
@@ -31,6 +32,7 @@ from detector import accounts
 from detector.auth import require_user
 from detector.cache import response_cache
 from detector.config import get_settings
+from detector.forensics.safe_fetch import UnsafeURL, validate_public_url
 from detector.forensics.video_meta import ffprobe_json
 from detector.jobs import JobStore
 from detector.pipeline import analyze
@@ -85,6 +87,64 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    """Inject OWASP SOTA security headers and enforce no-store on sensitive endpoints."""
+    response = await call_next(request)
+    headers = response.headers
+    headers["X-Content-Type-Options"] = "nosniff"
+    headers["X-Frame-Options"] = "DENY"
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    headers["X-XSS-Protection"] = "0"
+    headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    # Sensitive endpoints should never be cached in shared intermediate proxies
+    path = request.url.path
+    if path.startswith(("/account", "/analyze", "/jobs")):
+        headers["Cache-Control"] = "no-store, private, max-age=0"
+        headers["Pragma"] = "no-cache"
+
+    if "server" in headers:
+        del headers["server"]
+    return response
+
+
+def safe_filename(name: str | None, default: str = "file") -> str:
+    """Sanitize uploaded filenames to eliminate traversal, null-byte, and script injection risks."""
+    if not name:
+        return default
+    # Handle both Windows and POSIX path separators
+    clean = name.replace("\\", "/").rstrip("/").split("/")[-1]
+    clean = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", clean)
+    clean = re.sub(r'[<>:"/\\|?*`$]', "", clean)
+    clean = clean.strip(". ")
+    return clean[:128] or default
+
+
+def validate_magic_bytes(header: bytes, kind: str) -> None:
+    """Validate binary magic signatures to block polyglot, spoofed MIME, or web shell uploads."""
+    if len(header) < 4:
+        raise HTTPException(400, "File header is too short or empty.")
+
+    if kind == "image":
+        is_jpeg = header[:3] == b"\xff\xd8\xff"
+        is_png = header[:8] == b"\x89PNG\r\n\x1a\n"
+        is_webp = header[:4] == b"RIFF" and (len(header) < 12 or header[8:12] == b"WEBP")
+        if not (is_jpeg or is_png or is_webp):
+            raise HTTPException(415, "Invalid image binary signature. Supported formats: JPEG, PNG, WebP.")
+
+    elif kind == "video":
+        is_webm = header[:4] == b"\x1a\x45\xdf\xa3"
+        is_mp4 = (
+            b"ftyp" in header[:32]
+            or (len(header) >= 8 and header[4:8] in {b"ftyp", b"moov", b"mdat", b"wide"})
+            or header[:4] in {b"ftyp", b"moov"}
+        )
+        if not (is_webm or is_mp4):
+            raise HTTPException(415, "Invalid video binary signature. Supported formats: MP4, QuickTime, WebM.")
 
 
 @app.exception_handler(QuotaExhausted)
@@ -156,6 +216,10 @@ async def analyze_news_endpoint(
 ):
     if not body.url.lower().startswith(("http://", "https://")):
         raise HTTPException(400, "URL must start with http:// or https://")
+    try:
+        await validate_public_url(body.url)
+    except UnsafeURL as exc:
+        raise HTTPException(400, f"Untrusted or private URL: {exc}")
 
     if not settings.enable_response_cache:
         return await _run_detection(user, body.url, url=body.url)
@@ -182,12 +246,13 @@ async def analyze_news_endpoint(
 @limiter.limit(settings.rate_limit_per_ip)
 async def analyze_image_endpoint(request: Request, file: UploadFile = File(...), caption: str = Form(default=""),
                                  user: dict = Depends(require_user)):
-    path = await _save_upload(file, settings.max_image_mb, {"image/jpeg", "image/png", "image/webp"}, suffix=".img")
+    path = await _save_upload(file, settings.max_image_mb, {"image/jpeg", "image/png", "image/webp"},
+                              suffix=".img", kind="image")
     try:
         if len(caption) > 2000:
             raise HTTPException(413, "Image caption or context must be 2,000 characters or fewer.")
         await asyncio.to_thread(_validate_image, path, settings.max_image_pixels)
-        label = Path(file.filename or "image").name
+        label = safe_filename(file.filename, default="image")
         return await _run_detection(user, label, image_path=str(path), original_name=label,
                                      caption=caption[:2000] or None)
     finally:
@@ -197,7 +262,9 @@ async def analyze_image_endpoint(request: Request, file: UploadFile = File(...),
 @app.post("/analyze/video", status_code=202)
 @limiter.limit(settings.rate_limit_per_ip)
 async def analyze_video_endpoint(request: Request, file: UploadFile = File(...), user: dict = Depends(require_user)):
-    path = await _save_upload(file, settings.max_video_mb, {"video/mp4", "video/quicktime", "video/webm", "application/octet-stream"}, suffix=".mp4")
+    path = await _save_upload(file, settings.max_video_mb,
+                              {"video/mp4", "video/quicktime", "video/webm", "application/octet-stream"},
+                              suffix=".mp4", kind="video")
     transferred_to_job = False
     try:
         probe = await ffprobe_json(str(path))
@@ -216,16 +283,17 @@ async def analyze_video_endpoint(request: Request, file: UploadFile = File(...),
         decision, services = _detection_services(user)
         if not decision["allowed"]:
             raise _byok_required()
+        video_label = safe_filename(file.filename, default="video")
         async def run_video(progress):
             try:
-                result = await analyze(video_path=str(path), original_name=Path(file.filename or "video").name,
+                result = await analyze(video_path=str(path), original_name=video_label,
                                        services=services, progress=progress)
             except BaseException:
                 if not decision["use_byok"]:
                     accounts.refund_free_detection(user["sub"], settings)
                 raise
             try:
-                accounts.save_detection(user, result.model_dump(mode="json"), Path(file.filename or "video").name, settings)
+                accounts.save_detection(user, result.model_dump(mode="json"), video_label, settings)
             except Exception:
                 log.exception("could not save video result %s to account history", result.id)
             return result
@@ -376,16 +444,28 @@ async def remove_account_key(provider: str, user: dict = Depends(require_user)):
 
 
 # ----------------------------------------------------------------------
-async def _save_upload(file: UploadFile, max_mb: float, allowed: set[str], *, suffix: str) -> Path:
+async def _save_upload(
+    file: UploadFile,
+    max_mb: float,
+    allowed: set[str],
+    *,
+    suffix: str,
+    kind: str | None = None,
+) -> Path:
     limit = int(max_mb * 1024 * 1024)
     ctype = (file.content_type or "").lower()
     if ctype and ctype not in allowed:
         raise HTTPException(415, f"Unsupported content type {ctype}.")
     fd, tmp = tempfile.mkstemp(prefix="upload_", suffix=suffix, dir=str(settings.tmp_dir))
     size = 0
+    header_checked = False
     try:
         with os.fdopen(fd, "wb") as out:
             while chunk := await file.read(1024 * 1024):
+                if not header_checked:
+                    if kind:
+                        validate_magic_bytes(chunk[:32], kind)
+                    header_checked = True
                 size += len(chunk)
                 if size > limit:
                     raise HTTPException(413, f"File exceeds {max_mb:.0f} MB limit.")
@@ -400,8 +480,9 @@ async def _save_upload(file: UploadFile, max_mb: float, allowed: set[str], *, su
 
 
 def _validate_image(path: Path, max_pixels: int) -> None:
-    """Reject corrupt, unsupported, or excessively large decoded images."""
+    """Reject corrupt, unsupported, or excessively large decoded images with decompression bomb protection."""
     try:
+        Image.MAX_IMAGE_PIXELS = max_pixels
         with Image.open(path) as image:
             if image.format not in {"JPEG", "PNG", "WEBP"}:
                 raise HTTPException(415, "The uploaded file is not a supported JPEG, PNG, or WebP image.")

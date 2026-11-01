@@ -2,6 +2,7 @@
 import React from "react";
 import { motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const transition = {
@@ -17,23 +18,48 @@ export const MenuItem = ({
   setActive,
   active,
   item,
+  href,
+  onClick,
   children,
 }: {
-  setActive: (item: string) => void;
+  setActive: (item: string | null) => void;
   active: string | null;
   item: string;
+  href?: string;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
   children?: React.ReactNode;
 }) => {
   const reduceMotion = useReducedMotion();
 
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    setActive(null);
+    if (onClick) {
+      onClick(e);
+    }
+  };
+
+  const label = (
+    <motion.p
+      transition={{ duration: 0.3 }}
+      className="cursor-pointer text-ink-2 hover:text-white dark:text-neutral-200 dark:hover:text-white text-sm font-medium transition-colors select-none"
+    >
+      {item}
+    </motion.p>
+  );
+
   return (
     <div onMouseEnter={() => setActive(item)} className="relative">
-      <motion.p
-        transition={{ duration: 0.3 }}
-        className="cursor-pointer text-ink-2 hover:text-white dark:text-neutral-200 dark:hover:text-white text-sm font-medium transition-colors select-none"
-      >
-        {item}
-      </motion.p>
+      {href ? (
+        <Link
+          href={href}
+          onClick={handleClick}
+          className="block outline-none focus-visible:ring-1 focus-visible:ring-cyan-400 rounded-sm"
+        >
+          {label}
+        </Link>
+      ) : (
+        label
+      )}
       {active !== null && (
         <motion.div
           initial={

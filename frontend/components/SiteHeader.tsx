@@ -78,38 +78,10 @@ export default function SiteHeader() {
     window.dispatchEvent(new Event("veritas:start"));
   }
 
-  function handleHowItWorks(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (window.location.pathname !== "/") return;
-    const currentStage = stage();
-    if (currentStage !== "landing" && currentStage !== "workspace") return;
-    event.preventDefault();
-    window.dispatchEvent(new Event("veritas:how-it-works"));
-  }
-
   function handleStart(event: React.MouseEvent<HTMLAnchorElement>) {
     if (window.location.pathname !== "/") return;
     event.preventDefault();
     window.dispatchEvent(new Event("veritas:start"));
-  }
-
-  function handleArchitecture(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (window.location.pathname !== "/") return;
-    const target = document.getElementById("architecture");
-    if (target) {
-      event.preventDefault();
-      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      target.scrollIntoView({ behavior, block: "start" });
-    }
-  }
-
-  function handleTechStack(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (window.location.pathname !== "/") return;
-    const target = document.getElementById("tech-stack");
-    if (target) {
-      event.preventDefault();
-      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      target.scrollIntoView({ behavior, block: "start" });
-    }
   }
 
   if (isWorkspace) {
@@ -156,7 +128,7 @@ export default function SiteHeader() {
             className="bg-transparent border-none p-0 shadow-none space-x-6 lg:space-x-8"
           >
             {/* 1. Forensics / Detection Engines */}
-            <MenuItem setActive={setActive} active={active} item="Forensics">
+            <MenuItem setActive={setActive} active={active} item="Forensics" href="/forensics">
               <div className="grid grid-cols-2 gap-3 p-2 text-sm w-[580px]">
                 <ProductItem
                   title="Claim Triangulation"
@@ -186,7 +158,7 @@ export default function SiteHeader() {
             </MenuItem>
 
             {/* 2. Verification Pipeline */}
-            <MenuItem setActive={setActive} active={active} item="Pipeline">
+            <MenuItem setActive={setActive} active={active} item="Pipeline" href="/pipeline">
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
                 <HoveredLink
                   href="/#product-check"
@@ -196,8 +168,7 @@ export default function SiteHeader() {
                   Direct Inspection Ingestion
                 </HoveredLink>
                 <HoveredLink
-                  href="/#pipeline"
-                  onClick={handleHowItWorks}
+                  href="/pipeline"
                   description="Primary wire reporting indexation and consensus scoring."
                 >
                   Four-Stage Provenance Pipeline
@@ -218,18 +189,16 @@ export default function SiteHeader() {
             </MenuItem>
 
             {/* 3. Architecture & Tech Stack */}
-            <MenuItem setActive={setActive} active={active} item="Architecture">
+            <MenuItem setActive={setActive} active={active} item="Architecture" href="/architecture">
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[300px]">
                 <HoveredLink
-                  href="/#architecture"
-                  onClick={handleArchitecture}
+                  href="/architecture"
                   description="Interactive 3D network topology rendered with Anime.js."
                 >
                   3D System Architecture
                 </HoveredLink>
                 <HoveredLink
-                  href="/#tech-stack"
-                  onClick={handleTechStack}
+                  href="/tech-stack"
                   description="Dynamic production manifest with 3D Parallax cards."
                 >
                   Production Tech Stack
@@ -238,28 +207,28 @@ export default function SiteHeader() {
             </MenuItem>
 
             {/* 4. Methodology */}
-            <MenuItem setActive={setActive} active={active} item="Methodology">
+            <MenuItem setActive={setActive} active={active} item="Methodology" href="/methodology">
               <div className="flex flex-col space-y-1.5 p-2 text-sm min-w-[280px]">
                 <HoveredLink
-                  href="/about"
+                  href="/methodology"
                   description="Full architectural review of the multi-signal forensic approach."
                 >
                   Technical Whitepaper
                 </HoveredLink>
                 <HoveredLink
-                  href="/about#signals"
+                  href="/methodology#signals"
                   description="Taxonomy of spectral, metadata, and neural forensic models."
                 >
                   Sensor Signal Directory
                 </HoveredLink>
                 <HoveredLink
-                  href="/about#consensus"
+                  href="/methodology#consensus"
                   description="Weighted Bayesian consensus scoring across independent sources."
                 >
                   Consensus Triangulation
                 </HoveredLink>
                 <HoveredLink
-                  href="/about#zero-persistence"
+                  href="/methodology#zero-persistence"
                   description="Zero media retention: inputs are purged immediately upon review."
                 >
                   Zero-Persistence Privacy
@@ -271,9 +240,10 @@ export default function SiteHeader() {
 
         {/* Streamlined Fallback for Mobile Viewports */}
         <nav aria-label="Main Mobile" className="flex md:hidden items-center gap-1.5 sm:gap-2 text-[11px] font-mono text-zinc-400">
-          <Link href="/#product-check" onClick={handleProduct} className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Product</Link>
-          <Link href="/#architecture" onClick={handleArchitecture} className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Topology</Link>
-          <Link href="/#tech-stack" onClick={handleTechStack} className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Stack</Link>
+          <Link href="/forensics" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Forensics</Link>
+          <Link href="/pipeline" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Pipeline</Link>
+          <Link href="/architecture" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Architecture</Link>
+          <Link href="/methodology" className="hover:text-white px-1.5 py-0.5 rounded transition-colors">Method</Link>
         </nav>
 
         {/* CTA Button */}

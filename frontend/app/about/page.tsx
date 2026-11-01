@@ -11,7 +11,7 @@ const METHOD: [string, string][] = [
 
 export default function About() {
   return (
-    <article className="about-page mx-auto max-w-[1120px] px-4 pb-20 pt-10 sm:px-8 sm:pt-14 lg:px-12">
+    <article className="about-page mx-auto max-w-[1120px] px-4 pb-20 pt-20 sm:px-8 sm:pt-24 lg:px-12">
       <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-ink-2 transition-colors hover:text-accent">
         <span aria-hidden>←</span> Veritas
       </Link>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Menu, MenuItem, ProductItem, HoveredLink } from "@/components/ui/navbar-menu";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ function stage() {
 }
 
 export default function SiteHeader() {
+  const router = useRouter();
   const [active, setActive] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState<boolean>(false);
@@ -113,7 +115,7 @@ export default function SiteHeader() {
     setActiveSection(sectionKey);
 
     if (window.location.pathname !== "/") {
-      window.location.href = `/#${targetId}`;
+      router.push(`/#${targetId}`);
       return;
     }
 
@@ -124,7 +126,7 @@ export default function SiteHeader() {
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, []);
+  }, [router]);
 
   // Home logo click returns smoothly to top of landing page
   function handleHome(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -133,7 +135,7 @@ export default function SiteHeader() {
     setActiveSection(null);
 
     if (window.location.pathname !== "/") {
-      window.location.href = "/";
+      router.push("/");
       return;
     }
 
@@ -144,7 +146,7 @@ export default function SiteHeader() {
   function handleStart(event: React.MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
     if (window.location.pathname !== "/") {
-      window.location.href = "/";
+      router.push("/");
       return;
     }
     if (stage() === "landing") {
@@ -344,7 +346,7 @@ export default function SiteHeader() {
 
         {/* Streamlined Fallback for Mobile Viewports with in-page smooth navigation */}
         <nav aria-label="Main Mobile" className="flex md:hidden items-center gap-1 sm:gap-1.5 text-[11px] font-mono">
-          <a
+          <Link
             href="/#parallax-evidence"
             onClick={(e) => scrollToSection("parallax-evidence", "forensics", e)}
             className={cn(
@@ -355,8 +357,8 @@ export default function SiteHeader() {
             )}
           >
             Forensics
-          </a>
-          <a
+          </Link>
+          <Link
             href="/#pipeline"
             onClick={(e) => scrollToSection("pipeline", "pipeline", e)}
             className={cn(
@@ -367,8 +369,8 @@ export default function SiteHeader() {
             )}
           >
             Pipeline
-          </a>
-          <a
+          </Link>
+          <Link
             href="/#architecture"
             onClick={(e) => scrollToSection("architecture", "architecture", e)}
             className={cn(
@@ -379,8 +381,8 @@ export default function SiteHeader() {
             )}
           >
             Arch
-          </a>
-          <a
+          </Link>
+          <Link
             href="/#how-it-works"
             onClick={(e) => scrollToSection("how-it-works", "methodology", e)}
             className={cn(
@@ -391,7 +393,7 @@ export default function SiteHeader() {
             )}
           >
             Method
-          </a>
+          </Link>
         </nav>
 
         {/* CTA Button */}

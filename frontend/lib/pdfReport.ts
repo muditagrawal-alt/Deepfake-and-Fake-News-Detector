@@ -358,14 +358,23 @@ export function exportSingleResultPdf(
   doc.setTextColor(...vTheme.text);
   doc.text(verdictBannerText, bannerX + 4, y + 10);
 
-  // Engine model provenance
+  // Engine model provenance & SHA-256 evidence hash
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.muted);
   const provText = `Evaluated via ${r.provenance?.model || "Veritas Multi-Modal Engine"} (${r.provenance?.provider || "Bayesian Consensus"})`;
   doc.text(provText, MARGIN_LEFT + 5, y + 23);
 
-  if (userName) {
+  const fileSha256 = ((r.forensics?.metadata as Record<string, unknown>)?.sha256 as string)
+    || (r.forensics?.sha256 as string)
+    || null;
+
+  if (fileSha256) {
+    doc.setFont("courier", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(...COLORS.muted);
+    doc.text(`SHA-256: ${fileSha256}`, MARGIN_LEFT + 5, y + 28);
+  } else if (userName) {
     doc.text(`Requested by: ${userName}`, MARGIN_LEFT + 5, y + 28);
   }
 

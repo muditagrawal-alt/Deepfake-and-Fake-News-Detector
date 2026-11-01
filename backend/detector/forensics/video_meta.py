@@ -7,6 +7,7 @@ No keyword lists and no interpretation. Whether an encoder string or a
 handler name indicates anything is for the model to reason about.
 """
 import asyncio
+import hashlib
 import json
 import logging
 
@@ -49,9 +50,22 @@ def _f(value, default=0.0) -> float:
 
 async def analyze_video_metadata(path: str) -> dict:
     meta = await ffprobe_json(path)
+    sha256_hash = None
+    try:
+        def _hash():
+            h = hashlib.sha256()
+            with open(path, "rb") as f:
+                while chunk := f.read(65536):
+                    h.update(chunk)
+            return h.hexdigest()
+        sha256_hash = await asyncio.to_thread(_hash)
+    except Exception:
+        pass
+
     result = {"probe_ok": bool(meta), "duration_seconds": 0.0, "width": None, "height": None, "fps": None,
               "video_codec": None, "audio_codec": None, "has_audio": False,
-              "container_tags": {}, "stream_tags": {}, "c2pa": await asyncio.to_thread(read_c2pa, path)}
+              "container_tags": {}, "stream_tags": {}, "c2pa": await asyncio.to_thread(read_c2pa, path),
+              "sha256": sha256_hash}
     if not meta:
         return result
     fmt = meta.get("format", {}) or {}

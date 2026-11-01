@@ -5,6 +5,7 @@ Reports what the file contains, verbatim. It does not interpret any field and
 has no keyword lists: deciding what a Software tag or a digital-source-type
 value means is the model's job, using the facts.
 """
+import hashlib
 import re
 from pathlib import Path
 
@@ -30,7 +31,15 @@ def _s(value):
 def analyze_image_metadata(path: str | Path) -> dict:
     path = Path(path)
     out = {"format": None, "width": None, "height": None, "exif": {}, "has_gps": False,
-           "xmp": {}, "png_text": {}, "c2pa": read_c2pa(path)}
+           "xmp": {}, "png_text": {}, "c2pa": read_c2pa(path), "sha256": None}
+    try:
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            while chunk := f.read(65536):
+                h.update(chunk)
+        out["sha256"] = h.hexdigest()
+    except Exception:
+        pass
     try:
         img = Image.open(path)
     except Exception as exc:

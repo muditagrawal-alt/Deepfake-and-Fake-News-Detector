@@ -32,17 +32,17 @@
 
 <div align="center">
 
-### 🎬 Full End-to-End Platform Walkthrough (720p HD)
+### 🎬 Full End-to-End Platform Walkthrough (1080p Full HD)
 
-<a href="docs/assets/demo.mp4">
-  <video src="docs/assets/demo.mp4" controls width="940" poster="docs/assets/landing.png" style="max-width: 100%; border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
-    <img src="docs/assets/landing.png" alt="Veritas Platform 720p HD Walkthrough" width="940" style="border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);"/>
+<a href="docs/assets/Veritas_Demo_Final.mp4">
+  <video src="docs/assets/Veritas_Demo_Final.mp4" controls width="940" poster="docs/assets/landing.png" style="max-width: 100%; border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+    <img src="docs/assets/landing.png" alt="Veritas Platform 1080p Full HD Walkthrough" width="940" style="border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);"/>
   </video>
 </a>
 
 <p align="center" style="margin-top: 12px;">
-  <b><a href="docs/assets/demo.mp4">▶ Click Here to Play the Full 720p HD Walkthrough Video</a></b><br/>
-  <sub>51 seconds • Cinematic Subtitles • Scott Buckley Ambient Soundtrack • Landing Page & Forensic Workspace</sub>
+  <b><a href="docs/assets/Veritas_Demo_Final.mp4">▶ Click Here to Play the Full Veritas Demo Walkthrough</a></b> &nbsp;•&nbsp; <b><a href="docs/assets/Veritas_Demo_Final.mov">Download 1080p Master (.mov)</a></b><br/>
+  <sub>1080p Full HD • Cinematic Subtitles • Ambient Soundtrack • Landing Page & Forensic Workspace</sub>
 </p>
 
 </div>
@@ -428,8 +428,9 @@ Explore the Veritas interface across static forensic captures and animated workf
 
 </div>
 
-| Feature Module | Explanatory Animation | Key Technical Capability |
+| Feature Module | Explanatory Media | Key Technical Capability |
 | :--- | :--- | :--- |
+| **Full Platform Walkthrough** | [`Veritas_Demo_Final.mp4`](docs/assets/Veritas_Demo_Final.mp4) ([MOV](docs/assets/Veritas_Demo_Final.mov)) | 1080p Full HD end-to-end platform demo with subtitles & audio |
 | **Landing Hero** | [`landing-hero.gif`](docs/assets/landing-hero.gif) | WebGL Ferrofluid dynamic fluid physics & live cluster telemetry |
 | **Forensic Inspector** | [`forensic-inspection.gif`](docs/assets/forensic-inspection.gif) | Google SynthID invisible watermarks & C2PA signed provenance credentials |
 | **Pipeline Ingestion** | [`factcheck-workflow.gif`](docs/assets/factcheck-workflow.gif) | 5-stage synchronous fact-checking & neutral wire cross-examination |

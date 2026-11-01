@@ -1,0 +1,123 @@
+[
+  {
+    "name": "Landing Page",
+    "path": "/",
+    "concurrency": 50,
+    "total_requests": 200,
+    "wall_time_s": 1.548,
+    "rps": 129.2,
+    "status_codes": {
+      "200": 200
+    },
+    "avg_payload_kb": 192.8,
+    "encodings": {
+      "gzip": 200
+    },
+    "latency_ms": {
+      "min": 39.34,
+      "p50": 336.69,
+      "p90": 576.91,
+      "p95": 731.07,
+      "p99": 1030.18,
+      "max": 1181.99,
+      "mean": 347.34,
+      "std_dev": 188.9,
+      "jitter": 5.74
+    }
+  },
+  {
+    "name": "Architecture Page",
+    "path": "/architecture",
+    "concurrency": 40,
+    "total_requests": 150,
+    "wall_time_s": 0.416,
+    "rps": 360.1,
+    "status_codes": {
+      "200": 150
+    },
+    "avg_payload_kb": 67.6,
+    "encodings": {
+      "gzip": 150
+    },
+    "latency_ms": {
+      "min": 19.06,
+      "p50": 65.72,
+      "p90": 208.78,
+      "p95": 273.13,
+      "p99": 338.71,
+      "max": 345.23,
+      "mean": 96.3,
+      "std_dev": 76.24,
+      "jitter": 2.19
+    }
+  },
+  {
+    "name": "Tech Stack Page",
+    "path": "/tech-stack",
+    "concurrency": 40,
+    "total_requests": 150,
+    "wall_time_s": 0.4,
+    "rps": 374.8,
+    "status_codes": {
+      "200": 150
+    },
+    "avg_payload_kb": 58.6,
+    "encodings": {
+      "gzip": 150
+    },
+    "latency_ms": {
+      "min": 16.23,
+      "p50": 60.04,
+      "p90": 215.83,
+      "p95": 247.01,
+      "p99": 318.77,
+      "max": 329.0,
+      "mean": 90.79,
+      "std_dev": 72.95,
+      "jitter": 2.1
+    }
+  },
+  {
+    "name": "Static Asset",
+    "path": "/icon.svg",
+    "concurrency": 80,
+    "total_requests": 400,
+    "wall_time_s": 2.662,
+    "rps": 150.3,
+    "status_codes": {
+      "200": 400
+    },
+    "avg_payload_kb": 0.2,
+    "encodings": {
+      "none": 400
+    },
+    "latency_ms": {
+      "min": 26.38,
+      "p50": 356.53,
+      "p90": 1189.05,
+      "p95": 1503.1,
+      "p99": 2292.43,
+      "max": 2557.7,
+      "mean": 485.0,
+      "std_dev": 482.13,
+      "jitter": 6.34
+    }
+  },
+  {
+    "name": "Mixed Real-World User Sessions",
+    "concurrency": 60,
+    "total_requests": 300,
+    "wall_time_s": 1.393,
+    "rps": 215.4,
+    "status_codes": {
+      "200": 300
+    },
+    "latency_ms": {
+      "p50": 206.34,
+      "p95": 720.55,
+      "p99": 1032.86,
+      "mean": 244.72,
+      "jitter": 3.65
+    }
+  }
+]

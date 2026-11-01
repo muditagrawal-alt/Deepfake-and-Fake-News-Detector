@@ -1,3 +1,0 @@
-label,n,http_200,http_404,http_401_403,http_other,extraction_success,wayback_archived,distinct_domains,checked_utc
-REAL,25,21,0,4,0,23,18,14,2026-09-28T17:43Z
-FAKE,25,1,14,10,0,1,1,2,2026-09-28T17:43Z

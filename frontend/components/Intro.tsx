@@ -470,10 +470,10 @@ function ScrollyPipelineCard({
             <a
               href={
                 stage.stageNum === "01"
-                  ? "/demo/workspace?tab=image"
+                  ? "/?stage=workspace&tab=image"
                   : stage.stageNum === "02"
-                  ? "/demo/workspace?tab=news"
-                  : "/demo/workspace"
+                  ? "/?stage=workspace&tab=news"
+                  : "/?stage=workspace"
               }
               className="w-full py-2.5 px-4 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-white font-medium text-xs tracking-wide transition-all duration-150 flex items-center justify-between group/action backdrop-blur-md"
             >

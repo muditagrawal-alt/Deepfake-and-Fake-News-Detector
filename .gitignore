@@ -41,16 +41,13 @@ cache/
 !docs/assets/**
 !frontend/public/**
 
-# Datasets: media stays local, benchmark definitions and results are tracked.
-# (Use data/* not data/ so git still descends into the directory.)
-data/*
+# Datasets and benchmark evaluations (private research data)
+data/
 datasets/
-!data/evaluation/
-data/evaluation/*/*
-!data/evaluation/*/metadata.csv
-!data/evaluation/*/metrics*.txt
-!data/evaluation/*/results*.csv
-!data/evaluation/*/baseline*
+
+# Research code, benchmarks, experimental runs, and findings
+research/
+backend/eval/
 
 # Temporary files
 *.tmp
@@ -80,15 +77,3 @@ backend/data/*.sqlite3*
 legacy/
 .vercel
 .env*
-
-# Research analysis environment
-research/.venv/
-# downloaded benchmarks (licensed; fetched by research/scripts/datasets)
-research/data
-!research/scripts/datasets/
-
-# Research workspace: figures are deliverables; cached arrays and logs are not
-!research/figures/**
-research/results/.*.npy
-research/runs/_*.log
-research/runs/_*.txt

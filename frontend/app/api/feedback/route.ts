@@ -48,14 +48,17 @@ export async function POST(req: Request) {
           Accept: "application/json",
           Origin: "https://veritas-check.vercel.app",
           Referer: "https://veritas-check.vercel.app/",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
         },
         body: JSON.stringify(emailPayload),
       });
 
       const resData = await formSubmitRes.json().catch(() => ({}));
-      if (typeof resData?.message === "string" && resData.message.toLowerCase().includes("activation")) {
-        needsActivation = true;
+      if (typeof resData?.message === "string") {
         relayMessage = resData.message;
+        if (resData.message.toLowerCase().includes("activation") || resData.success === "false") {
+          needsActivation = true;
+        }
       }
     } catch (relayError) {
       console.warn("FormSubmit relay warning:", relayError);

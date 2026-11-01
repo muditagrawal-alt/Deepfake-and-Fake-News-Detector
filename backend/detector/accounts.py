@@ -14,7 +14,7 @@ from sqlalchemy.engine import Engine
 
 from detector.config import BACKEND_DIR, Settings, get_settings
 
-FREE_DETECTIONS = int(os.environ.get("FREE_DETECTIONS", "15"))
+FREE_DETECTIONS = int(os.environ.get("FREE_DETECTIONS", "3"))
 HISTORY_LIMIT = 20
 API_KEY_PROVIDERS = {"gemini", "openrouter", "tavily", "groq"}
 _engine: Engine | None = None

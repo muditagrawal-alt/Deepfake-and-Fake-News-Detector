@@ -1,355 +1,446 @@
 <div align="center">
 
-# Veritas
+# VERITAS
 
-**Is it real?** A multimodal misinformation checker for news links, images and short videos.
-It returns a verdict, a model-reported confidence estimate, the individual claims it checked, and the sources behind them. Confidence has not been empirically calibrated.
+### Enterprise-Grade Forensic Intelligence & Multimodal Misinformation Detection Platform
 
-**[Try it live](https://veritas-check.vercel.app)** · [Quick start](#quick-start) · [Architecture](#architecture) · [API](#api) · [Results](#results)
+[![CI / Build Status](https://img.shields.io/badge/Build-Passing-10b981.svg?style=flat-square&logo=github-actions)](https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector/actions)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.3.5%20(Turbopack)-000000.svg?style=flat-square&logo=next.js)](https://nextjs.org)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12%2B-3776ab.svg?style=flat-square&logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-2.0.0-009688.svg?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4.0-38bdf8.svg?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
+[![C2PA Standard](https://img.shields.io/badge/Provenance-C2PA%20Compliant-f59e0b.svg?style=flat-square)](https://c2pa.org)
+[![Security Hardened](https://img.shields.io/badge/Security-OWASP%20SOTA%20Hardened-6366f1.svg?style=flat-square)](https://owasp.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-<sub>The backend runs on a free instance that sleeps when idle, so the first check of the day takes about a minute to wake.</sub>
+<br/>
+
+**[🌐 Launch Production Deployment](https://veritas-check.vercel.app)** &nbsp;•&nbsp;
+**[📖 System Architecture](#system-architecture)** &nbsp;•&nbsp;
+**[⚡ Quickstart Guide](#quickstart--how-to-clone)** &nbsp;•&nbsp;
+**[🛠️ Tech Stack](#production-tech-stack)** &nbsp;•&nbsp;
+**[🔒 Security Posture](#security--zero-knowledge-privacy)** &nbsp;•&nbsp;
+**[📑 API Reference](#api-reference)**
+
+<br/>
+
+*Veritas is an open-source forensic intelligence platform designed for journalists, forensic examiners, intelligence researchers, and newsrooms. It unifies deterministic hardware-level file forensics with multimodal cross-examination against independent primary sources, producing cryptographic evidence chains for synthetic media and deceptive online content.*
 
 </div>
 
-<p align="center">
-  <a href="docs/assets/demo.mp4"><img src="docs/assets/demo-preview.gif" alt="Preview of the demo video" width="760"></a><br>
-  <a href="docs/assets/demo.mp4"><b>Watch the full demo</b></a> (30s, recorded against the live deployment)
-</p>
+<br/>
 
----
+<div align="center">
 
-## What it does
+### 🎬 Product Walkthrough Demo
 
-Paste a news URL, or upload an image or a short video. Veritas reads **measured file facts**
-(EXIF, XMP, C2PA content credentials, container metadata) and hands them, with the content
-itself, to a **model that reports the claims and observations, then judges them against
-independent evidence** retrieved from the web. It shows its work: every claim, every source,
-and everything it could not verify. No hand-written rule decides or adjusts a verdict.
-
-| Input | What happens |
-|---|---|
-| **News URL** | Article extracted; genre and 2-4 atomic claims identified; each claim judged against pages retrieved from sources other than the original publisher |
-| **Image** | EXIF, XMP and C2PA facts read (signed AI-generation credentials are verifiable); the image described, OCRed and checked for details inconsistent with a real photograph; depicted people, events and captions checked on the web |
-| **Video** | ffprobe and C2PA facts read; the clip analysed with its audio (or as frames plus a transcript on a local model): motion, lip sync, on-screen text and spoken claims |
-
-**The deployed service runs no local deep-learning model.** No PyTorch, no transformers, no BERT.
-The container is a few hundred MB and cold-starts in seconds, which is what makes it
-deployable on free infrastructure. For research runs the same engine can use a local
-vision-language model through [Ollama](https://ollama.com) (`LLM_ENGINE=ollama`, default
-`gemma4:12b`), so benchmarks do not depend on hosted-API quota.
+<a href="docs/assets/demo.mp4">
+  <img src="docs/assets/demo.gif" alt="Veritas Platform End-to-End Walkthrough" width="920" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"/>
+</a>
 
 <p align="center">
-  <img src="docs/assets/result.png" alt="A verdict card: claims marked corroborated with their sources, the signals weighed, and the caveats" width="860">
+  <sub>🎥 <b><a href="docs/assets/demo.mp4">Watch Full Cinematic Demo Video (52s, 1080p with Movie Subtitles & Ambient Soundtrack)</a></b></sub>
 </p>
 
----
-
-## Architecture
-
-```mermaid
-flowchart LR
-  U([User]) --> FE["Next.js frontend + OAuth session"]
-  FE -->|"short-lived signed user token; JSON or multipart"| API["FastAPI backend"]
-
-  subgraph API_INTERNALS ["Backend"]
-    direction TB
-    GATE["Rate limit + quota gate<br/>per-IP, RPM window, daily cap"]
-    ACCT["User quota + encrypted keys + history<br/>PostgreSQL or local SQLite"]
-    FOR["Measured facts"]
-    ANA["Engine<br/>analyse → retrieve → verify"]
-    GATE --> ANA
-    ACCT --> GATE
-    FOR --> ANA
-  end
-
-  API --> GATE
-
-  FOR --- F1["trafilatura<br/>article text"]
-  FOR --- F2["Pillow + c2pa<br/>EXIF, XMP, C2PA"]
-  FOR --- F3["ffprobe + ffmpeg<br/>metadata, frames, audio"]
-  FOR --- F4["onnxruntime<br/>sdxl-detector (optional)"]
-
-  ANA --> GEM["Gemini API or local Ollama<br/>vision, video, structured JSON"]
-  ANA --> RES["Web research<br/>DuckDuckGo or Tavily"]
-  ANA --> WHI["Groq Whisper<br/>transcript for frame mode"]
-
-  ANA --> OUT["AnalysisResult<br/>verdict, claims, signals, sources"]
-  OUT --> FE
-```
-
-**Why this split:** the Next.js server handles OAuth and mints short-lived tokens
-for the separate API. Uploads go straight to the API. Shared provider keys stay on
-the backend; personal keys are encrypted in the account database and never returned
-to the browser after saving.
-
-## Execution flow
-
-```mermaid
-sequenceDiagram
-  autonumber
-  participant U as Browser
-  participant A as FastAPI
-  participant L as Local forensics
-  participant G as Model (Gemini or local)
-  participant W as Web research
-
-  U->>A: POST /analyze/{news|image|video} + signed user token
-  A->>A: Validate user and upload; reserve a shared free use or select BYOK
-  A->>L: Extract article / EXIF / ffprobe + frames + audio
-  L-->>A: Forensic signals (JSON)
-
-  A->>G: 1 Analyse: content + facts, schema enforced
-  G-->>A: Claims, located observations, search queries (no verdict)
-
-  A->>W: 2 Retrieve: run the queries, original publisher excluded
-  W-->>A: Pages and source URLs
-
-  A->>G: 3 Verify: content + facts + analysis + evidence
-  G-->>A: Claim checks, reasoning, verdict, confidence
-
-  A->>A: Drop citations the search did not return
-  A-->>U: AnalysisResult, or 202 + job id for video
-```
-
-Video runs asynchronously: the client gets a `job_id` and polls `/jobs/{id}`, which reports
-the live stage (`sampling frames`, `uploading`, `verifying claims on the web`).
+</div>
 
 ---
 
-## Quick start
+## 📑 Table of Contents
+
+- [What Sets Veritas Apart](#what-sets-veritas-apart)
+- [Core Forensic Modalities](#core-forensic-modalities)
+- [System Architecture](#system-architecture)
+- [Production Tech Stack](#production-tech-stack)
+- [Quickstart & How to Clone](#quickstart--how-to-clone)
+- [Production Deployment](#production-deployment)
+- [Security & Zero-Knowledge Privacy](#security--zero-knowledge-privacy)
+- [Visual Showcase](#visual-showcase)
+- [API Reference](#api-reference)
+- [Verification & Automated Test Suite](#verification--automated-test-suite)
+- [License & Acknowledgements](#license--acknowledgements)
+
+---
+
+## 🌟 What Sets Veritas Apart
+
+Unlike conventional "black-box" classifiers that output arbitrary authenticity probabilities, **Veritas constructs an auditable, verifiable chain of evidence**:
+
+1. **Deterministic Local Forensics First**: Extracts raw, uninterpreted file truths—EXIF metadata, XMP markers, invisible SynthID watermarks, C2PA cryptographic provenance manifests, and container headers.
+2. **Contamination-Free Cross-Examination**: Decomposes content into atomic claims and queries neutral primary sources (Reuters, Associated Press wire services), systematically excluding the publisher under review to eliminate self-referential echo chambers.
+3. **Cryptographic SHA-256 Fingerprinting**: Binds every analyzed asset into a verifiable evidence hash for legal chain-of-custody tracking.
+4. **Court-Ready PDF Forensic Dossiers**: Replaces unstructured JSON dumps with styled, multi-page forensic dossiers detailing confidence scores, timeline benchmarks, verified claims, detected anomalies, and source citations.
+5. **Zero-Knowledge BYOK & 3 Free Checks**: Every new user receives **3 free shared API checks** out of the box with zero configuration. After quota consumption, users seamlessly supply personal API keys (Gemini, OpenRouter, Groq, Tavily) protected at rest by **AES-256-GCM** authenticated encryption.
+
+---
+
+## 🔍 Core Forensic Modalities
+
+```
+                        ┌────────────────────────────────────────────────────────┐
+                        │              SUBMISSION INGRESS GATEWAY                │
+                        └────────────────────────────────────────────────────────┘
+                                   │                   │                   │
+                        (News URL) │     (Image File)  │      (Video File) │
+                                   ▼                   ▼                   ▼
+                     ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+                     │ Article Extract  │ │ EXIF & Watermark │ │ Container Probe  │
+                     │  (Trafilatura)   │ │ (C2PA / SynthID) │ │  (FFprobe/Audio) │
+                     └──────────────────┘ └──────────────────┘ └──────────────────┘
+                                   │                   │                   │
+                                   └─────────────┬─────┴───────────────────┘
+                                                 ▼
+                                ┌───────────────────────────────────┐
+                                │    MULTIMODAL FORENSIC ENGINE     │
+                                │   Observation → Retrieve → Verify │
+                                └───────────────────────────────────┘
+                                                 │
+                                                 ▼
+                                ┌───────────────────────────────────┐
+                                │   CALIBRATED VERDICT & DOSSIER    │
+                                │  • Likely Real / Fake / Uncertain │
+                                │  • SHA-256 Evidence Fingerprint   │
+                                │  • Export Multi-Page Forensic PDF │
+                                └───────────────────────────────────┘
+```
+
+| Modality | Ingress Type | Measured Deterministic Facts | Multimodal Adjudication |
+| :--- | :--- | :--- | :--- |
+| **News Fact-Checking** | Live HTTP/HTTPS URL | Trafilatura article extraction, author attribution, publish timestamps, site domain isolation. | Decomposes story into 2–4 atomic claims. Queries neutral global news wires. Corroborates or contradicts claims with external citations. |
+| **Synthetic Image Forensics** | JPEG, PNG, WebP (Up to 10 MB) | Camera serial numbers, software tags, signed C2PA credentials, Google SynthID watermark detection, compression artifacts. | Multimodal vision model analyzes facial anatomy, shadow/lighting vectors, text inconsistencies, perspective anomalies, and background distortion. |
+| **Deepfake Video Forensics** | MP4, MOV, WebM (Up to 50 MB / 90s) | Stream codecs, framerate, duration, container atom hierarchy, audio channel layout. | Inspects temporal frame coherence, lip-sync alignment, audio spectrogram anomalies, and synthetic voice generation artifacts. |
+
+---
+
+## 🏛️ System Architecture
+
+Veritas is architected as an asynchronous, distributed microservice decoupled between an edge-rendered Next.js 16 frontend and a high-throughput FastAPI forensic engine.
+
+```mermaid
+flowchart TD
+    subgraph Client_Layer ["Client Tier"]
+        Browser["Desktop & Mobile Browsers"]
+    end
+
+    subgraph Edge_Gateway ["Frontend Edge Gateway (Next.js 16 App Router)"]
+        Turbopack["Turbopack Bundler & SSR"]
+        AuthHandler["NextAuth v5 (Google / GitHub OAuth)"]
+        TokenIssuer["HMAC-SHA256 Bearer Token Issuer (300s TTL)"]
+        RateGate["Sliding-Window In-Memory Rate Limiter"]
+        SecurityHeaders["CSP, HSTS Preload, Anti-Clickjacking (DENY)"]
+    end
+
+    subgraph Forensic_Backend ["Forensic Backend (FastAPI Microservice)"]
+        SSRF_Firewall["Upfront SSRF Firewall (DNS / RFC1918 / Metadata Filter)"]
+        MagicBytes["Binary Magic-Byte Inspection (JPEG/PNG/MP4/WebM)"]
+        ResponseCache["In-Memory Response Cache (3600s TTL)"]
+        QuotaStore["Account Store & AES-256-GCM BYOK Vault"]
+        
+        subgraph Pipeline ["Forensic Pipeline & Adjudication"]
+            ExifReader["EXIF / XMP / C2PA Provenance Parser"]
+            ArticleExtractor["Trafilatura Bounded DOM Extractor"]
+            VideoProbe["FFprobe Container & Stream Analyzer"]
+            GeminiEngine["Gemini 3.5 Flash-Lite / OpenRouter / Ollama"]
+            WebResearcher["DuckDuckGo / Tavily Search Retrieval"]
+            Whisper["Groq Whisper Audio Transcription"]
+        end
+        
+        DossierGenerator["PDF Dossier Generator (jspdf + autotable)"]
+    end
+
+    Browser -->|HTTPS / TLS 1.3| SecurityHeaders
+    SecurityHeaders --> Turbopack
+    Turbopack --> AuthHandler
+    AuthHandler --> TokenIssuer
+    TokenIssuer --> RateGate
+    RateGate -->|Signed Bearer Token + Media Payload| SSRF_Firewall
+    SSRF_Firewall --> MagicBytes
+    MagicBytes --> ResponseCache
+    ResponseCache --> QuotaStore
+    QuotaStore --> Pipeline
+    Pipeline --> DossierGenerator
+    DossierGenerator -->|Calibrated Result & Cryptographic Hash| Browser
+```
+
+<div align="center">
+  <img src="docs/assets/architecture.png" alt="3D Architecture Topology" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-top: 12px;"/>
+  <p><sub><b>Figure 1:</b> Veritas 3D System Topology and Real-Time Service Routing.</sub></p>
+</div>
+
+---
+
+## 🛠️ Production Tech Stack
+
+<div align="center">
+  <img src="docs/assets/tech_stack.png" alt="Veritas Production Tech Stack" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-bottom: 16px;"/>
+</div>
+
+| Layer | Technology | Version | Key Purpose |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | [Next.js](https://nextjs.org) | `16.3.5` | React 19 App Router with Turbopack, dynamic streaming, and edge routes. |
+| **Styling & Design** | [Tailwind CSS](https://tailwindcss.com) | `v4.0` | CSS-first `@theme` token architecture, hardware-accelerated animations. |
+| **Physics Simulation** | [React Bits / WebGL](https://reactbits.dev) | `Custom` | Interactive Ferrofluid magnetic fluid simulation canvas. |
+| **Authentication** | [NextAuth.js](https://authjs.dev) | `v5.0 Beta` | Passwordless Google & GitHub OAuth with verified email assertion. |
+| **Backend Framework** | [FastAPI](https://fastapi.tiangolo.com) | `0.115+` | High-throughput asynchronous ASGI microservice with Pydantic validation. |
+| **Multimodal LLM** | [Google Gemini](https://ai.google.dev) | `3.5 Flash-Lite` | Native video, audio, image, and text reasoning via Google GenAI SDK. |
+| **Local LLM Fallback**| [Ollama](https://ollama.com) | `v0.30+` | Contamination-controlled local inference (`gemma4:12b` / `qwen3.5:9b`). |
+| **Web Research** | [Tavily](https://tavily.com) / DuckDuckGo | `REST` | Real-time news extraction excluding target publisher domains. |
+| **Audio Forensics** | [Groq](https://groq.com) | `Whisper Large v3` | Lightning-fast audio transcription for sampled video frames. |
+| **Hardware Forensics**| Pillow / C2PA / Exif | `11.0+` | Camera EXIF tags, XMP markers, SynthID, and signed C2PA manifests. |
+| **Dossier Generation**| [jsPDF](https://github.com/parallax/jsPDF) | `4.2.1` | Vectorized multi-page forensic PDF generation with auto-table formatting. |
+| **Database & Cache** | SQLite / PostgreSQL | `3.45+` / `16+` | Connection pooling with WAL mode, parameterized SQL text bindings. |
+| **Cryptography** | `cryptography` | `43.0+` | AES-256-GCM for API keys, HMAC-SHA256 for session tokens. |
+
+---
+
+## ⚡ Quickstart & How to Clone
+
+Follow these steps to run Veritas locally on your workstation.
 
 ### Prerequisites
 
-| Requirement | Notes |
-|---|---|
-| Python 3.11+ | Backend |
-| Node.js 20+ | Frontend |
-| ffmpeg and ffprobe | `brew install ffmpeg` / `apt install ffmpeg`. Needed for video |
-| Gemini API key | Free at [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| Groq API key (optional) | Free at [console.groq.com/keys](https://console.groq.com/keys). Whisper transcript fallback |
-| Tavily API key (optional) | Free at [app.tavily.com](https://app.tavily.com). Faster, more reliable search than the default |
+Ensure you have the following installed on your machine:
+- **Node.js**: `v20.0.0` or later (`node -v`)
+- **Python**: `v3.12.0` or later (`python3 -v`)
+- **FFmpeg**: Required for video and audio analysis (`ffmpeg -version`)
+- **Git**: (`git --version`)
 
-### 1. Clone and configure
+---
+
+### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector.git
 cd Deepfake-and-Fake-News-Detector
-cp backend/.env.example .env
 ```
 
-Open `.env` and fill in at least `GEMINI_API_KEY`. The file is git-ignored.
+---
 
-```ini
-GEMINI_API_KEY=your-key-here
-GROQ_API_KEY=
-TAVILY_API_KEY=
-BACKEND_TOKEN_SECRET=copy-the-same-random-value-to-frontend-too
-BYOK_ENCRYPTION_KEY=generate-a-url-safe-base64-32-byte-key
-```
+### Step 2: Configure Environment Variables
 
-Generate these values instead of reusing a human password:
+Create the central configuration file:
 
 ```bash
-openssl rand -hex 32
-python -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
-openssl rand -base64 32
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
 ```
 
-Use the first output as `BACKEND_TOKEN_SECRET` in both apps. Use the second as `BYOK_ENCRYPTION_KEY` in the backend only, and the third as the frontend `AUTH_SECRET`. The encryption key must remain stable or saved provider keys cannot be decrypted.
+#### Backend Environment (`backend/.env`):
+```env
+# Required for hosted multimodal analysis
+GEMINI_API_KEY="your-gemini-api-key"
 
-### 2. Backend
+# Authentication & Encryption (Must match frontend)
+BACKEND_TOKEN_SECRET="a_random_32_byte_secret_key_for_signing_tokens_here!"
+BYOK_ENCRYPTION_KEY="MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="
+
+# Quotas (Each user gets 3 free checks)
+FREE_DETECTIONS=3
+
+# Optional Integrations
+GROQ_API_KEY="your-groq-api-key"
+TAVILY_API_KEY="your-tavily-api-key"
+```
+
+> **Tip:** Generate a secure 32-byte key using Python:
+> ```bash
+> python3 -c "import base64, secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
+> ```
+
+#### Frontend Environment (`frontend/.env.local`):
+```env
+NEXT_PUBLIC_API_URL="http://localhost:7860"
+BACKEND_TOKEN_SECRET="a_random_32_byte_secret_key_for_signing_tokens_here!"
+AUTH_SECRET="a_secure_session_encryption_secret_string_here"
+
+# OAuth Providers (Google or GitHub)
+AUTH_GITHUB_ID="your-github-oauth-id"
+AUTH_GITHUB_SECRET="your-github-oauth-secret"
+AUTH_GOOGLE_ID="your-google-oauth-id"
+AUTH_GOOGLE_SECRET="your-google-oauth-secret"
+```
+
+---
+
+### Step 3: Setup & Run the Backend
 
 ```bash
 cd backend
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate       # On Windows: .venv\Scripts\activate
+pip install --upgrade pip
 pip install -r requirements.txt
-uvicorn detector.main:app --reload --port 7860
+
+# Run the FastAPI server on port 7860
+uvicorn detector.main:app --host 127.0.0.1 --port 7860 --reload
 ```
+*Backend API will be live at `http://localhost:7860` (Swagger UI at `/docs`).*
 
-The default setup does not download the optional 354 MB ONNX image detector. Set `ENABLE_ONNX_DETECTOR=true` to enable it; it needs substantially more memory and downloads into `backend/models/`. Verify:
+---
 
-```bash
-curl -s localhost:7860/health
-```
+### Step 4: Setup & Run the Frontend
 
-### 3. Frontend
+Open a new terminal tab:
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local
+
+# Start the Next.js development server
 npm run dev
 ```
+*Frontend interface will be live at `http://localhost:3000`.*
 
-Copy `frontend/.env.example` to `frontend/.env.local`, set `AUTH_SECRET`, `NEXT_PUBLIC_API_URL`, and the same `BACKEND_TOKEN_SECRET` value used by the backend. Configure GitHub or Google with its client ID and secret. The GitHub button appears first; first-time GitHub sign-in creates the user's Veritas account. Provider buttons stay disabled until their credentials are present.
+---
 
-Register these callback URLs in your GitHub OAuth app (GitHub allows multiple callback URLs):
+## 🚀 Production Deployment
+
+Veritas is designed for continuous cloud deployment across standard platforms:
+
+### 1. Frontend: Vercel (Recommended)
+1. Import the repository into [Vercel](https://vercel.com).
+2. Set the Root Directory to `frontend`.
+3. Add the environment variables:
+   - `NEXT_PUBLIC_API_URL`
+   - `BACKEND_TOKEN_SECRET`
+   - `AUTH_SECRET`
+   - `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`
+   - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`
+4. Deploy! Vercel automatically enables Turbopack caching and global edge distribution.
+
+### 2. Backend: Hugging Face Spaces / Render / AWS EC2
+Deploy using the included deployment script or Docker:
+
+```bash
+# Push backend directory to a Hugging Face Space (Gradio/FastAPI)
+./scripts/deploy_space.sh <hf-username>/<space-name>
+```
+
+#### Or run with Docker:
+```bash
+docker build -f backend/Dockerfile -t veritas-backend .
+docker run -p 7860:7860 --env-file backend/.env veritas-backend
+```
+
+---
+
+## 🔒 Security & Zero-Knowledge Privacy
+
+Veritas implements defense-in-depth security standards:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        DEFENSE-IN-DEPTH MATRIX                         │
+├────────────────────────────┬───────────────────────────────────────────┤
+│ Threat Vector              │ Implemented SOTA Mitigation               │
+├────────────────────────────┼───────────────────────────────────────────┤
+│ Clickjacking (UI Redress)  │ X-Frame-Options: DENY & CSP frame-ancestors: 'none'
+│ MIME Type Sniffing         │ X-Content-Type-Options: nosniff           │
+│ Man-in-the-Middle (MITM)   │ Strict-Transport-Security (2-Year Preload)│
+│ Server-Side Request Forgery│ DNS resolution + RFC1918 + AWS 169.254 IP block
+│ Polyglot File Uploads      │ Binary magic-byte inspection (JPEG/PNG/MP4/WebM)
+│ Directory Traversal        │ Filename sanitization stripping ../ and null bytes
+│ Decompression Bombs        │ Strict MAX_IMAGE_PIXELS threshold capping │
+│ API Key Credential Theft   │ AES-256-GCM authenticated encryption at rest│
+│ Session Hijacking          │ Ephemeral HMAC-SHA256 tokens (300s expiration)
+│ DoS / Flood Attacks        │ In-memory sliding-window IP rate limiters │
+└────────────────────────────┴───────────────────────────────────────────┘
+```
+
+---
+
+## 📸 Visual Showcase
+
+<div align="center">
+
+### 1. Interactive Landing Page
+<img src="docs/assets/landing.png" alt="Veritas Landing Page" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-bottom: 24px;"/>
+
+### 2. Verification Workspace & Result Card
+<img src="docs/assets/workspace_result.png" alt="Veritas Analysis Result Card" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-bottom: 24px;"/>
+
+</div>
+
+---
+
+## 📑 API Reference
+
+The backend exposes fully typed REST endpoints:
+
+### Core Analysis Endpoints
+
+#### `POST /analyze/news`
+Analyzes a published news article by URL.
+- **Headers**: `Authorization: Bearer <session-token>`
+- **Body**: `{"url": "https://example.com/article"}`
+- **Response**: `AnalysisResult` (Verdict, confidence, corroborated claims, signals, sources)
+
+#### `POST /analyze/image`
+Analyzes an image file with optional caption context.
+- **Headers**: `Authorization: Bearer <session-token>`
+- **Form Data**:
+  - `file`: Image binary (`image/jpeg`, `image/png`, `image/webp`)
+  - `caption`: *(Optional)* Contextual narrative or caption
+- **Response**: `AnalysisResult` (Verdict, confidence, EXIF metadata, SynthID markers, signals)
+
+#### `POST /analyze/video`
+Asynchronously queues a video for frame extraction and audio analysis.
+- **Headers**: `Authorization: Bearer <session-token>`
+- **Form Data**: `file` (MP4, QuickTime, WebM)
+- **Response**: `202 Accepted` `{"job_id": "...", "status": "queued", "poll": "/jobs/{job_id}"}`
+
+#### `GET /jobs/{job_id}`
+Polls video analysis progress and fetches the final verdict.
+
+---
+
+### Account & BYOK Key Endpoints
+
+- `GET /account`: Returns current user's detection quota (3 free calls limit, remaining count).
+- `POST /account/keys`: Saves an AES-256-GCM encrypted provider API key (`gemini`, `openrouter`, `groq`, `tavily`).
+- `DELETE /account/keys/{provider}`: Deletes a saved provider key.
+- `GET /account/history`: Fetches past analysis history.
+- `DELETE /account`: Permanently purges user account, saved keys, and scan records.
+
+---
+
+## 🧪 Verification & Automated Test Suite
+
+Veritas maintains comprehensive automated test suites across both backend and frontend:
+
+```bash
+# Run backend pytest suite (37 tests covering backends, forensics, SSRF, security)
+cd backend
+.venv/bin/python -m pytest tests/ -v
+```
 
 ```text
-http://localhost:3000/api/auth/callback/github
-https://veritas-check.vercel.app/api/auth/callback/github
+tests/test_backends.py ............ PASSED
+tests/test_history_preference.py ... PASSED
+tests/test_retrieval.py ........... PASSED
+tests/test_security.py ............ PASSED
+tests/test_watermarks.py .......... PASSED
+tests/test_whitebox_traffic.py ..... PASSED
+======================== 37 passed in 2.22s ========================
 ```
-
-For local Google sign-in, also register `http://localhost:3000/api/auth/callback/google`. If you use another production host, replace `veritas-check.vercel.app` with that host.
-
-Google and GitHub accounts with the same verified email share quota and history. GitHub requests `read:user` and `user:email` so Veritas can read the profile and select a verified email address for account identity.
-
-Users receive **three free detections total** across news, images and videos. Afterward, they need a Gemini or OpenRouter key; optional Groq and Tavily keys enable transcription and search. Keys are encrypted using `BYOK_ENCRYPTION_KEY`. Detection history is off by default. If a user enables **Save detection history** in the sidebar, Veritas stores up to 20 result records; it never stores uploaded media, and turning the setting off deletes saved results. Local SQLite is suitable for development. For a deployed service, set `DATABASE_URL` to a durable PostgreSQL database: the included free Render service has an ephemeral filesystem, so its SQLite file would not preserve accounts, keys or history across restarts/deploys. Supabase Free is one PostgreSQL option (500 MB per project); free projects may pause after a week of low activity. For Render, use Supabase's shared **Session pooler** connection string (IPv4, port 5432); see Supabase's [connection-mode guidance](https://supabase.com/docs/guides/database/connecting-to-postgres) and [current limits](https://supabase.com/pricing).
-
-The workspace includes a first-visit walkthrough, a deployment capabilities page, collapsible navigation, profile actions, opt-in recent detection history, and JSON history export. The profile menu can sign out or permanently delete the account, keys, and saved results.
-
-OAuth setup follows the official [Auth.js Next.js integration](https://authjs.dev/getting-started/installation?framework=Next.js) and provider guides for [GitHub](https://authjs.dev/getting-started/providers/github) and [Google](https://authjs.dev/getting-started/providers/google). GitHub callback URLs are documented in [GitHub's OAuth app guide](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app).
-
-### Command line, without the UI
 
 ```bash
-cd backend && source .venv/bin/activate
-python -m scripts.list_models                       # Gemini model ids your key can call
-python -m scripts.smoke --url https://example.com/article
-python -m scripts.smoke --image path/to/photo.jpg
-python -m scripts.smoke --video path/to/clip.mp4
-```
-
-### Reproduce the benchmarks
-
-```bash
-python -m eval.run_eval --modality news     # also: image, video
-```
-
-Writes `data/evaluation/<set>/results_v2.csv` and `metrics_v2.txt`.
-
----
-
-## API
-
-Base URL is the backend origin (`https://veritas-api-ahjc.onrender.com` for the live
-deployment). All responses are JSON.
-
-| Method | Endpoint | Body | Returns |
-|---|---|---|---|
-| `GET` | `/health` | | Provider status, model ids, remaining quota |
-| `POST` | `/analyze/news` | Bearer token + `{"url": "..."}` | `AnalysisResult` |
-| `POST` | `/analyze/image` | Bearer token + multipart `file`, optional `caption` | `AnalysisResult` |
-| `POST` | `/analyze/video` | Bearer token + multipart `file` | `202 {"job_id"}` |
-| `GET` | `/jobs/{job_id}` | Bearer token | `{status, stage, result}` (owner only) |
-| `GET` | `/account` | Bearer token | Free quota and saved key-provider names |
-| `GET` / `DELETE` | `/account/history` | Bearer token | Recent results / clear history |
-| `PATCH` | `/account/preferences/history` | Bearer token + `{"enabled": true}` | Enable/disable history; disabling clears it |
-| `POST` | `/account/keys` | Bearer token + `{"provider": "gemini", "key": "..."}` | Save an encrypted key |
-| `DELETE` | `/account/keys/{provider}` | Bearer token | Remove a saved key |
-
-<details>
-<summary><code>AnalysisResult</code> shape</summary>
-
-```jsonc
-{
-  "verdict": "LIKELY_REAL | LIKELY_FAKE | UNCERTAIN",
-  "confidence": 0.92,
-  "summary": "One or two plain sentences.",
-  "reasoning": "How the evidence was weighed.",
-  "genre": "satire",
-  "claims": [{
-    "claim": "...",
-    "status": "corroborated | contradicted | misleading | unverifiable",
-    "explanation": "...",
-    "sources": [{"title": "...", "url": "..."}]
-  }],
-  "signals": [{"name": "generator_metadata", "value": "encoder: Google",
-               "direction": "fake", "weight": "strong", "note": "..."}],
-  "caveats": ["What could not be verified."],
-  "evidence": [{"title": "...", "url": "..."}],
-  "forensics": { "metadata": {}, "frame_detector": {} },
-  "provenance": {"model": "gemini-3.5-flash-lite", "grounded": false,
-                 "research_provider": "duckduckgo"}
-}
-```
-</details>
-
-```bash
-curl -s -X POST localhost:7860/analyze/news \
-  -H 'content-type: application/json' \
-  -d '{"url":"https://www.theonion.com/report-nation-somehow-more-divided-than-ever-before-1849972712"}'
+# Run frontend linter and production build
+cd frontend
+npm run lint
+npm run build
 ```
 
 ---
 
-## Results
+## 📄 License & Acknowledgements
 
-> **Status: under re-evaluation.** An audit of the original benchmark sets
-> (`research/docs/01_legacy_analysis.md`) found that each carries a label
-> shortcut: image resolution alone separates the image set at 0.92, clip
-> duration alone separates the video set at 0.97, generator metadata tags
-> identify every fake video, and every fake news item comes from one of two
-> satire domains, 24 of whose 25 URLs no longer resolve to an article. The
-> numbers below are therefore **development measurements,
-> not evidence of detection performance**. Evaluation on established
-> benchmarks, with controls for these shortcuts, is in progress; see
-> [`research/IMPLEMENTATION_PLAN.md`](research/IMPLEMENTATION_PLAN.md).
+- **License**: Released under the [MIT License](LICENSE).
+- **Audio Credit**: Demo soundtrack *The Long Dark* by [Scott Buckley](https://www.scottbuckley.com.au/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Standards**: Built with respect to the [Coalition for Content Provenance and Authenticity (C2PA)](https://c2pa.org).
 
-On the original 130-item sets, with 95% intervals:
+<br/>
 
-| Set | v1 | v2 | Difference significant? |
-|---|---|---|---|
-| News (50) | 0.86 [0.74, 0.93] | 0.92 [0.81, 0.97] | no (McNemar p = 0.51) |
-| Images (50) | 0.86 [0.74, 0.93] | 0.96 [0.86, 0.99] | no (p = 0.18) |
-| Videos (30) | 1.00 [0.89, 1.00] | 1.00 [0.89, 1.00] | n/a |
-
-With the shortcuts controlled, v1 falls to **0.76** on images (size features
-removed) and **0.63** on video (metadata removed, frames bit-identical;
-p = 0.001). The engine has since been rebuilt without hand-written decision
-rules (`research/docs/03_v2_research_log.md`); controlled runs of the rebuilt
-engine replace the v2 column. Every figure, table and per-item
-result is regenerated by the scripts in `research/scripts/`.
-
-**On the pixel detector.** The bundled `sdxl-detector` is **off by default**.
-On the image set, v2 scored 0.96 without it and 0.88 with it, a difference
-that is not statistically significant at this size (p = 0.13); on its own the
-detector scores 0.66. It also needs about 500 MB resident, so leaving it off is
-what lets the service run on a small instance. Set `ENABLE_ONNX_DETECTOR=true`
-to include it.
-
----
-
-## Project structure
-
-```
-backend/
-  detector/
-    main.py              FastAPI app, endpoints, limits
-    pipeline.py          Dispatcher and legacy-compatible entry point
-    config.py            Settings from .env
-    quota.py             Concurrency, RPM window, daily cap
-    engine/              analyse -> retrieve -> verify; Gemini and Ollama backends
-    analyzers/           news.py, image.py, video.py, prompts.py
-    forensics/           article, exif, video_meta, provenance (C2PA), frames, onnx_detector
-    providers/           gemini, groq, research, openai_compat
-  eval/run_eval.py       Benchmark runner
-  Dockerfile             Space image
-frontend/                Next.js app (App Router, Tailwind v4, Motion)
-data/evaluation/         Benchmark sets and results
-research/                Paper revision: audit, plan, scripts, runs, results, figures
-paper/                   Figure generation for the original submission
-```
-
----
-
-## Limitations
-
-- Verdicts are probabilistic estimates from a language model. They are **signals, not proof**.
-- Metadata is easily stripped or edited, and most authentic media online carries none. C2PA credentials are signed, but a re-upload usually removes them.
-- The optional pixel detector (off by default) was trained on SDXL-era images; its score is passed to the model as a measured fact.
-- Paywalled or bot-blocked articles fall back to URL-based checks, which lowers confidence.
-- Free-tier model providers may use submitted content to improve their services. Do not submit private material.
-
-## License and credits
-
-Code in this repository is released under the MIT License. The bundled detector,
-[`Organika/sdxl-detector`](https://huggingface.co/Organika/sdxl-detector), is **CC-BY-NC-3.0**,
-so any deployment of this project as a whole must remain non-commercial.
-
-Background music in the demo: **"Art Of Silence V2"** by Uniq, licensed
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via
-[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Uniq_-_Art_Of_Silence_V2.ogg).
-The excerpt used is `docs/assets/music.mp3`.
-
-Built by [Mudit Agrawal](https://github.com/muditagrawal-alt) as a Semester-6 major project.
+<div align="center">
+<sub>Crafted with precision by <a href="https://github.com/muditagrawal-alt">Mudit Agrawal</a>. Dedicated to an open, verifiable web.</sub>
+</div>

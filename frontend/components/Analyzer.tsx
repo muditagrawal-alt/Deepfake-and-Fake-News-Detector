@@ -104,7 +104,7 @@ export default function Analyzer({
 }: {
   selectedMode?: Mode;
   onModeChange?: (mode: Mode) => void;
-  onAnalysisComplete?: (result: AnalysisResult) => void;
+  onAnalysisComplete?: (result: AnalysisResult, label?: string) => void;
   onByokRequired?: () => void;
   preview?: boolean;
 }) {
@@ -157,9 +157,11 @@ export default function Analyzer({
         setStage("Uploading");
         r = await analyzeVideo(file!, (s) => setStage(s.charAt(0).toUpperCase() + s.slice(1)));
       }
+      const label = mode === "news" ? url.trim() : (file?.name ?? "Target Media");
       setResult(r);
-      onAnalysisComplete?.(r);
+      onAnalysisComplete?.(r, label);
     } catch (err) {
+      const label = mode === "news" ? url.trim() : (file?.name ?? "Target Media");
       if (preview) {
         setStage("Ingesting multi-modal container signals & metadata");
         await new Promise((res) => setTimeout(res, 1200));
@@ -169,7 +171,7 @@ export default function Analyzer({
         await new Promise((res) => setTimeout(res, 900));
         const fallback = generateFallbackResult(mode, mode === "news" ? url : file?.name ?? "Target Media");
         setResult(fallback);
-        onAnalysisComplete?.(fallback);
+        onAnalysisComplete?.(fallback, label);
         return;
       }
 
@@ -178,7 +180,7 @@ export default function Analyzer({
       setError(
         err instanceof ApiError
           ? err.code === "byok_required"
-            ? "Your three free checks are used. Add an API key to keep going."
+            ? "Your free checks are used. Add an API key to keep going."
             : err.code === "quota_exhausted"
             ? "Today's free analysis quota is used up. It resets at 00:00 UTC."
             : err.code === "busy"

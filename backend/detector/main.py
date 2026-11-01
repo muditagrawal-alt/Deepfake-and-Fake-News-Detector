@@ -168,6 +168,11 @@ async def analyze_news_endpoint(
     result, was_hit = await response_cache.get_or_compute(
         cache_key, compute, ttl=settings.cache_ttl_seconds
     )
+    if was_hit:
+        try:
+            accounts.save_detection(user, result.model_dump(mode="json"), body.url, settings)
+        except Exception:
+            log.exception("could not save cached news result %s to account history", result.id)
     response.headers["X-Cache"] = "HIT" if was_hit else "MISS"
     response.headers["Server-Timing"] = f"cache;desc={'hit' if was_hit else 'miss'}"
     return result
@@ -267,7 +272,7 @@ class HistoryPreferenceInput(BaseModel):
 def _byok_required() -> HTTPException:
     return HTTPException(status_code=402, detail={
         "error": "byok_required",
-        "message": "Your three free checks are used. Add a Gemini or OpenRouter API key to continue.",
+        "message": "Your free checks are used. Add a Gemini or OpenRouter API key to continue.",
     })
 
 

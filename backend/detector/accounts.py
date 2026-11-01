@@ -14,7 +14,7 @@ from sqlalchemy.engine import Engine
 
 from detector.config import BACKEND_DIR, Settings, get_settings
 
-FREE_DETECTIONS = 3
+FREE_DETECTIONS = int(os.environ.get("FREE_DETECTIONS", "15"))
 HISTORY_LIMIT = 20
 API_KEY_PROVIDERS = {"gemini", "openrouter", "tavily", "groq"}
 _engine: Engine | None = None
@@ -305,7 +305,9 @@ def save_detection(user: dict, result: dict, input_label: str, settings: Setting
               "label": (input_label or "").strip()[:300], "payload": payload})
         connection.execute(text("""
             DELETE FROM detections WHERE user_id=:uid AND id NOT IN (
-                SELECT id FROM detections WHERE user_id=:uid ORDER BY created_at DESC LIMIT :keep
+                SELECT id FROM (
+                    SELECT id FROM detections WHERE user_id=:uid ORDER BY created_at DESC LIMIT :keep
+                ) AS keep_recent
             )
         """), {"uid": user["sub"], "keep": HISTORY_LIMIT})
 

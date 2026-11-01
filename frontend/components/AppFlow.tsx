@@ -909,7 +909,22 @@ function Workspace({ user }: { user: User }) {
                 </div>
                 <div className="mt-7">
                   <Analyzer key={detectionMode} selectedMode={detectionMode} onModeChange={setDetectionMode}
-                    onAnalysisComplete={() => { void refreshWorkspace(); }} onByokRequired={() => setByokOpen(true)} />
+                    onAnalysisComplete={(completedResult, label) => {
+                      if (completedResult && account?.history_enabled) {
+                        const entry: HistoryEntry = {
+                          id: completedResult.id,
+                          modality: completedResult.modality,
+                          verdict: completedResult.verdict,
+                          summary: completedResult.summary,
+                          confidence: completedResult.confidence,
+                          created_at: completedResult.created_at || new Date().toISOString(),
+                          input_label: label || (completedResult.modality === "news" ? completedResult.extraction?.url || "News Article" : "Media"),
+                          result: completedResult,
+                        };
+                        setHistory((prev) => [entry, ...prev.filter((e) => e.id !== entry.id)].slice(0, account.history_limit || 20));
+                      }
+                      void refreshWorkspace();
+                    }} onByokRequired={() => setByokOpen(true)} />
                 </div>
                 <section className="mt-12 border-t border-line pt-7">
                   <div className="flex items-center justify-between gap-3">
@@ -967,7 +982,7 @@ function Workspace({ user }: { user: User }) {
                 </button>
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Account settings</p>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight">API keys</h1>
-                <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-2">Add a personal provider key for checks after the three free detections. Keys are encrypted at rest; Veritas shows only which providers have a saved key.</p>
+                <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-2">Add a personal provider key for checks after your free detections. Keys are encrypted at rest; Veritas shows only which providers have a saved key.</p>
                 <div className="mt-7"><ApiKeyManager account={account} onChange={onKeyChange} /></div>
               </motion.section>
             )}

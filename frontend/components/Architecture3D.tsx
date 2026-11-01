@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   CheckCircle2,
-  Activity,
   ExternalLink,
 } from "lucide-react";
 
@@ -989,10 +988,6 @@ export function Architecture3D() {
       <div className="max-w-7xl mx-auto space-y-6 relative z-10">
         {/* Header Bar */}
         <div className="space-y-2 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-cyan-400">
-            <Activity size={13} className="text-emerald-400 animate-pulse" />
-            <span>SYSTEM ARCHITECTURE · CAUSAL DATAFLOW PIPELINE</span>
-          </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
             System Architecture Flowchart
           </h2>

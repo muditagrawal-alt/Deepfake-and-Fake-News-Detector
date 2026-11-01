@@ -32,14 +32,17 @@
 
 <div align="center">
 
-### 🎬 Platform Walkthrough & Live Demo
+### 🎬 Full End-to-End Platform Walkthrough (720p HD)
 
 <a href="docs/assets/demo.mp4">
-  <img src="docs/assets/demo.gif" alt="Veritas Platform End-to-End Walkthrough" width="940" style="border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);"/>
+  <video src="docs/assets/demo.mp4" controls width="940" poster="docs/assets/landing.png" style="max-width: 100%; border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+    <img src="docs/assets/landing.png" alt="Veritas Platform 720p HD Walkthrough" width="940" style="border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);"/>
+  </video>
 </a>
 
-<p align="center" style="margin-top: 10px;">
-  <b><a href="docs/assets/demo.mp4">▶ Watch Full 720p HD Demo Video</a></b> (51s • Movie Subtitles • Ambient Soundtrack • Landing Page & Workspace Walkthrough)
+<p align="center" style="margin-top: 12px;">
+  <b><a href="docs/assets/demo.mp4">▶ Click Here to Play the Full 720p HD Walkthrough Video</a></b><br/>
+  <sub>51 seconds • Cinematic Subtitles • Scott Buckley Ambient Soundtrack • Landing Page & Forensic Workspace</sub>
 </p>
 
 </div>
@@ -71,6 +74,11 @@ Unlike conventional "black-box" classifiers that output arbitrary authenticity p
 3. **Cryptographic SHA-256 Fingerprinting**: Binds every analyzed asset into a verifiable evidence hash for legal chain-of-custody tracking.
 4. **Court-Ready PDF Forensic Dossiers**: Replaces unstructured JSON dumps with styled, multi-page forensic dossiers detailing confidence scores, timeline benchmarks, verified claims, detected anomalies, and source citations.
 5. **Zero-Knowledge BYOK & 3 Free Checks**: Every new user receives **3 free shared API checks** out of the box with zero configuration. After quota consumption, users seamlessly supply personal API keys (Gemini, OpenRouter, Groq, Tavily) protected at rest by **AES-256-GCM** authenticated encryption.
+
+<div align="center">
+  <img src="docs/assets/landing-hero.gif" alt="Interactive Landing Interface & Live Forensic Telemetry" width="880" style="border-radius: 8px; border: 1px solid #3f3f46; box-shadow: 0 12px 30px rgba(0,0,0,0.5); margin-top: 18px; margin-bottom: 6px;"/>
+  <p><sub><b>Figure 1:</b> Interactive Landing Interface featuring WebGL Ferrofluid dynamic fluid physics, live cluster telemetry, and instant workspace launch.</sub></p>
+</div>
 
 ---
 
@@ -109,6 +117,17 @@ Unlike conventional "black-box" classifiers that output arbitrary authenticity p
 | **News Fact-Checking** | Live HTTP/HTTPS URL | Trafilatura article extraction, author attribution, publish timestamps, site domain isolation. | Decomposes story into 2–4 atomic claims. Queries neutral global news wires. Corroborates or contradicts claims with external citations. |
 | **Synthetic Image Forensics** | JPEG, PNG, WebP (Up to 10 MB) | Camera serial numbers, software tags, signed C2PA credentials, Google SynthID watermark detection, compression artifacts. | Multimodal vision model analyzes facial anatomy, shadow/lighting vectors, text inconsistencies, perspective anomalies, and background distortion. |
 | **Deepfake Video Forensics** | MP4, MOV, WebM (Up to 50 MB / 90s) | Stream codecs, framerate, duration, container atom hierarchy, audio channel layout. | Inspects temporal frame coherence, lip-sync alignment, audio spectrogram anomalies, and synthetic voice generation artifacts. |
+
+<br/>
+
+### 🧬 Invisible Watermark & Deepfake Provenance Inspection
+
+Unlike standard models that only inspect visible pixels, Veritas extracts low-level container artifacts and proprietary forensic signatures. It decodes uncompressed EXIF tags, validates cryptographically signed C2PA provenance assertions, and flags generative latent watermarks such as Google SynthID:
+
+<div align="center">
+  <img src="docs/assets/forensic-inspection.gif" alt="Deepfake Forensics & SynthID Watermark Inspection" width="880" style="border-radius: 8px; border: 1px solid #3f3f46; box-shadow: 0 12px 30px rgba(0,0,0,0.5); margin-top: 14px; margin-bottom: 8px;"/>
+  <p><sub><b>Figure 2:</b> Deep forensic inspection detecting Google SynthID invisible watermarks, signed C2PA credentials, and hardware camera metadata.</sub></p>
+</div>
 
 ---
 
@@ -164,7 +183,40 @@ flowchart TD
 
 <div align="center">
   <img src="docs/assets/architecture.png" alt="3D Architecture Topology" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-top: 12px;"/>
-  <p><sub><b>Figure 1:</b> Veritas 3D System Topology and Real-Time Service Routing.</sub></p>
+  <p><sub><b>Figure 3:</b> Veritas 3D System Topology and Real-Time Service Routing.</sub></p>
+</div>
+
+<br/>
+
+### ⚙️ Real-Time 5-Stage Execution Pipeline
+
+When an asset or article URL is submitted to the workspace, Veritas initiates a live 5-stage verification sequence—streaming real-time progress indicators from cryptographic ingress hashing to final adjudication:
+
+<div align="center">
+  <img src="docs/assets/factcheck-workflow.gif" alt="5-Stage Real-Time Fact-Checking Pipeline" width="880" style="border-radius: 8px; border: 1px solid #3f3f46; box-shadow: 0 12px 30px rgba(0,0,0,0.5); margin-top: 14px; margin-bottom: 8px;"/>
+  <p><sub><b>Figure 4:</b> Real-time 5-stage workflow: Ingress Hashing → Article Extraction → Neutral Wire Retrieval → Multimodal Adjudication.</sub></p>
+</div>
+
+<br/>
+
+### ⚖️ Calibrated Verdict Card & Evidence Fingerprint
+
+Adjudication output produces calibrated confidence distributions, categorized atomic claims corroborated against neutral wire services, and a tamper-evident SHA-256 evidence fingerprint:
+
+<div align="center">
+  <img src="docs/assets/evidence-result-card.gif" alt="Calibrated Verdict Card & Evidence Fingerprint" width="880" style="border-radius: 8px; border: 1px solid #3f3f46; box-shadow: 0 12px 30px rgba(0,0,0,0.5); margin-top: 14px; margin-bottom: 8px;"/>
+  <p><sub><b>Figure 5:</b> Calibrated verdict card displaying atomic claims, source citations, credibility rating, and SHA-256 evidence hash.</sub></p>
+</div>
+
+<br/>
+
+### 📄 Court-Ready Forensic PDF Dossier Export
+
+Investigators, newsrooms, and legal teams can export an official, multi-page vector PDF dossier with one click—complete with timestamps, SHA-256 fingerprints, verified claims tables, and source citations:
+
+<div align="center">
+  <img src="docs/assets/pdf-dossier-export.gif" alt="Court-Ready Forensic PDF Dossier Export" width="880" style="border-radius: 8px; border: 1px solid #3f3f46; box-shadow: 0 12px 30px rgba(0,0,0,0.5); margin-top: 14px; margin-bottom: 8px;"/>
+  <p><sub><b>Figure 6:</b> One-click export generating an auditable, multi-page Forensic PDF Dossier with cryptographic signatures and source citations.</sub></p>
 </div>
 
 ---
@@ -347,19 +399,43 @@ Veritas implements defense-in-depth security standards:
 └────────────────────────────┴───────────────────────────────────────────┘
 ```
 
+<br/>
+
+### 🔑 Zero-Knowledge BYOK API Key Vault & Quota Management
+
+Veritas empowers every user with **3 free system API checks** immediately upon sign-in with zero configuration required. To support high-volume independent investigations, users can provide personal API keys (Google Gemini, OpenRouter, Groq, Tavily) in a Zero-Knowledge vault protected at rest with **AES-256-GCM** authenticated encryption:
+
+<div align="center">
+  <img src="docs/assets/byok-quota-vault.gif" alt="Zero-Knowledge BYOK API Key Vault & Quota Management" width="880" style="border-radius: 8px; border: 1px solid #3f3f46; box-shadow: 0 12px 30px rgba(0,0,0,0.5); margin-top: 14px; margin-bottom: 8px;"/>
+  <p><sub><b>Figure 7:</b> Zero-Knowledge BYOK key vault granting 3 free checks out of the box and encrypted BYOK key management.</sub></p>
+</div>
+
 ---
 
 ## 📸 Visual Showcase
 
+Explore the Veritas interface across static forensic captures and animated workflows:
+
 <div align="center">
 
 ### 1. Interactive Landing Page
+*Ferrofluid magnetic physics canvas with real-time system health telemetry and instant ingress.*
 <img src="docs/assets/landing.png" alt="Veritas Landing Page" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-bottom: 24px;"/>
 
-### 2. Verification Workspace & Result Card
+### 2. Forensic Investigation Workspace & Calibrated Result Card
+*Multi-tab analysis studio featuring real-time verification stages, corroborated sources, and SHA-256 fingerprint.*
 <img src="docs/assets/workspace_result.png" alt="Veritas Analysis Result Card" width="880" style="border-radius: 8px; border: 1px solid #27272a; margin-bottom: 24px;"/>
 
 </div>
+
+| Feature Module | Explanatory Animation | Key Technical Capability |
+| :--- | :--- | :--- |
+| **Landing Hero** | [`landing-hero.gif`](docs/assets/landing-hero.gif) | WebGL Ferrofluid dynamic fluid physics & live cluster telemetry |
+| **Forensic Inspector** | [`forensic-inspection.gif`](docs/assets/forensic-inspection.gif) | Google SynthID invisible watermarks & C2PA signed provenance credentials |
+| **Pipeline Ingestion** | [`factcheck-workflow.gif`](docs/assets/factcheck-workflow.gif) | 5-stage synchronous fact-checking & neutral wire cross-examination |
+| **Evidence Adjudication**| [`evidence-result-card.gif`](docs/assets/evidence-result-card.gif) | Calibrated verdict distribution & cryptographic SHA-256 evidence hash |
+| **PDF Dossier Export** | [`pdf-dossier-export.gif`](docs/assets/pdf-dossier-export.gif) | One-click multi-page vector PDF forensic dossier compilation |
+| **BYOK Security Vault** | [`byok-quota-vault.gif`](docs/assets/byok-quota-vault.gif) | 3 free API checks quota & AES-256-GCM client key encryption |
 
 ---
 

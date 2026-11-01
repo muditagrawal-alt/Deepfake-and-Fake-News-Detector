@@ -482,6 +482,9 @@ export default function Feedback1({
               <p className="text-sm text-neutral-400 max-w-[46ch] mx-auto leading-relaxed">
                 Your report has been routed to <span className="text-neutral-200 font-medium">{recipientEmail}</span>.
               </p>
+              <p className="text-xs text-neutral-500 max-w-[48ch] mx-auto pt-1 leading-relaxed">
+                Automated notification emails may be sorted into your <strong className="text-neutral-300">Spam or Promotions</strong> folder by Gmail. Please check there or use the direct draft button below.
+              </p>
               {needsActivation && (
                 <div className="mt-3 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs text-amber-200 text-left max-w-md mx-auto">
                   <p className="font-semibold text-amber-300">Action Required for Automated Delivery:</p>

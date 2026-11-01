@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getClientIp, rateLimiter } from "@/lib/rateLimit";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const ALLOWED_CATEGORIES = new Set(["general", "bug", "feature", "false_positive", "false_negative", "other"]);
 const ALLOWED_SENTIMENTS = new Set(["positive", "neutral", "negative", "critical"]);
@@ -60,7 +62,25 @@ export async function POST(req: Request) {
     const recipient = "muditagrawal03@gmail.com";
     const subject = `[Veritas Feedback] [${safeCategory.toUpperCase()}] ${cleanHeaderSummary}${sanitizedMessage.length > 60 ? "..." : ""}`;
 
-    // Format email payload
+    // Ensure audit log is persisted locally so submissions are never dropped
+    try {
+      const dataDir = path.join(process.cwd(), "data");
+      await fs.mkdir(dataDir, { recursive: true });
+      const record =
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          category: safeCategory,
+          sentiment: safeSentiment,
+          message: sanitizedMessage,
+          email: safeEmail,
+          metadata,
+        }) + "\n";
+      await fs.appendFile(path.join(dataDir, "feedback.jsonl"), record, "utf8");
+    } catch (fsErr) {
+      console.warn("Local feedback persistence warning:", fsErr);
+    }
+
+    // Format email payload with standard field names recognized by FormSubmit
     const emailPayload: Record<string, unknown> = {
       _subject: subject,
       _template: "table",
@@ -69,7 +89,9 @@ export async function POST(req: Request) {
       category: safeCategory,
       sentiment: safeSentiment,
       message: sanitizedMessage,
+      email: safeEmail,
       user_email: safeEmail,
+      _replyto: safeEmail !== "Anonymous" ? safeEmail : undefined,
       timestamp: new Date().toISOString(),
       url: typeof metadata?.url === "string" ? metadata.url.slice(0, 500) : "Landing Page",
       viewport: typeof metadata?.viewport === "string" ? metadata.viewport.slice(0, 100) : "Unknown",

@@ -276,13 +276,7 @@ export default function Feedback1({
           >
             {/* Header */}
             <div>
-              <div className="flex items-center gap-2">
-                <span className="flex size-2 rounded-full bg-blue-500 animate-pulse" />
-                <span className="font-mono text-xs font-semibold tracking-wider uppercase text-blue-400">
-                  Direct Channel · Mudit Agrawal
-                </span>
-              </div>
-              <h3 className="mt-2 text-xl sm:text-2xl font-semibold tracking-tight text-white">
+              <h3 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
                 Help Calibrate Veritas
               </h3>
               <p className="mt-1 text-xs sm:text-sm text-neutral-400 leading-relaxed">
@@ -464,7 +458,7 @@ export default function Feedback1({
               ) : (
                 <>
                   <PaperPlaneRight size={16} weight="fill" />
-                  <span>Send Direct to Mudit</span>
+                  <span>Send Feedback</span>
                 </>
               )}
             </button>

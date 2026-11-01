@@ -8,6 +8,21 @@ https://github.com/user-attachments/assets/3296cd18-5f37-49e3-94f7-deaacb77c084
   <sub>▶ <b>Veritas_Demo_Final.mp4</b> — 0:40, 1080p Full HD with sound. Repository master: <a href="docs/assets/Veritas_Demo_Final.mp4">docs/assets/Veritas_Demo_Final.mp4</a> (<a href="docs/assets/Veritas_Demo_Final.mov">ProRes/MOV Master</a>).</sub>
 </p>
 
+| | |
+|---|---|
+| **Modalities** | News Articles (Live URLs via Trafilatura) · Synthetic Images (JPEG, PNG, WebP up to 10 MB) · Deepfake Video (MP4, QuickTime, WebM up to 50 MB / 90s) |
+| **Deterministic Ingress** | Raw EXIF metadata, XMP markers, Google SynthID latent watermarks, signed C2PA cryptographic provenance manifests, and FFprobe container atoms |
+| **Cross-Examination** | Domain-isolated primary source retrieval (Reuters, AP News, wire services) excluding the publisher under review to eliminate self-referential echo chambers |
+| **Reasoning Engine** | Google Gemini 3.5 Flash-Lite (hosted), Groq Whisper Large v3 (audio forensics), or local Ollama (`gemma4:12b` / `qwen2.5:7b`) for offline investigations |
+| **Chain of Custody** | SHA-256 asset hash, timestamped evidence payload, calibrated multi-model verdict confidence, and styled multi-page PDF dossier export |
+| **Access & Privacy** | **3 free shared checks per user** out of the box with zero configuration · Zero-Knowledge BYOK Vault protected at rest by **AES-256-GCM** |
+
+---
+
+<p align="center">
+  <img src="docs/assets/landing.png" alt="Veritas — Enterprise Forensic Intelligence Platform" width="100%">
+</p>
+
 <p align="center">
   <a href="https://github.com/muditagrawal-alt/Deepfake-and-Fake-News-Detector/actions"><img src="https://img.shields.io/badge/Build-Passing-10b981.svg?style=flat-square&logo=github-actions" alt="Build Status"></a>
   <img src="https://img.shields.io/badge/Next.js-16.3.5%20(Turbopack)-000000.svg?style=flat-square&logo=next.js" alt="Next.js 16">
@@ -27,24 +42,10 @@ https://github.com/user-attachments/assets/3296cd18-5f37-49e3-94f7-deaacb77c084
 
 <p align="center">
   <b><a href="https://veritas-check.vercel.app">🌐 Launch Production Deployment</a></b> &nbsp;•&nbsp;
-  <b><a href="#demo">🎬 Watch Demo</a></b> &nbsp;•&nbsp;
   <b><a href="#how-it-works">⚙️ How it Works</a></b> &nbsp;•&nbsp;
   <b><a href="#system-architecture">🏛️ System Architecture</a></b> &nbsp;•&nbsp;
   <b><a href="#quickstart">⚡ Quickstart</a></b>
 </p>
-
----
-
-
-
-| | |
-|---|---|
-| **Modalities** | News Articles (Live URLs via Trafilatura) · Synthetic Images (JPEG, PNG, WebP up to 10 MB) · Deepfake Video (MP4, QuickTime, WebM up to 50 MB / 90s) |
-| **Deterministic Ingress** | Raw EXIF metadata, XMP markers, Google SynthID latent watermarks, signed C2PA cryptographic provenance manifests, and FFprobe container atoms |
-| **Cross-Examination** | Domain-isolated primary source retrieval (Reuters, AP News, wire services) excluding the publisher under review to eliminate self-referential echo chambers |
-| **Reasoning Engine** | Google Gemini 3.5 Flash-Lite (hosted), Groq Whisper Large v3 (audio forensics), or local Ollama (`gemma4:12b` / `qwen2.5:7b`) for offline investigations |
-| **Chain of Custody** | SHA-256 asset hash, timestamped evidence payload, calibrated multi-model verdict confidence, and styled multi-page PDF dossier export |
-| **Access & Privacy** | **3 free shared checks per user** out of the box with zero configuration · Zero-Knowledge BYOK Vault protected at rest by **AES-256-GCM** |
 
 ---
 

@@ -3,8 +3,10 @@
 import {
   ArrowSquareOut, CaretDown, CaretUp, CheckCircle, Minus, Question, Warning, XCircle,
 } from "@phosphor-icons/react";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import type { AnalysisResult, Claim, Signal } from "@/lib/api";
+import { exportSingleResultPdf } from "@/lib/pdfReport";
 
 const VERDICT: Record<AnalysisResult["verdict"], { label: string; color: string }> = {
   LIKELY_REAL: { label: "Likely real", color: "text-real" },
@@ -46,10 +48,21 @@ export default function ResultCard({ r }: { r: AnalysisResult }) {
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h2 className={`text-2xl font-semibold tracking-tight ${v.color}`}>{v.label}</h2>
           <span title="The model's estimate; it has not been empirically calibrated." className="text-sm text-ink-2 tabular-nums">{pct}% model estimate</span>
-          <span className="text-sm text-ink-3 ml-auto">
-            {r.modality === "news" ? "Article" : r.modality === "image" ? "Image" : "Video"}
-            {r.genre ? ` · ${r.genre.replace(/_/g, " ")}` : ""}
-          </span>
+          <div className="ml-auto flex items-center gap-2.5">
+            <span className="text-sm text-ink-3">
+              {r.modality === "news" ? "Article" : r.modality === "image" ? "Image" : "Video"}
+              {r.genre ? ` · ${r.genre.replace(/_/g, " ")}` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={() => exportSingleResultPdf({ result: r, input_label: r.extraction?.title || r.extraction?.url || "Target Media" })}
+              className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev/90 px-2.5 py-1 text-xs font-medium text-ink-2 hover:border-accent hover:text-accent hover:bg-bg transition-colors"
+              title="Download this forensic report as a PDF"
+            >
+              <FileText size={13} className="text-accent" />
+              <span>Export PDF</span>
+            </button>
+          </div>
         </div>
         <p className="mt-3 text-[15px] leading-relaxed max-w-[70ch]">{r.summary}</p>
         <dl className="mt-3 space-y-1 text-sm text-ink-2">

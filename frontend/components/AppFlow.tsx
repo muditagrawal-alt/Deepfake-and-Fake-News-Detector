@@ -18,6 +18,7 @@ import {
   Trash,
   X,
 } from "@phosphor-icons/react";
+import { FileText } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,6 +28,7 @@ import Authentication1 from "@/components/Authentication1";
 import Analyzer, { type AnalyzerMode } from "@/components/Analyzer";
 import ResultCard from "@/components/ResultCard";
 import Ferrofluid from "@/components/ui/Ferrofluid";
+import { exportHistoryPdf, exportSingleResultPdf } from "@/lib/pdfReport";
 import {
   clearHistory,
   deleteAccount,
@@ -546,13 +548,7 @@ function Workspace({ user }: { user: User }) {
 
   function exportHistory() {
     if (!history.length) return;
-    const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `veritas-history-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    exportHistoryPdf(history, user.name || user.email || undefined);
   }
 
   async function removeAccount() {
@@ -948,14 +944,33 @@ function Workspace({ user }: { user: User }) {
             {active === "history" && (
               <motion.section key="history" initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.45 }}>
                 {selected ? <>
-                  <button type="button" onClick={() => setSelected(null)} className="mb-5 inline-flex items-center gap-1 text-sm text-ink-2 hover:text-ink"><CaretLeft size={16} /> All history</button>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <button type="button" onClick={() => setSelected(null)} className="inline-flex items-center gap-1 text-sm text-ink-2 hover:text-ink"><CaretLeft size={16} /> All history</button>
+                    <button
+                      type="button"
+                      onClick={() => exportSingleResultPdf(selected, user.name || user.email || undefined)}
+                      className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 hover:border-accent hover:text-accent hover:bg-bg transition-colors"
+                      title="Download this forensic report as a PDF"
+                    >
+                      <FileText size={14} className="text-accent" />
+                      <span>Export PDF Dossier</span>
+                    </button>
+                  </div>
                   <p className="mb-3 text-xs text-ink-3">{selected.input_label} · {formatDate(selected.created_at)}</p>
                   <ResultCard r={selected.result} />
                 </> : <>
                   <div className="flex flex-wrap items-end justify-between gap-4">
                     <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-3">Your account</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Detection history</h1><p className="mt-2 text-sm text-ink-2">{account?.history_enabled ? `Up to ${account.history_limit} recent results. Uploaded media itself is not saved.` : "History saving is off. Use the sidebar switch to save future results; uploaded media is never stored."}</p></div>
                     {!!history.length && <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={exportHistory} className="rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:bg-bg">Export JSON</button>
+                      <button
+                        type="button"
+                        onClick={exportHistory}
+                        className="inline-flex items-center gap-1.5 rounded-control border border-line bg-elev px-3 py-2 text-xs font-medium text-ink-2 hover:border-accent hover:text-accent hover:bg-bg transition-colors"
+                        title="Download complete audit history as a beautifully formatted PDF report"
+                      >
+                        <FileText size={14} className="text-accent" />
+                        <span>Export PDF</span>
+                      </button>
                       <button type="button" disabled={historyBusy} onClick={() => void deleteAllHistory()} className="inline-flex items-center gap-2 rounded-control border border-line px-3 py-2 text-xs text-ink-2 hover:border-fake hover:text-fake disabled:opacity-50"><Trash size={15} /> {historyBusy ? "Deleting…" : "Clear history"}</button>
                     </div>}
                   </div>

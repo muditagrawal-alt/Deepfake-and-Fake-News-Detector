@@ -526,7 +526,7 @@ function ScrollyPipelineSection({
     <section
       ref={containerRef}
       id="pipeline"
-      className="landing-section relative px-4 py-10 sm:px-8 sm:py-14 lg:px-12 border-t border-white/5 scroll-mt-20 overflow-visible"
+      className="landing-section relative px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-16 lg:px-12 border-t border-white/5 scroll-mt-24 overflow-visible"
     >
       <ScanGrid className="absolute inset-0 opacity-20" />
 

@@ -58,11 +58,11 @@ export const HeroParallax = ({
 
   const springConfig = { stiffness: 120, damping: 28, mass: 0.2, restDelta: 0.001 };
 
-  const rawTranslateX = useTransform(scrollYProgress, [0.02, 0.9], [0, 560]);
-  const rawTranslateXReverse = useTransform(scrollYProgress, [0.02, 0.9], [0, -560]);
-  const rawRotateX = useTransform(scrollYProgress, [0.02, 0.3], [5, 0]);
-  const rawOpacity = useTransform(scrollYProgress, [0.01, 0.18], [0.4, 1]);
-  const rawTranslateY = useTransform(scrollYProgress, [0.02, 0.3], [24, 0]);
+  const rawTranslateX = useTransform(scrollYProgress, [0.05, 0.85], [0, 480]);
+  const rawTranslateXReverse = useTransform(scrollYProgress, [0.05, 0.85], [0, -480]);
+  const rawRotateX = useTransform(scrollYProgress, [0.02, 0.28], [4, 0]);
+  const rawOpacity = useTransform(scrollYProgress, [0.01, 0.15], [0.5, 1]);
+  const rawTranslateY = useTransform(scrollYProgress, [0.02, 0.28], [16, 0]);
 
   const translateX = useSpring(rawTranslateX, springConfig);
   const translateXReverse = useSpring(rawTranslateXReverse, springConfig);
@@ -73,7 +73,7 @@ export const HeroParallax = ({
     <div
       ref={ref}
       className={cn(
-        "min-h-[185vh] sm:min-h-[215vh] py-10 sm:py-16 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]",
+        "py-6 sm:py-10 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d]",
         className
       )}
     >
@@ -95,10 +95,10 @@ export const HeroParallax = ({
                 opacity: rawOpacity,
               }
         }
-        className="transform-gpu will-change-transform [transform-style:preserve-3d] pt-4 sm:pt-8"
+        className="transform-gpu will-change-transform [transform-style:preserve-3d] pt-2 sm:pt-4"
       >
         {/* Row 1: Glides forward (translateX) */}
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 mb-8 sm:mb-12">
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-6 sm:space-x-8 mb-6 sm:mb-8">
           {firstRow.map((product) => (
             <ProductCard
               product={product}
@@ -109,7 +109,7 @@ export const HeroParallax = ({
         </motion.div>
 
         {/* Row 2: Glides opposite (translateXReverse) */}
-        <motion.div className="flex flex-row mb-8 sm:mb-12 space-x-8 sm:space-x-10">
+        <motion.div className="flex flex-row mb-6 sm:mb-8 space-x-6 sm:space-x-8">
           {secondRow.map((product) => (
             <ProductCard
               product={product}
@@ -119,8 +119,8 @@ export const HeroParallax = ({
           ))}
         </motion.div>
 
-        {/* Row 3: Glides forward (translateX) - Ample vertical spacing ensures row 3 is never cut off */}
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-8 sm:space-x-10 pb-12 sm:pb-16">
+        {/* Row 3: Glides forward (translateX) — Clean, snug bottom margin without dead space */}
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-6 sm:space-x-8 pb-4 sm:pb-6">
           {thirdRow.map((product) => (
             <ProductCard
               product={product}
@@ -136,7 +136,7 @@ export const HeroParallax = ({
 
 export const Header = () => {
   return (
-    <div className="max-w-7xl relative mx-auto pt-4 pb-8 md:pt-8 md:pb-10 px-4 w-full left-0 top-0 z-20">
+    <div className="max-w-7xl relative mx-auto pt-2 pb-6 md:pt-4 md:pb-8 px-4 w-full left-0 top-0 z-20">
       <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1 text-[11px] font-mono text-white/70 mb-4 backdrop-blur-md">
         <span className="size-1.5 rounded-full bg-accent animate-pulse" />
         <span>MULTIMODAL FORENSIC DOSSIERS · 15 EVIDENCE CHANNELS</span>

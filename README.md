@@ -1,5 +1,11 @@
+## Demo
+
+The whole thing, start to finish, on an end-to-end investigation: landing on the live ferrofluid interface, inspecting a media asset for invisible Google SynthID watermarks and signed C2PA credentials, submitting a live news story for 5-stage contamination-free cross-examination, and exporting a court-ready vector PDF dossier — with tamper-evident SHA-256 evidence fingerprinting and zero-knowledge BYOK key security. Recorded from the real interface in 1080p Full HD; cinematic subtitles explain each step.
+
+https://github.com/user-attachments/assets/3296cd18-5f37-49e3-94f7-deaacb77c084
+
 <p align="center">
-  <img src="docs/assets/landing.png" alt="Veritas — Enterprise Forensic Intelligence Platform" width="100%">
+  <sub>▶ <b>Veritas_Demo_Final.mp4</b> — 0:40, 1080p Full HD with sound. Repository master: <a href="docs/assets/Veritas_Demo_Final.mp4">docs/assets/Veritas_Demo_Final.mp4</a> (<a href="docs/assets/Veritas_Demo_Final.mov">ProRes/MOV Master</a>).</sub>
 </p>
 
 <p align="center">
@@ -29,15 +35,7 @@
 
 ---
 
-## Demo
 
-The whole thing, start to finish, on an end-to-end investigation: landing on the live ferrofluid interface, inspecting a media asset for invisible Google SynthID watermarks and signed C2PA credentials, submitting a live news story for 5-stage contamination-free cross-examination, and exporting a court-ready vector PDF dossier — with tamper-evident SHA-256 evidence fingerprinting and zero-knowledge BYOK key security. Recorded from the real interface in 1080p Full HD; cinematic subtitles explain each step.
-
-https://github.com/user-attachments/assets/3296cd18-5f37-49e3-94f7-deaacb77c084
-
-<p align="center">
-  <sub>▶ <b>Veritas_Demo_Final.mp4</b> — 0:40, 1080p Full HD with sound. Repository master: <a href="docs/assets/Veritas_Demo_Final.mp4">docs/assets/Veritas_Demo_Final.mp4</a> (<a href="docs/assets/Veritas_Demo_Final.mov">ProRes/MOV Master</a>).</sub>
-</p>
 
 | | |
 |---|---|

@@ -25,7 +25,9 @@ async def analyze(
     video_path: str | None = None,
     services: Services | None = None,
     original_name: str | None = None,
+    caption: str | None = None,
     progress=None,
+    **_extra,
 ) -> AnalysisResult:
     services = services or get_services()
     provided = [x for x in (url, image_path, video_path) if x]
@@ -34,7 +36,13 @@ async def analyze(
     if url:
         return await analyze_news(url, services, progress=progress)
     if image_path:
-        return await analyze_image(image_path, services, original_name=original_name, progress=progress)
+        return await analyze_image(
+            image_path,
+            services,
+            original_name=original_name,
+            caption=caption,
+            progress=progress,
+        )
     return await analyze_video(video_path, services, original_name=original_name, progress=progress)
 
 
@@ -42,9 +50,9 @@ def legacy_verdict(verdict: str) -> str:
     return {"LIKELY_REAL": "LIKELY REAL", "LIKELY_FAKE": "LIKELY FAKE"}.get(verdict, "UNCERTAIN")
 
 
-def run_pipeline(url=None, image_path=None, video_path=None, **_ignored) -> dict:
+def run_pipeline(url=None, image_path=None, video_path=None, caption=None, **_ignored) -> dict:
     """Synchronous wrapper with the old signature; extra kwargs are ignored."""
-    result = asyncio.run(analyze(url=url, image_path=image_path, video_path=video_path))
+    result = asyncio.run(analyze(url=url, image_path=image_path, video_path=video_path, caption=caption))
     data = result.model_dump(mode="json")
     data["final_verdict"] = legacy_verdict(result.verdict)
     return data

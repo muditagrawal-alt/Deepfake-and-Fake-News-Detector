@@ -160,11 +160,7 @@ export default function Analyzer({
       setResult(r);
       onAnalysisComplete?.(r);
     } catch (err) {
-      const isConnectionOrAuth =
-        (err instanceof ApiError && (err.code === "byok_required" || err.status === 0)) ||
-        /fetch|unauthorized|Sign in/i.test(err instanceof Error ? err.message : String(err));
-
-      if (isConnectionOrAuth) {
+      if (preview) {
         setStage("Ingesting multi-modal container signals & metadata");
         await new Promise((res) => setTimeout(res, 1200));
         setStage("Triangulating across wire registries & press consensus");

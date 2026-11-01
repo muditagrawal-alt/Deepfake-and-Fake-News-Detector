@@ -63,3 +63,21 @@ def test_metadata_ai_signatures():
     assert "c2pa_iptc_trained_algorithmic" in tools
     assert "generative_generation_metadata" in tools
 
+
+def test_analyze_image_caption_dispatch(monkeypatch, tmp_path: Path):
+    from unittest.mock import AsyncMock, patch
+    from detector.pipeline import analyze
+    import asyncio
+
+    test_file = tmp_path / "sample.jpg"
+    Image.new("RGB", (64, 64), color="white").save(test_file)
+
+    with patch("detector.pipeline.analyze_image", new_callable=AsyncMock) as mock_analyze_image:
+        mock_analyze_image.return_value = "mock_result"
+        res = asyncio.run(analyze(image_path=str(test_file), caption="test caption"))
+        assert res == "mock_result"
+        mock_analyze_image.assert_awaited_once()
+        _, kwargs = mock_analyze_image.call_args
+        assert kwargs.get("caption") == "test caption"
+
+

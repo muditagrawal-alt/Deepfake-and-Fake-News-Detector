@@ -32,14 +32,14 @@
 
 <div align="center">
 
-### 🎬 Product Walkthrough Demo
+### 🎬 Platform Walkthrough & Live Demo
 
 <a href="docs/assets/demo.mp4">
-  <img src="docs/assets/demo.gif" alt="Veritas Platform End-to-End Walkthrough" width="920" style="border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"/>
+  <img src="docs/assets/demo.gif" alt="Veritas Platform End-to-End Walkthrough" width="940" style="border-radius: 10px; border: 1px solid #3f3f46; box-shadow: 0 16px 40px rgba(0,0,0,0.6);"/>
 </a>
 
-<p align="center">
-  <sub>🎥 <b><a href="docs/assets/demo.mp4">Watch Full Cinematic Demo Video (52s, 1080p with Movie Subtitles & Ambient Soundtrack)</a></b></sub>
+<p align="center" style="margin-top: 10px;">
+  <b><a href="docs/assets/demo.mp4">▶ Watch Full 720p HD Demo Video</a></b> (51s • Movie Subtitles • Ambient Soundtrack • Landing Page & Workspace Walkthrough)
 </p>
 
 </div>

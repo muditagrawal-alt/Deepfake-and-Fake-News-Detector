@@ -190,3 +190,4 @@ await record("tech_stack", async (page) => {
 writeFileSync(join(OUT, "segments.json"), JSON.stringify(segments, null, 2));
 await browser.close();
 console.log(`[DONE] All segments written to ${join(OUT, "segments.json")}`);
+

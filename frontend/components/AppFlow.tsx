@@ -26,6 +26,7 @@ import Intro from "@/components/Intro";
 import Authentication1 from "@/components/Authentication1";
 import Analyzer, { type AnalyzerMode } from "@/components/Analyzer";
 import ResultCard from "@/components/ResultCard";
+import Ferrofluid from "@/components/ui/Ferrofluid";
 import {
   clearHistory,
   deleteAccount,
@@ -590,10 +591,28 @@ function Workspace({ user }: { user: User }) {
   const itemIcon = (modality: AnalysisResult["modality"]) => modality === "news" ? Newspaper : modality === "image" ? ImageIcon : FilmStrip;
 
   return (
-    <div data-app-stage="workspace" className="workspace-shell min-h-[calc(100dvh-4.25rem)]">
-      <div className="mx-auto flex max-w-[1440px]">
+    <div data-app-stage="workspace" className="workspace-shell relative min-h-[calc(100dvh-4.25rem)] overflow-hidden">
+      {/* Background Ferrofluid Canvas */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-45 select-none"
+      >
+        <Ferrofluid
+          colors={["#00e5ff", "#3b82f6", "#ffffff"]}
+          spikeHeight={1}
+          sharpness={2.5}
+          tilt={48}
+          magnets={2}
+          mouseInteraction
+          clickPulse
+          transparent
+          opacity={0.8}
+        />
+      </div>
+
+      <div className="relative z-10 mx-auto flex max-w-[1440px]">
         <Sidebar open={sidebarExpanded} setOpen={setSidebarExpanded}>
-          <SidebarBody className="justify-between gap-6 border-r border-line bg-bg dark:bg-[#070709] h-[calc(100dvh-68px)] md:sticky md:top-[68px]">
+          <SidebarBody className="justify-between gap-6 border-r border-line/60 bg-bg/80 dark:bg-[#070709]/80 backdrop-blur-xl h-[calc(100dvh-68px)] md:sticky md:top-[68px]">
             <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
               <Link
                 href="/"
